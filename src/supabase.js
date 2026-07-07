@@ -38,7 +38,7 @@ export const db = {
     if (isSupabaseConfigured) {
       const { data, error } = await supabase
         .from('users')
-        .upsert({ telegram_id: telegramId, first_name: firstName, username })
+        .upsert({ telegram_id: telegramId, first_name: firstName, username }, { onConflict: 'telegram_id' })
         .select()
         .single();
       if (error) throw error;
