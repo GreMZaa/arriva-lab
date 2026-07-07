@@ -34,18 +34,25 @@ export const getTelegramIdHash = (usernameOrId) => {
 // Database interface layer with LocalStorage fallback
 export const db = {
   // Create user
-  async createUser(telegramId, firstName, username = '') {
+  async createUser(telegramId, firstName, username = '', email = null) {
     if (isSupabaseConfigured) {
+      const payload = { first_name: firstName };
+      if (telegramId) payload.telegram_id = telegramId;
+      if (username) payload.username = username;
+      if (email) payload.email = email;
+
+      const conflictCol = email ? 'email' : 'telegram_id';
+
       const { data, error } = await supabase
         .from('users')
-        .upsert({ telegram_id: telegramId, first_name: firstName, username }, { onConflict: 'telegram_id' })
+        .upsert(payload, { onConflict: conflictCol })
         .select()
         .single();
       if (error) throw error;
       return data;
     } else {
       const users = JSON.parse(localStorage.getItem('arriva_users') || '[]');
-      const existingUser = users.find(u => u.telegram_id === telegramId);
+      const existingUser = users.find(u => (telegramId && u.telegram_id === telegramId) || (email && u.email === email));
       if (existingUser) return existingUser;
       
       const newUser = {
@@ -53,6 +60,7 @@ export const db = {
         telegram_id: telegramId,
         first_name: firstName,
         username,
+        email,
         registered_at: new Date().toISOString()
       };
       users.push(newUser);
@@ -115,36 +123,49 @@ export const db = {
   },
 
   // Generate login code (useful for mock testing)
-  async generateLoginCode(telegramId) {
+  async generateLoginCode(telegramId, email = null) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     if (isSupabaseConfigured) {
+      const payload = { code, created_at: new Date().toISOString() };
+      if (telegramId) payload.telegram_id = telegramId;
+      if (email) payload.email = email;
+
+      const conflictCol = email ? 'email' : 'telegram_id';
+
       const { error } = await supabase
         .from('login_codes')
-        .upsert({ telegram_id: telegramId, code, created_at: new Date().toISOString() });
+        .upsert(payload, { onConflict: conflictCol });
       if (error) throw error;
       return code;
     } else {
+      const key = email || telegramId;
       const codes = JSON.parse(localStorage.getItem('arriva_login_codes') || '{}');
-      codes[telegramId] = code;
+      codes[key] = code;
       localStorage.setItem('arriva_login_codes', JSON.stringify(codes));
       return code;
     }
   },
 
   // Verify login code
-  async verifyLoginCode(telegramId, inputCode) {
+  async verifyLoginCode(telegramId, inputCode, email = null) {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase
+      const query = supabase
         .from('login_codes')
-        .select('code')
-        .eq('telegram_id', telegramId)
-        .single();
+        .select('code');
       
+      if (email) {
+        query.eq('email', email);
+      } else {
+        query.eq('telegram_id', telegramId);
+      }
+
+      const { data, error } = await query.maybeSingle();
       if (error || !data) return false;
       return data.code === inputCode;
     } else {
+      const key = email || telegramId;
       const codes = JSON.parse(localStorage.getItem('arriva_login_codes') || '{}');
-      return codes[telegramId] === inputCode;
+      return codes[key] === inputCode;
     }
   },
 

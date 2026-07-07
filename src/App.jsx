@@ -72,7 +72,9 @@ export default function App() {
   
   // Cabinet state
   const [cabinetUser, setCabinetUser] = useState(null);
+  const [cabinetLoginMethod, setCabinetLoginMethod] = useState('telegram'); // 'telegram', 'email'
   const [cabinetTelegramInput, setCabinetTelegramInput] = useState('');
+  const [cabinetEmailInput, setCabinetEmailInput] = useState('');
   const [cabinetCodeInput, setCabinetCodeInput] = useState('');
   const [cabinetCodeSent, setCabinetCodeSent] = useState(false);
   const [cabinetCodeLoading, setCabinetCodeLoading] = useState(false);
@@ -215,25 +217,51 @@ export default function App() {
 
   // Cabinet Auth Flow
   const handleRequestCabinetCode = async () => {
-    if (!cabinetTelegramInput) {
-      setCabinetError('Пожалуйста, введите ваш Telegram ID или Username');
-      return;
+    if (cabinetLoginMethod === 'telegram') {
+      if (!cabinetTelegramInput) {
+        setCabinetError('Пожалуйста, введите ваш Telegram ID или Username');
+        return;
+      }
+    } else {
+      if (!cabinetEmailInput) {
+        setCabinetError('Пожалуйста, введите ваш Email');
+        return;
+      }
     }
     setCabinetError('');
     setCabinetCodeLoading(true);
     try {
-      const tgId = getTelegramIdHash(cabinetTelegramInput);
-      const code = await db.generateLoginCode(tgId);
-      
-      try {
-        const res = await fetch(`/api/send-code?input=${encodeURIComponent(cabinetTelegramInput)}&code=${code}`);
-        const resData = await res.json();
-        if (!res.ok) {
-          throw new Error(resData.error || 'Ошибка');
+      if (cabinetLoginMethod === 'telegram') {
+        const tgId = getTelegramIdHash(cabinetTelegramInput);
+        const code = await db.generateLoginCode(tgId);
+        
+        try {
+          const res = await fetch(`/api/send-code?input=${encodeURIComponent(cabinetTelegramInput)}&code=${code}`);
+          const resData = await res.json();
+          if (!res.ok) {
+            throw new Error(resData.error || 'Ошибка');
+          }
+          setCabinetSuccessMessage('Код отправлен в Telegram-бот!');
+        } catch (botErr) {
+          setCabinetSuccessMessage(`Код отправлен! (Для теста введите: ${code})`);
         }
-        setCabinetSuccessMessage('Код отправлен в Telegram-бот!');
-      } catch (botErr) {
-        setCabinetSuccessMessage(`Код отправлен! (Для теста введите: ${code})`);
+      } else {
+        const code = await db.generateLoginCode(null, cabinetEmailInput);
+        
+        try {
+          const res = await fetch(`/api/send-email-code?email=${encodeURIComponent(cabinetEmailInput)}&code=${code}`);
+          const resData = await res.json();
+          if (!res.ok) {
+            throw new Error(resData.error || 'Ошибка');
+          }
+          if (resData.debug) {
+            setCabinetSuccessMessage(`Код отправлен! (Для теста введите: ${code})`);
+          } else {
+            setCabinetSuccessMessage('Код отправлен на вашу почту!');
+          }
+        } catch (mailErr) {
+          setCabinetSuccessMessage(`Код отправлен! (Для теста введите: ${code})`);
+        }
       }
       setCabinetCodeSent(true);
     } catch (err) {
@@ -251,13 +279,26 @@ export default function App() {
     setCabinetError('');
     setCabinetLoginLoading(true);
     try {
-      const tgId = getTelegramIdHash(cabinetTelegramInput);
-      const success = await db.verifyLoginCode(tgId, cabinetCodeInput);
-      if (success) {
-        // Find or create user
-        const user = await db.createUser(tgId, cabinetTelegramInput.replace('@', ''), cabinetTelegramInput);
+      let success = false;
+      let user = null;
+
+      if (cabinetLoginMethod === 'telegram') {
+        const tgId = getTelegramIdHash(cabinetTelegramInput);
+        success = await db.verifyLoginCode(tgId, cabinetCodeInput);
+        if (success) {
+          user = await db.createUser(tgId, cabinetTelegramInput.replace('@', ''), cabinetTelegramInput);
+        }
+      } else {
+        success = await db.verifyLoginCode(null, cabinetCodeInput, cabinetEmailInput);
+        if (success) {
+          user = await db.createUser(null, cabinetEmailInput.split('@')[0], '', cabinetEmailInput);
+        }
+      }
+
+      if (success && user) {
         setCabinetUser(user);
         setCabinetTelegramInput('');
+        setCabinetEmailInput('');
         setCabinetCodeInput('');
         setCabinetCodeSent(false);
         setCabinetSuccessMessage('');
@@ -1011,7 +1052,27 @@ export default function App() {
                     <User className="w-6 h-6" />
                   </div>
                   <h3 className="text-2xl font-extrabold text-gray-900">Вход в Личный кабинет</h3>
-                  <p className="text-xs text-gray-500">Вход по коду подтверждения Telegram для безопасности</p>
+                  <p className="text-xs text-gray-500">Получите одноразовый код для безопасного входа</p>
+                </div>
+
+                {/* Login Method Tabs */}
+                <div className="flex border border-gray-100 rounded-xl p-1 bg-gray-50">
+                  <button
+                    type="button"
+                    disabled={cabinetCodeSent}
+                    onClick={() => setCabinetLoginMethod('telegram')}
+                    className={`flex-grow text-xs font-semibold py-2 px-3 rounded-lg transition-all ${cabinetLoginMethod === 'telegram' ? 'bg-white text-gray-950 shadow-sm' : 'text-gray-400 hover:text-gray-600 disabled:opacity-50'}`}
+                  >
+                    Telegram-бот
+                  </button>
+                  <button
+                    type="button"
+                    disabled={cabinetCodeSent}
+                    onClick={() => setCabinetLoginMethod('email')}
+                    className={`flex-grow text-xs font-semibold py-2 px-3 rounded-lg transition-all ${cabinetLoginMethod === 'email' ? 'bg-white text-gray-950 shadow-sm' : 'text-gray-400 hover:text-gray-600 disabled:opacity-50'}`}
+                  >
+                    Электронная почта
+                  </button>
                 </div>
 
                 {cabinetError && (
@@ -1026,27 +1087,43 @@ export default function App() {
                 )}
 
                 <div className="space-y-4">
-                  <div className="form-group">
-                    <label className="text-xs font-bold uppercase text-gray-500">Telegram Username или ID</label>
-                    <input 
-                      type="text" 
-                      placeholder="@arriva_lab" 
-                      disabled={cabinetCodeSent}
-                      value={cabinetTelegramInput}
-                      onChange={(e) => setCabinetTelegramInput(e.target.value)}
-                      className="form-control placeholder-gray-400"
-                    />
-                  </div>
+                  {cabinetLoginMethod === 'telegram' ? (
+                    <div className="form-group">
+                      <label className="text-xs font-bold uppercase text-gray-500">Telegram Username или ID</label>
+                      <input 
+                        type="text" 
+                        placeholder="@arriva_lab" 
+                        disabled={cabinetCodeSent}
+                        value={cabinetTelegramInput}
+                        onChange={(e) => setCabinetTelegramInput(e.target.value)}
+                        className="form-control placeholder-gray-400 mt-1"
+                      />
+                    </div>
+                  ) : (
+                    <div className="form-group">
+                      <label className="text-xs font-bold uppercase text-gray-500">Ваш Email адрес</label>
+                      <input 
+                        type="email" 
+                        placeholder="user@example.com" 
+                        disabled={cabinetCodeSent}
+                        value={cabinetEmailInput}
+                        onChange={(e) => setCabinetEmailInput(e.target.value)}
+                        className="form-control placeholder-gray-400 mt-1"
+                      />
+                    </div>
+                  )}
 
                   {cabinetCodeSent && (
                     <div className="form-group">
-                      <label className="text-xs font-bold uppercase text-gray-500">Код подтверждения из Telegram</label>
+                      <label className="text-xs font-bold uppercase text-gray-500">
+                        Код подтверждения из {cabinetLoginMethod === 'telegram' ? 'Telegram' : 'почты'}
+                      </label>
                       <input 
                         type="text" 
                         placeholder="123456" 
                         value={cabinetCodeInput}
                         onChange={(e) => setCabinetCodeInput(e.target.value)}
-                        className="form-control placeholder-gray-400"
+                        className="form-control placeholder-gray-400 mt-1"
                       />
                     </div>
                   )}
@@ -1055,7 +1132,7 @@ export default function App() {
                     <button 
                       onClick={handleRequestCabinetCode}
                       disabled={cabinetCodeLoading}
-                      className="btn btn-primary w-full py-4 text-sm"
+                      className="btn btn-primary w-full py-4 text-sm mt-2"
                     >
                       {cabinetCodeLoading ? 'Отправка...' : 'Получить код'}
                     </button>
@@ -1097,7 +1174,7 @@ export default function App() {
                       </div>
                       <div>
                         <h4 className="font-bold text-gray-900 text-sm">{cabinetUser.first_name || 'Клиент'}</h4>
-                        <span className="text-xs text-gray-400">{cabinetUser.username || `@id_${cabinetUser.telegram_id}`}</span>
+                        <span className="text-xs text-gray-400">{cabinetUser.email || cabinetUser.username || `@id_${cabinetUser.telegram_id}`}</span>
                       </div>
                     </div>
 
