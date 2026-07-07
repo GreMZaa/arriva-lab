@@ -89,7 +89,8 @@ export default function App() {
 
   // CRM state
   const [crmLoggedIn, setCrmLoggedIn] = useState(false);
-  const [crmPasscode, setCrmPasscode] = useState('');
+  const [crmUsername, setCrmUsername] = useState('');
+  const [crmPassword, setCrmPassword] = useState('');
   const [crmError, setCrmError] = useState('');
   const [crmApplications, setCrmApplications] = useState([]);
   const [crmPurchases, setCrmPurchases] = useState([]);
@@ -247,11 +248,14 @@ export default function App() {
 
   // CRM Auth & Actions
   const handleCrmLogin = () => {
-    if (crmPasscode === 'admin' || crmPasscode === '1234') {
+    const adminUser = import.meta.env.VITE_ADMIN_USERNAME || 'ssharonovv';
+    const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'ArrivaAdmin26!#';
+
+    if (crmUsername === adminUser && crmPassword === adminPass) {
       setCrmLoggedIn(true);
       setCrmError('');
     } else {
-      setCrmError('Неверный пароль администратора');
+      setCrmError('Неверный логин или пароль администратора');
     }
   };
 
@@ -1293,19 +1297,28 @@ export default function App() {
 
                 <div className="space-y-4">
                   <div className="form-group">
-                    <label className="text-xs font-bold uppercase text-gray-500">Пароль Администратора</label>
+                    <label className="text-xs font-bold uppercase text-gray-500">Логин Администратора</label>
+                    <input 
+                      type="text" 
+                      placeholder="Username" 
+                      value={crmUsername}
+                      onChange={(e) => setCrmUsername(e.target.value)}
+                      className="form-control mt-1"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="text-xs font-bold uppercase text-gray-500">Пароль</label>
                     <input 
                       type="password" 
-                      placeholder="••••" 
-                      value={crmPasscode}
-                      onChange={(e) => setCrmPasscode(e.target.value)}
+                      placeholder="••••••••" 
+                      value={crmPassword}
+                      onChange={(e) => setCrmPassword(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleCrmLogin()}
-                      className="form-control"
+                      className="form-control mt-1"
                     />
-                    <p className="text-[10px] text-gray-400 mt-2">Совет: используйте пароль: <b>admin</b> или <b>1234</b></p>
                   </div>
 
-                  <button onClick={handleCrmLogin} className="btn btn-dark w-full py-4 text-sm">
+                  <button onClick={handleCrmLogin} className="btn btn-dark w-full py-4 text-sm mt-2">
                     Авторизоваться
                   </button>
                 </div>
@@ -1337,7 +1350,7 @@ export default function App() {
                   </div>
 
                   <button 
-                    onClick={() => { setCrmLoggedIn(false); setCrmPasscode(''); }}
+                    onClick={() => { setCrmLoggedIn(false); setCrmUsername(''); setCrmPassword(''); }}
                     className="flex items-center gap-2 text-xs font-bold text-red-400 hover:text-red-300 px-3 py-2 hover:bg-white/5 rounded-xl text-left"
                   >
                     <LogOut className="w-4 h-4" /> Выйти
