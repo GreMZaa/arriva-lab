@@ -369,7 +369,7 @@ export default function App() {
                   <span className="inline-flex items-center gap-2 px-3 py-1 bg-[#9FE870]/20 border border-[#9FE870]/40 text-[#123d0c] font-semibold text-xs rounded-full uppercase tracking-wider">
                     <Sparkles className="w-3.5 h-3.5" /> Лаборатория VTubing под ключ
                   </span>
-                  <h1 className="text-gray-900 tracking-tight leading-none font-black">
+                  <h1 className="text-gray-900 tracking-tight leading-[1.15] font-black text-4xl sm:text-5xl lg:text-6xl">
                     Запуск <br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500">VTuber-карьеры</span> <br />
                     под ключ
