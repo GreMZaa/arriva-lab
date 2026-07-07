@@ -130,7 +130,24 @@ export default function App() {
       // Ensure user entry exists
       await db.createUser(tgId, contactName, contactTelegram);
       // Submit app
-      await db.submitApplication(tgId, contactName, contactDate || new Date().toISOString().split('T')[0], contactAbout);
+      const app = await db.submitApplication(tgId, contactName, contactDate || new Date().toISOString().split('T')[0], contactAbout);
+      
+      // Notify Admin Group via Serverless API!
+      try {
+        await fetch(`/api/notify-admin`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: app.id,
+            name: contactName,
+            telegram: contactTelegram,
+            wishes: `Дата рождения: ${contactDate || 'не указана'}. Пожелания: ${contactAbout || 'не указаны'}`
+          })
+        });
+      } catch (notifyErr) {
+        console.error('Failed to send admin notification:', notifyErr);
+      }
+
       setContactSubmitted(true);
       confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
     } catch (error) {
@@ -208,8 +225,16 @@ export default function App() {
       const tgId = getTelegramIdHash(cabinetTelegramInput);
       const code = await db.generateLoginCode(tgId);
       
-      // Helper message for user since there's no real bot in the demo
-      setCabinetSuccessMessage(`Код успешно отправлен! Для демонстрации используйте код: ${code}`);
+      try {
+        const res = await fetch(`/api/send-code?input=${encodeURIComponent(cabinetTelegramInput)}&code=${code}`);
+        const resData = await res.json();
+        if (!res.ok) {
+          throw new Error(resData.error || 'Ошибка');
+        }
+        setCabinetSuccessMessage('Код отправлен в Telegram-бот!');
+      } catch (botErr) {
+        setCabinetSuccessMessage(`Код отправлен! (Для теста введите: ${code})`);
+      }
       setCabinetCodeSent(true);
     } catch (err) {
       setCabinetError('Ошибка генерации кода: ' + err.message);
