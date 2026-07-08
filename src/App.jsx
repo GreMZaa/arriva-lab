@@ -152,6 +152,8 @@ export default function App() {
   }, [cabinetUser]);
 
   const [cabinetLoginMethod, setCabinetLoginMethod] = useState('telegram'); // 'telegram', 'email'
+  const [cabinetAuthMode, setCabinetAuthMode] = useState('login'); // 'login', 'register'
+  const [cabinetRegisterName, setCabinetRegisterName] = useState('');
   const [cabinetTelegramInput, setCabinetTelegramInput] = useState('');
   const [cabinetEmailInput, setCabinetEmailInput] = useState('');
   const [cabinetCodeInput, setCabinetCodeInput] = useState('');
@@ -324,9 +326,28 @@ export default function App() {
         return;
       }
     }
+
+    if (cabinetAuthMode === 'register' && !cabinetRegisterName.trim()) {
+      setCabinetError('Пожалуйста, введите ваше имя для регистрации');
+      return;
+    }
+
     setCabinetError('');
     setCabinetCodeLoading(true);
     try {
+      const existingUser = await db.findUserByEmailOrTelegram(
+        cabinetLoginMethod === 'email' ? cabinetEmailInput : null,
+        cabinetLoginMethod === 'telegram' ? getTelegramIdHash(cabinetTelegramInput) : null
+      );
+
+      if (cabinetAuthMode === 'login' && !existingUser) {
+        throw new Error('Пользователь не найден. Пожалуйста, сначала пройдите регистрацию.');
+      }
+
+      if (cabinetAuthMode === 'register' && existingUser) {
+        throw new Error('Пользователь с такими данными уже зарегистрирован. Пожалуйста, перейдите ко входу.');
+      }
+
       if (cabinetLoginMethod === 'telegram') {
         const tgId = getTelegramIdHash(cabinetTelegramInput);
         const code = await db.generateLoginCode(tgId);
@@ -368,7 +389,7 @@ export default function App() {
         }
       }
     } catch (err) {
-      setCabinetError('Ошибка генерации кода: ' + err.message);
+      setCabinetError(err.message);
     } finally {
       setCabinetCodeLoading(false);
     }
@@ -389,12 +410,14 @@ export default function App() {
         const tgId = getTelegramIdHash(cabinetTelegramInput);
         success = await db.verifyLoginCode(tgId, cabinetCodeInput);
         if (success) {
-          user = await db.createUser(tgId, cabinetTelegramInput.replace('@', ''), cabinetTelegramInput);
+          const displayName = cabinetAuthMode === 'register' ? cabinetRegisterName.trim() : cabinetTelegramInput.replace('@', '');
+          user = await db.createUser(tgId, displayName, cabinetTelegramInput);
         }
       } else {
         success = await db.verifyLoginCode(null, cabinetCodeInput, cabinetEmailInput);
         if (success) {
-          user = await db.createUser(null, cabinetEmailInput.split('@')[0], '', cabinetEmailInput);
+          const displayName = cabinetAuthMode === 'register' ? cabinetRegisterName.trim() : cabinetEmailInput.split('@')[0];
+          user = await db.createUser(null, displayName, '', cabinetEmailInput);
         }
       }
 
@@ -403,6 +426,7 @@ export default function App() {
         setCabinetTelegramInput('');
         setCabinetEmailInput('');
         setCabinetCodeInput('');
+        setCabinetRegisterName('');
         setCabinetCodeSent(false);
         setCabinetSuccessMessage('');
       } else {
@@ -415,11 +439,21 @@ export default function App() {
     }
   };
 
-  // 1-Click Login via Official Telegram Widget
+  // 1-Click Login/Register via Official Telegram Widget
   const handleTelegramWidgetAuth = async (tgUser) => {
     setCabinetError('');
     setCabinetLoginLoading(true);
     try {
+      const existingUser = await db.findUserByEmailOrTelegram(null, tgUser.id);
+
+      if (cabinetAuthMode === 'login' && !existingUser) {
+        throw new Error('Пользователь не найден. Пожалуйста, сначала пройдите регистрацию.');
+      }
+
+      if (cabinetAuthMode === 'register' && existingUser) {
+        throw new Error('Пользователь с таким Telegram аккаунтом уже зарегистрирован. Пожалуйста, выполните вход.');
+      }
+
       const res = await fetch('/api/telegram-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -432,7 +466,7 @@ export default function App() {
 
       const user = await db.createUser(
         resData.user.telegram_id, 
-        resData.user.first_name, 
+        cabinetAuthMode === 'register' ? (cabinetRegisterName.trim() || resData.user.first_name) : resData.user.first_name, 
         resData.user.username
       );
 
@@ -440,14 +474,16 @@ export default function App() {
       setCabinetTelegramInput('');
       setCabinetEmailInput('');
       setCabinetCodeInput('');
+      setCabinetRegisterName('');
       setCabinetCodeSent(false);
-      setCabinetSuccessMessage('Вы успешно авторизовались через Telegram!');
+      setCabinetSuccessMessage(cabinetAuthMode === 'register' ? 'Вы успешно зарегистрировались через Telegram!' : 'Вы успешно вошли через Telegram!');
     } catch (err) {
-      setCabinetError('Ошибка авторизации через Telegram: ' + err.message);
+      setCabinetError(err.message);
     } finally {
       setCabinetLoginLoading(false);
     }
   };
+
 
   // Link Telegram via Official Widget in Profile
   const handleLinkTelegramWidgetAuth = async (tgUser) => {
@@ -1358,14 +1394,49 @@ export default function App() {
         {view === 'cabinet' && (
           <div className="animate-fade-in max-w-7xl mx-auto px-6 py-12">
             {!cabinetUser ? (
-              // Login screen
+              // Login & Registration screen
               <div className="max-w-md mx-auto bg-white border border-gray-100 rounded-3xl p-8 shadow-xl text-left space-y-6">
+                
+                {/* Auth Mode Selector (Tabs) */}
+                <div className="flex border border-gray-100 rounded-2xl p-1 bg-gray-50/50">
+                  <button
+                    type="button"
+                    disabled={cabinetCodeSent}
+                    onClick={() => {
+                      setCabinetAuthMode('login');
+                      setCabinetError('');
+                      setCabinetSuccessMessage('');
+                    }}
+                    className={`flex-grow text-xs font-bold py-2.5 px-4 rounded-xl transition-all duration-200 ${cabinetAuthMode === 'login' ? 'bg-white text-gray-950 shadow-sm border border-gray-100' : 'text-gray-400 hover:text-gray-600 disabled:opacity-50'}`}
+                  >
+                    Вход
+                  </button>
+                  <button
+                    type="button"
+                    disabled={cabinetCodeSent}
+                    onClick={() => {
+                      setCabinetAuthMode('register');
+                      setCabinetError('');
+                      setCabinetSuccessMessage('');
+                    }}
+                    className={`flex-grow text-xs font-bold py-2.5 px-4 rounded-xl transition-all duration-200 ${cabinetAuthMode === 'register' ? 'bg-white text-gray-950 shadow-sm border border-gray-100' : 'text-gray-400 hover:text-gray-600 disabled:opacity-50'}`}
+                  >
+                    Регистрация
+                  </button>
+                </div>
+
                 <div className="text-center space-y-2">
                   <div className="w-12 h-12 bg-lime-50 rounded-2xl flex items-center justify-center text-[#123d0c] font-bold text-xl mx-auto">
                     <User className="w-6 h-6" />
                   </div>
-                  <h3 className="text-2xl font-extrabold text-gray-900">Вход в Личный кабинет</h3>
-                  <p className="text-xs text-gray-500">Получите одноразовый код для безопасного входа</p>
+                  <h3 className="text-2xl font-extrabold text-gray-900">
+                    {cabinetAuthMode === 'login' ? 'Вход в Личный кабинет' : 'Регистрация в системе'}
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    {cabinetAuthMode === 'login' 
+                      ? 'Получите одноразовый код для входа' 
+                      : 'Создайте профиль клиента ARRIVA lab'}
+                  </p>
                 </div>
 
                 {/* Login Method Tabs */}
@@ -1400,6 +1471,19 @@ export default function App() {
                 )}
 
                 <div className="space-y-4">
+                  {cabinetAuthMode === 'register' && !cabinetCodeSent && (
+                    <div className="form-group animate-fade-in">
+                      <label className="text-xs font-bold uppercase text-gray-500">Ваше Имя</label>
+                      <input 
+                        type="text" 
+                        placeholder="Александр" 
+                        value={cabinetRegisterName}
+                        onChange={(e) => setCabinetRegisterName(e.target.value)}
+                        className="form-control placeholder-gray-400 mt-1"
+                      />
+                    </div>
+                  )}
+
                   {cabinetLoginMethod === 'telegram' ? (
                     <div className="form-group">
                       <label className="text-xs font-bold uppercase text-gray-500">Telegram Username или ID</label>
@@ -1427,7 +1511,7 @@ export default function App() {
                   )}
 
                   {cabinetCodeSent && (
-                    <div className="form-group">
+                    <div className="form-group animate-fade-in">
                       <label className="text-xs font-bold uppercase text-gray-500">
                         Код подтверждения из {cabinetLoginMethod === 'telegram' ? 'Telegram' : 'почты'}
                       </label>
@@ -1446,9 +1530,9 @@ export default function App() {
                       <button 
                         onClick={handleRequestCabinetCode}
                         disabled={cabinetCodeLoading}
-                        className="btn btn-primary w-full py-4 text-sm mt-2"
+                        className="btn btn-primary w-full py-4 text-sm mt-2 font-bold"
                       >
-                        {cabinetCodeLoading ? 'Отправка...' : 'Получить код'}
+                        {cabinetCodeLoading ? 'Отправка...' : (cabinetAuthMode === 'login' ? 'Получить код' : 'Зарегистрироваться')}
                       </button>
 
                       {cabinetLoginMethod === 'telegram' && (
@@ -1465,9 +1549,9 @@ export default function App() {
                       <button 
                         onClick={handleCabinetLogin}
                         disabled={cabinetLoginLoading}
-                        className="btn btn-primary w-full py-4 text-sm"
+                        className="btn btn-primary w-full py-4 text-sm font-bold"
                       >
-                        {cabinetLoginLoading ? 'Вход...' : 'Войти'}
+                        {cabinetLoginLoading ? 'Вход...' : (cabinetAuthMode === 'login' ? 'Войти' : 'Завершить регистрацию')}
                       </button>
                       <button 
                         onClick={() => { setCabinetCodeSent(false); setCabinetSuccessMessage(''); }}
@@ -1481,7 +1565,9 @@ export default function App() {
 
                 <div className="border-t border-gray-100 pt-4 text-center">
                   <p className="text-[11px] text-gray-400">
-                    *Если вы еще не отправляли заявку или не проходили квиз, вход автоматически зарегистрирует вас в системе.
+                    {cabinetAuthMode === 'login' 
+                      ? '*Если у вас еще нет аккаунта, перейдите на вкладку «Регистрация» выше.' 
+                      : '*После ввода кода подтверждения ваш аккаунт будет создан.'}
                   </p>
                 </div>
               </div>
