@@ -28,34 +28,34 @@ import {
 } from 'lucide-react';
 import { db, getTelegramIdHash } from './supabase';
 const TelegramLoginWidget = ({ botName, onAuth, showDivider = true }) => {
-  const ref = React.useRef(null);
-
   React.useEffect(() => {
-    if (ref.current) {
-      ref.current.innerHTML = '';
+    if (!document.getElementById('telegram-widget-script')) {
+      const script = document.createElement('script');
+      script.id = 'telegram-widget-script';
+      script.src = 'https://telegram.org/js/telegram-widget.js?22';
+      script.async = true;
+      document.body.appendChild(script);
     }
+  }, []);
 
-    window.onTelegramAuth = (user) => {
-      onAuth(user);
-    };
-
-    const script = document.createElement('script');
-    script.src = 'https://telegram.org/js/telegram-widget.js?22';
-    script.async = true;
-    script.setAttribute('data-telegram-login', botName || 'ArrivalLabBOT');
-    script.setAttribute('data-size', 'large');
-    script.setAttribute('data-radius', '16');
-    script.setAttribute('data-request-access', 'write');
-    script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-
-    if (ref.current) {
-      ref.current.appendChild(script);
+  const handleLoginClick = () => {
+    if (window.Telegram && window.Telegram.Login) {
+      const clientId = import.meta.env.VITE_TELEGRAM_CLIENT_ID || '8612623191';
+      window.Telegram.Login.auth(
+        {
+          bot_id: clientId,
+          request_access: 'write'
+        },
+        (user) => {
+          if (user) {
+            onAuth(user);
+          }
+        }
+      );
+    } else {
+      alert('Загрузка авторизации Telegram... Пожалуйста, попробуйте еще раз через секунду.');
     }
-
-    return () => {
-      // Keep handler active
-    };
-  }, [botName, onAuth]);
+  };
 
   return (
     <div className="flex flex-col items-center justify-center py-2 w-full space-y-3">
@@ -66,10 +66,16 @@ const TelegramLoginWidget = ({ botName, onAuth, showDivider = true }) => {
           <div className="flex-grow border-t border-gray-100"></div>
         </div>
       )}
-      <div 
-        ref={ref} 
-        className="flex justify-center items-center overflow-hidden min-h-[40px] w-full"
-      />
+      <button
+        onClick={handleLoginClick}
+        type="button"
+        className="flex items-center justify-center gap-3 px-6 py-3.5 bg-[#24A1DE] text-white font-bold text-sm rounded-2xl border border-transparent shadow-[0_4px_14px_rgba(36,161,222,0.3)] transition-all hover:bg-[#2092CA] hover:scale-[1.02] active:scale-[0.98] duration-200 w-full max-w-[280px]"
+      >
+        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.24-.213-.054-.33-.373-.12l-6.87 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.536-.204.996.12.8 1.054z" />
+        </svg>
+        Войти через Telegram
+      </button>
     </div>
   );
 };
