@@ -151,7 +151,7 @@ export default function App() {
     }
   }, [cabinetUser]);
 
-  const [cabinetLoginMethod, setCabinetLoginMethod] = useState('telegram'); // 'telegram', 'email'
+  const [cabinetLoginMethod, setCabinetLoginMethod] = useState('email'); // 'telegram', 'email'
   const [cabinetAuthMode, setCabinetAuthMode] = useState('login'); // 'login', 'register'
   const [cabinetRegisterName, setCabinetRegisterName] = useState('');
   const [cabinetTelegramInput, setCabinetTelegramInput] = useState('');
