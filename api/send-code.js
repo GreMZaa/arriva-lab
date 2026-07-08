@@ -7,7 +7,7 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
   if (req.method !== "POST" && req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({ error: "Метод не поддерживается" });
   }
 
   // Support both GET and POST for simplicity
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   const { input, code } = params;
 
   if (!input || !code) {
-    return res.status(400).json({ error: "Missing input or code parameter" });
+    return res.status(400).json({ error: "Отсутствуют параметры ввода или кода подтверждения" });
   }
 
   let chatId = null;
@@ -41,13 +41,13 @@ export default async function handler(req, res) {
       }
     } catch (err) {
       console.error("Error looking up username:", err);
-      return res.status(500).json({ error: "Database error during username lookup" });
+      return res.status(500).json({ error: "Ошибка базы данных при поиске пользователя" });
     }
   }
 
   if (!chatId) {
     return res.status(404).json({ 
-      error: "User not found. Please start the Telegram bot first using /start to link your username." 
+      error: "Пользователь не найден. Пожалуйста, сначала запустите Telegram-бота (напишите ему в ЛС команду /start), чтобы привязать ваш никнейм к системе." 
     });
   }
 
@@ -68,12 +68,12 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     if (!data.ok) {
-      throw new Error(data.description || "Telegram API error");
+      throw new Error(data.description || "ошибка Telegram API");
     }
 
     return res.status(200).json({ success: true, chat_id: chatId });
   } catch (err) {
     console.error("Error sending telegram message:", err);
-    return res.status(500).json({ error: "Failed to send code via Telegram: " + err.message });
+    return res.status(500).json({ error: "Не удалось отправить код через Telegram: " + err.message });
   }
 }

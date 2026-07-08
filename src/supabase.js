@@ -69,6 +69,140 @@ export const db = {
     }
   },
 
+  // Find user by email or telegram
+  async findUserByEmailOrTelegram(email = null, telegramId = null) {
+    if (isSupabaseConfigured) {
+      const query = supabase.from('users').select('*');
+      if (email) {
+        query.eq('email', email);
+      } else if (telegramId) {
+        query.eq('telegram_id', telegramId);
+      }
+      const { data, error } = await query.maybeSingle();
+      if (error) return null;
+      return data;
+    } else {
+      const users = JSON.parse(localStorage.getItem('arriva_users') || '[]');
+      return users.find(u => (email && u.email === email) || (telegramId && u.telegram_id === telegramId)) || null;
+    }
+  },
+
+  // Update user details directly
+  async updateUserDetails(id, updates) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } else {
+      const users = JSON.parse(localStorage.getItem('arriva_users') || '[]');
+      const index = users.findIndex(u => u.id === id);
+      if (index === -1) throw new Error('User not found');
+      users[index] = { ...users[index], ...updates };
+      localStorage.setItem('arriva_users', JSON.stringify(users));
+      return users[index];
+    }
+  },
+
+  // Merge two accounts (e.g. email-only account into telegram-only account, or vice versa)
+  async mergeAccounts(primaryUserId, secondaryUserId) {
+    if (isSupabaseConfigured) {
+      const { data: secUser, error: secErr } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', secondaryUserId)
+        .single();
+      if (secErr || !secUser) throw new Error('Secondary user not found');
+
+      const { data: primUser, error: primErr } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', primaryUserId)
+        .single();
+      if (primErr || !primUser) throw new Error('Primary user not found');
+
+      const updates = {};
+      if (!primUser.telegram_id && secUser.telegram_id) {
+        updates.telegram_id = secUser.telegram_id;
+        updates.username = secUser.username;
+      }
+      if (!primUser.email && secUser.email) {
+        updates.email = secUser.email;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        const { error: updErr } = await supabase
+          .from('users')
+          .update(updates)
+          .eq('id', primaryUserId);
+        if (updErr) throw updErr;
+      }
+
+      // Move purchases and applications from secondary to primary
+      if (secUser.telegram_id && primUser.telegram_id) {
+        const { error: purchErr } = await supabase
+          .from('purchases')
+          .update({ telegram_id: primUser.telegram_id })
+          .eq('telegram_id', secUser.telegram_id);
+        if (purchErr) console.error("Error transferring purchases:", purchErr);
+
+        const { error: appErr } = await supabase
+          .from('agency_applications')
+          .update({ telegram_id: primUser.telegram_id })
+          .eq('telegram_id', secUser.telegram_id);
+        if (appErr) console.error("Error transferring applications:", appErr);
+      }
+
+      // Delete secondary user account as it is now merged
+      const { error: delErr } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', secondaryUserId);
+      if (delErr) console.warn("Could not delete secondary user:", delErr);
+
+      return { ...primUser, ...updates };
+    } else {
+      const users = JSON.parse(localStorage.getItem('arriva_users') || '[]');
+      const primIdx = users.findIndex(u => u.id === primaryUserId);
+      const secIdx = users.findIndex(u => u.id === secondaryUserId);
+      if (primIdx === -1 || secIdx === -1) throw new Error('User not found');
+
+      const primUser = users[primIdx];
+      const secUser = users[secIdx];
+
+      if (!primUser.telegram_id && secUser.telegram_id) {
+        primUser.telegram_id = secUser.telegram_id;
+        primUser.username = secUser.username;
+      }
+      if (!primUser.email && secUser.email) {
+        primUser.email = secUser.email;
+      }
+
+      if (secUser.telegram_id && primUser.telegram_id) {
+        const purchases = JSON.parse(localStorage.getItem('arriva_purchases') || '[]');
+        purchases.forEach(p => {
+          if (p.telegram_id === secUser.telegram_id) p.telegram_id = primUser.telegram_id;
+        });
+        localStorage.setItem('arriva_purchases', JSON.stringify(purchases));
+
+        const apps = JSON.parse(localStorage.getItem('arriva_applications') || '[]');
+        apps.forEach(a => {
+          if (a.telegram_id === secUser.telegram_id) a.telegram_id = primUser.telegram_id;
+        });
+        localStorage.setItem('arriva_applications', JSON.stringify(apps));
+      }
+
+      const filteredUsers = users.filter(u => u.id !== secondaryUserId);
+      localStorage.setItem('arriva_users', JSON.stringify(filteredUsers));
+
+      return primUser;
+    }
+  },
+
   // Submit agency application
   async submitApplication(telegramId, fullName, birthDate, about) {
     if (isSupabaseConfigured) {
@@ -232,5 +366,234 @@ export const db = {
       }
       return purchases.sort((a, b) => new Date(b.paid_at) - new Date(a.paid_at));
     }
+  },
+
+  // Get all products
+  async getAllProducts() {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('id', { ascending: true });
+      if (error) throw error;
+      return data;
+    } else {
+      let products = JSON.parse(localStorage.getItem('arriva_products') || '[]');
+      if (products.length === 0) {
+        products = defaultProducts;
+        localStorage.setItem('arriva_products', JSON.stringify(products));
+      }
+      return products.sort((a, b) => a.id - b.id);
+    }
+  },
+
+  // Update product
+  async updateProduct(id, updates) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('products')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } else {
+      const products = JSON.parse(localStorage.getItem('arriva_products') || '[]');
+      const index = products.findIndex(p => p.id === id);
+      if (index === -1) throw new Error('Product not found');
+      products[index] = { ...products[index], ...updates };
+      localStorage.setItem('arriva_products', JSON.stringify(products));
+      return products[index];
+    }
+  },
+
+  // Create product
+  async createProduct(product) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('products')
+        .insert(product)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } else {
+      const products = JSON.parse(localStorage.getItem('arriva_products') || '[]');
+      const newProduct = {
+        ...product,
+        id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1
+      };
+      products.push(newProduct);
+      localStorage.setItem('arriva_products', JSON.stringify(products));
+      return newProduct;
+    }
+  },
+
+  // Delete product
+  async deleteProduct(id) {
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return true;
+    } else {
+      const products = JSON.parse(localStorage.getItem('arriva_products') || '[]');
+      const filtered = products.filter(p => p.id !== id);
+      localStorage.setItem('arriva_products', JSON.stringify(filtered));
+      return true;
+    }
+  },
+
+  // Get all quiz questions
+  async getAllQuestions() {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('quiz_questions')
+        .select('*')
+        .order('step_index', { ascending: true });
+      if (error) throw error;
+      return data;
+    } else {
+      let questions = JSON.parse(localStorage.getItem('arriva_questions') || '[]');
+      if (questions.length === 0) {
+        questions = defaultQuestions;
+        localStorage.setItem('arriva_questions', JSON.stringify(questions));
+      }
+      return questions.sort((a, b) => a.step_index - b.step_index);
+    }
+  },
+
+  // Update quiz question
+  async updateQuestion(id, updates) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('quiz_questions')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } else {
+      const questions = JSON.parse(localStorage.getItem('arriva_questions') || '[]');
+      const index = questions.findIndex(q => q.id === id);
+      if (index === -1) throw new Error('Question not found');
+      questions[index] = { ...questions[index], ...updates };
+      localStorage.setItem('arriva_questions', JSON.stringify(questions));
+      return questions[index];
+    }
+  },
+
+  // Create quiz question
+  async createQuestion(question) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('quiz_questions')
+        .insert(question)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } else {
+      const questions = JSON.parse(localStorage.getItem('arriva_questions') || '[]');
+      const newQuestion = {
+        ...question,
+        id: questions.length > 0 ? Math.max(...questions.map(q => q.id)) + 1 : 1
+      };
+      questions.push(newQuestion);
+      localStorage.setItem('arriva_questions', JSON.stringify(questions));
+      return newQuestion;
+    }
+  },
+
+  // Delete quiz question
+  async deleteQuestion(id) {
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('quiz_questions')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return true;
+    } else {
+      const questions = JSON.parse(localStorage.getItem('arriva_questions') || '[]');
+      const filtered = questions.filter(q => q.id !== id);
+      localStorage.setItem('arriva_questions', JSON.stringify(filtered));
+      return true;
+    }
   }
 };
+
+// Default products initial data for LocalStorage fallback
+const defaultProducts = [
+  {
+    id: 1,
+    name: 'PNG-Аватар (Бюджетный)',
+    price: 19000,
+    type: 'png',
+    description: 'Начальный пакет для простого старта',
+    features: ["Создание образа персонажа с нуля", "Настройка PNG трекинга и интеграции софта", "3 часа техподдержки на тестовых трансляциях", "Полное сопровождение на первом стриме"]
+  },
+  {
+    id: 2,
+    name: '2D Live2D (Оптимальный)',
+    price: 49000,
+    type: '2d',
+    description: 'Оптимальный пакет для большинства витуберов',
+    features: ["Создание образа персонажа с нуля", "Настройка 2D трекинга и интеграции софта", "3 часа техподдержки на тестовых трансляциях", "Полное сопровождение на первом стриме"]
+  },
+  {
+    id: 3,
+    name: '3D VR-Аватар (Премиум)',
+    price: 99000,
+    type: '3d',
+    description: 'Премиум пакет для профессионального стриминга',
+    features: ["Создание образа персонажа с нуля", "Настройка 3D трекинга и интеграции софта", "3 часа техподдержки на тестовых трансляциях", "Полное сопровождение на первом стриме"]
+  }
+];
+
+// Default questions initial data for LocalStorage fallback
+const defaultQuestions = [
+  {
+    id: 1,
+    step_index: 0,
+    question_text: '1. Какой у вас планируемый бюджет на запуск?',
+    options: [
+      { value: 'low', label: 'Минимальный (до 20 000 руб.)', sublabel: 'Хочу попробовать формат стриминга с минимальными вложениями' },
+      { value: 'medium', label: 'Средний (до 60 000 руб.)', sublabel: 'Настроен на качественную Live2D анимацию лица и хороший звук' },
+      { value: 'high', label: 'Премиальный (60 000+ руб.)', sublabel: 'Интересует полноценная 3D-модель с трекингом тела и рук' }
+    ]
+  },
+  {
+    id: 2,
+    step_index: 1,
+    question_text: '2. Есть ли у вас опыт ведения стримов или блогов?',
+    options: [
+      { value: 'none', label: 'Нет опыта', sublabel: 'Начинаю абсолютно с нуля, не знаю как настраивать софт' },
+      { value: 'some', label: 'Есть небольшой опыт', sublabel: 'Стримил с вебкамерой, знаком с OBS Studio' },
+      { value: 'pro', label: 'Профессиональный блогер', sublabel: 'Имею базу подписчиков, перехожу в VTuber формат ради анонимности/образа' }
+    ]
+  },
+  {
+    id: 3,
+    step_index: 2,
+    question_text: '3. Какова ваша главная цель при запуске?',
+    options: [
+      { value: 'test', label: 'Протестировать формат', sublabel: 'Хочу понять, нравится ли мне стримить за виртуальным аватаром' },
+      { value: 'career', label: 'Построить карьеру и бренд', sublabel: 'Планирую стать топ-витубером, настроен на долгую работу и монетизацию' }
+    ]
+  },
+  {
+    id: 4,
+    step_index: 3,
+    question_text: '4. Какое оборудование у вас сейчас есть?',
+    options: [
+      { value: 'basic', label: 'Обычный ПК + вебкамера', sublabel: 'Простая конфигурация без отдельного оборудования для трекинга' },
+      { value: 'iphone', label: 'Игровой ПК + iPhone (X или новее)', sublabel: 'Идеально подходит для профессионального трекинга лица (ARKit)' }
+    ]
+  }
+];
+

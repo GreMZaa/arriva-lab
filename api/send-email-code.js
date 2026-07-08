@@ -2,14 +2,14 @@ import nodemailer from "nodemailer";
 
 export default async function handler(req, res) {
   if (req.method !== "POST" && req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({ error: "Метод не поддерживается" });
   }
 
   const params = req.method === "POST" ? req.body : req.query;
   const { email, code } = params;
 
   if (!email || !code) {
-    return res.status(400).json({ error: "Missing email or code parameter" });
+    return res.status(400).json({ error: "Отсутствуют параметры почты или кода подтверждения" });
   }
 
   const smtpHost = process.env.SMTP_HOST;
@@ -18,14 +18,19 @@ export default async function handler(req, res) {
   const smtpPass = process.env.SMTP_PASS;
   const smtpFrom = process.env.SMTP_FROM || `"ARRIVA lab" <noreply@arriva.lab>`;
 
-  // Fallback if SMTP is not configured: return the code to the client for debugging/testing
+  // Fallback if SMTP is not configured: print to console for development testing
   if (!smtpHost || !smtpUser || !smtpPass) {
     console.log(`[SMTP Debug] Email verification code for ${email} is ${code}`);
+    const isLocal = process.env.NODE_ENV === "development" || 
+                    (req.headers.host && (req.headers.host.includes("localhost") || req.headers.host.includes("127.0.0.1")));
+    
     return res.status(200).json({ 
       success: true, 
-      debug: true, 
-      code: code,
-      message: "SMTP is not configured in environment variables. Code displayed for developer testing." 
+      debug: isLocal, 
+      code: isLocal ? code : undefined,
+      message: isLocal 
+        ? "SMTP is not configured in environment variables. Code displayed for local testing." 
+        : "SMTP is not configured in environment variables." 
     });
   }
 
@@ -62,6 +67,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error("Error sending email via SMTP:", err);
-    return res.status(500).json({ error: "Failed to send email: " + err.message });
+    return res.status(500).json({ error: "Не удалось отправить письмо: " + err.message });
   }
 }

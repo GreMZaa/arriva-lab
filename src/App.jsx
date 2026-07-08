@@ -27,13 +27,76 @@ import {
   Settings
 } from 'lucide-react';
 import { db, getTelegramIdHash } from './supabase';
-import confetti from 'canvas-confetti';
+const TelegramLoginWidget = ({ botName, onAuth, showDivider = true }) => {
+  React.useEffect(() => {
+    if (!document.getElementById('telegram-widget-script')) {
+      const script = document.createElement('script');
+      script.id = 'telegram-widget-script';
+      script.src = 'https://telegram.org/js/telegram-widget.js?22';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
+  const handleLoginClick = () => {
+    if (window.Telegram && window.Telegram.Login) {
+      const clientId = import.meta.env.VITE_TELEGRAM_CLIENT_ID || '8612623191';
+      window.Telegram.Login.auth(
+        {
+          bot_id: clientId,
+          request_access: 'write'
+        },
+        (user) => {
+          if (user) {
+            onAuth(user);
+          }
+        }
+      );
+    } else {
+      alert('Загрузка авторизации Telegram... Пожалуйста, попробуйте еще раз через секунду.');
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center py-2 w-full space-y-3">
+      {showDivider && (
+        <div className="relative flex py-2 items-center w-full">
+          <div className="flex-grow border-t border-gray-100"></div>
+          <span className="flex-shrink mx-4 text-gray-400 text-[10px] uppercase font-bold tracking-wider">ИЛИ ВХОД В ОДИН КЛИК</span>
+          <div className="flex-grow border-t border-gray-100"></div>
+        </div>
+      )}
+      <button
+        onClick={handleLoginClick}
+        type="button"
+        className="flex items-center justify-center gap-3 px-6 py-3.5 bg-[#24A1DE] text-white font-bold text-sm rounded-2xl border border-transparent shadow-[0_4px_14px_rgba(36,161,222,0.3)] transition-all hover:bg-[#2092CA] hover:scale-[1.02] active:scale-[0.98] duration-200 w-full max-w-[280px]"
+      >
+        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.24-.213-.054-.33-.373-.12l-6.87 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.536-.204.996.12.8 1.054z" />
+        </svg>
+        Войти через Telegram
+      </button>
+    </div>
+  );
+};
+
+
 
 export default function App() {
-  const [view, setView] = useState('home'); // 'home', 'quiz', 'cabinet', 'crm'
+  const [view, setView] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('admin') === 'true' || params.get('crm') === 'true' || window.location.hash === '#crm') {
+      return 'crm';
+    }
+    return localStorage.getItem('arriva_current_view') || 'home';
+  }); // 'home', 'quiz', 'cabinet', 'crm'
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [logoClicks, setLogoClicks] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('arriva_current_view', view);
+  }, [view]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -71,7 +134,23 @@ export default function App() {
   const [quizResult, setQuizResult] = useState(null); // 'png', '2d', '3d'
   
   // Cabinet state
-  const [cabinetUser, setCabinetUser] = useState(null);
+  const [cabinetUser, setCabinetUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('arriva_cabinet_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    if (cabinetUser) {
+      localStorage.setItem('arriva_cabinet_user', JSON.stringify(cabinetUser));
+    } else {
+      localStorage.removeItem('arriva_cabinet_user');
+    }
+  }, [cabinetUser]);
+
   const [cabinetLoginMethod, setCabinetLoginMethod] = useState('telegram'); // 'telegram', 'email'
   const [cabinetTelegramInput, setCabinetTelegramInput] = useState('');
   const [cabinetEmailInput, setCabinetEmailInput] = useState('');
@@ -88,9 +167,26 @@ export default function App() {
     { id: 3, text: 'Калибровка отслеживания лица в VTube Studio', completed: false },
     { id: 4, text: 'Тестовый стрим-выход на Twitch', completed: false }
   ]);
+  // Profile settings / Link accounts state
+  const [profileEmailInput, setProfileEmailInput] = useState('');
+  const [profileEmailCodeInput, setProfileEmailCodeInput] = useState('');
+  const [profileEmailCodeSent, setProfileEmailCodeSent] = useState(false);
+  const [profileEmailLoading, setProfileEmailLoading] = useState(false);
+  const [profileTelegramInput, setProfileTelegramInput] = useState('');
+  const [profileTelegramCodeInput, setProfileTelegramCodeInput] = useState('');
+  const [profileTelegramCodeSent, setProfileTelegramCodeSent] = useState(false);
+  const [profileTelegramLoading, setProfileTelegramLoading] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState('');
+  const [profileError, setProfileError] = useState('');
 
   // CRM state
-  const [crmLoggedIn, setCrmLoggedIn] = useState(false);
+  const [crmLoggedIn, setCrmLoggedIn] = useState(() => {
+    return localStorage.getItem('arriva_crm_logged_in') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('arriva_crm_logged_in', String(crmLoggedIn));
+  }, [crmLoggedIn]);
   const [crmUsername, setCrmUsername] = useState('');
   const [crmPassword, setCrmPassword] = useState('');
   const [crmError, setCrmError] = useState('');
@@ -239,11 +335,17 @@ export default function App() {
           const res = await fetch(`/api/send-code?input=${encodeURIComponent(cabinetTelegramInput)}&code=${code}`);
           const resData = await res.json();
           if (!res.ok) {
-            throw new Error(resData.error || 'Ошибка');
+            throw new Error(resData.error || 'Ошибка отправки');
           }
           setCabinetSuccessMessage('Код отправлен в Telegram-бот!');
+          setCabinetCodeSent(true);
         } catch (botErr) {
-          setCabinetSuccessMessage(`Код отправлен! (Для теста введите: ${code})`);
+          if (window.location.hostname === 'localhost') {
+            setCabinetSuccessMessage(`Код отправлен! (Для теста введите: ${code})`);
+            setCabinetCodeSent(true);
+          } else {
+            setCabinetError(botErr.message || 'Не удалось отправить код. Убедитесь, что вы запустили нашего Telegram-бота.');
+          }
         }
       } else {
         const code = await db.generateLoginCode(null, cabinetEmailInput);
@@ -252,18 +354,19 @@ export default function App() {
           const res = await fetch(`/api/send-email-code?email=${encodeURIComponent(cabinetEmailInput)}&code=${code}`);
           const resData = await res.json();
           if (!res.ok) {
-            throw new Error(resData.error || 'Ошибка');
+            throw new Error(resData.error || 'Ошибка отправки');
           }
-          if (resData.debug) {
-            setCabinetSuccessMessage(`Код отправлен! (Для теста введите: ${code})`);
-          } else {
-            setCabinetSuccessMessage('Код отправлен на вашу почту!');
-          }
+          setCabinetSuccessMessage('Код отправлен на вашу почту!');
+          setCabinetCodeSent(true);
         } catch (mailErr) {
-          setCabinetSuccessMessage(`Код отправлен! (Для теста введите: ${code})`);
+          if (window.location.hostname === 'localhost') {
+            setCabinetSuccessMessage(`Код отправлен! (Для теста введите: ${code})`);
+            setCabinetCodeSent(true);
+          } else {
+            setCabinetError(mailErr.message || 'Не удалось отправить код по почте. Проверьте правильность адреса.');
+          }
         }
       }
-      setCabinetCodeSent(true);
     } catch (err) {
       setCabinetError('Ошибка генерации кода: ' + err.message);
     } finally {
@@ -309,6 +412,206 @@ export default function App() {
       setCabinetError('Ошибка входа: ' + err.message);
     } finally {
       setCabinetLoginLoading(false);
+    }
+  };
+
+  // 1-Click Login via Official Telegram Widget
+  const handleTelegramWidgetAuth = async (tgUser) => {
+    setCabinetError('');
+    setCabinetLoginLoading(true);
+    try {
+      const res = await fetch('/api/telegram-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tgUser)
+      });
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.error || 'Ошибка авторизации через Telegram Widget');
+      }
+
+      const user = await db.createUser(
+        resData.user.telegram_id, 
+        resData.user.first_name, 
+        resData.user.username
+      );
+
+      setCabinetUser(user);
+      setCabinetTelegramInput('');
+      setCabinetEmailInput('');
+      setCabinetCodeInput('');
+      setCabinetCodeSent(false);
+      setCabinetSuccessMessage('Вы успешно авторизовались через Telegram!');
+    } catch (err) {
+      setCabinetError('Ошибка авторизации через Telegram: ' + err.message);
+    } finally {
+      setCabinetLoginLoading(false);
+    }
+  };
+
+  // Link Telegram via Official Widget in Profile
+  const handleLinkTelegramWidgetAuth = async (tgUser) => {
+    setProfileError('');
+    setProfileSuccess('');
+    setProfileTelegramLoading(true);
+    try {
+      const res = await fetch('/api/telegram-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tgUser)
+      });
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.error || 'Ошибка проверки данных Telegram');
+      }
+
+      const tgId = resData.user.telegram_id;
+      const username = resData.user.username;
+
+      // Check if another user already has this Telegram linked
+      const targetUser = await db.findUserByEmailOrTelegram(null, tgId);
+      if (targetUser && targetUser.id !== cabinetUser.id) {
+        const merged = await db.mergeAccounts(cabinetUser.id, targetUser.id);
+        setCabinetUser(merged);
+        setProfileSuccess('Аккаунты успешно объединены! Все ваши проекты перенесены на текущий профиль.');
+      } else {
+        const updated = await db.updateUserDetails(cabinetUser.id, { 
+          telegram_id: tgId, 
+          username: username 
+        });
+        setCabinetUser(updated);
+        setProfileSuccess('Telegram-аккаунт успешно привязан!');
+      }
+    } catch (err) {
+      setProfileError('Ошибка привязки Telegram: ' + err.message);
+    } finally {
+      setProfileTelegramLoading(false);
+    }
+  };
+
+  // Link Email Flow: Request Code
+  const handleRequestLinkEmailCode = async () => {
+    if (!profileEmailInput) {
+      setProfileError('Введите Email адрес');
+      return;
+    }
+    setProfileError('');
+    setProfileSuccess('');
+    setProfileEmailLoading(true);
+    try {
+      const code = await db.generateLoginCode(null, profileEmailInput);
+      const res = await fetch(`/api/send-email-code?email=${encodeURIComponent(profileEmailInput)}&code=${code}`);
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.error || 'Ошибка отправки');
+      }
+      setProfileSuccess('Код подтверждения отправлен на почту!');
+      setProfileEmailCodeSent(true);
+    } catch (err) {
+      setProfileError('Ошибка отправки кода: ' + err.message);
+    } finally {
+      setProfileEmailLoading(false);
+    }
+  };
+
+  // Link Email Flow: Confirm Verification Code
+  const handleConfirmLinkEmail = async () => {
+    if (!profileEmailCodeInput) {
+      setProfileError('Введите код подтверждения');
+      return;
+    }
+    setProfileError('');
+    setProfileSuccess('');
+    setProfileEmailLoading(true);
+    try {
+      const success = await db.verifyLoginCode(null, profileEmailCodeInput, profileEmailInput);
+      if (!success) {
+        throw new Error('Неверный код подтверждения');
+      }
+
+      // Check if email already exists in DB to merge
+      const targetUser = await db.findUserByEmailOrTelegram(profileEmailInput, null);
+      if (targetUser && targetUser.id !== cabinetUser.id) {
+        const merged = await db.mergeAccounts(cabinetUser.id, targetUser.id);
+        setCabinetUser(merged);
+        setProfileSuccess('Аккаунты успешно объединены! Данные импортированы.');
+      } else {
+        const updated = await db.updateUserDetails(cabinetUser.id, { email: profileEmailInput });
+        setCabinetUser(updated);
+        setProfileSuccess('Email адрес успешно привязан!');
+      }
+      setProfileEmailInput('');
+      setProfileEmailCodeInput('');
+      setProfileEmailCodeSent(false);
+    } catch (err) {
+      setProfileError('Ошибка подтверждения: ' + err.message);
+    } finally {
+      setProfileEmailLoading(false);
+    }
+  };
+
+  // Link Telegram Flow (Manual): Request Code
+  const handleRequestLinkTelegramCode = async () => {
+    if (!profileTelegramInput) {
+      setProfileError('Введите Telegram ID или Username');
+      return;
+    }
+    setProfileError('');
+    setProfileSuccess('');
+    setProfileTelegramLoading(true);
+    try {
+      const tgId = getTelegramIdHash(profileTelegramInput);
+      const code = await db.generateLoginCode(tgId);
+      const res = await fetch(`/api/send-code?input=${encodeURIComponent(profileTelegramInput)}&code=${code}`);
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.error || 'Ошибка отправки');
+      }
+      setProfileSuccess('Код отправлен в Telegram-бот!');
+      setProfileTelegramCodeSent(true);
+    } catch (err) {
+      setProfileError('Ошибка отправки кода: ' + err.message);
+    } finally {
+      setProfileTelegramLoading(false);
+    }
+  };
+
+  // Link Telegram Flow (Manual): Confirm Verification Code
+  const handleConfirmLinkTelegram = async () => {
+    if (!profileTelegramCodeInput) {
+      setProfileError('Введите код подтверждения');
+      return;
+    }
+    setProfileError('');
+    setProfileSuccess('');
+    setProfileTelegramLoading(true);
+    try {
+      const tgId = getTelegramIdHash(profileTelegramInput);
+      const success = await db.verifyLoginCode(tgId, profileTelegramCodeInput);
+      if (!success) {
+        throw new Error('Неверный код подтверждения');
+      }
+
+      const targetUser = await db.findUserByEmailOrTelegram(null, tgId);
+      if (targetUser && targetUser.id !== cabinetUser.id) {
+        const merged = await db.mergeAccounts(cabinetUser.id, targetUser.id);
+        setCabinetUser(merged);
+        setProfileSuccess('Аккаунты успешно объединены! Данные импортированы.');
+      } else {
+        const updated = await db.updateUserDetails(cabinetUser.id, { 
+          telegram_id: tgId, 
+          username: profileTelegramInput 
+        });
+        setCabinetUser(updated);
+        setProfileSuccess('Telegram-аккаунт успешно привязан!');
+      }
+      setProfileTelegramInput('');
+      setProfileTelegramCodeInput('');
+      setProfileTelegramCodeSent(false);
+    } catch (err) {
+      setProfileError('Ошибка подтверждения: ' + err.message);
+    } finally {
+      setProfileTelegramLoading(false);
     }
   };
 
@@ -953,90 +1256,100 @@ export default function App() {
                 </div>
               )}
 
-              {quizStep === 4 && quizResult && (
-                <div className="space-y-6 animate-fade-in text-center py-6">
-                  <div className="w-20 h-20 bg-lime-50 rounded-full flex items-center justify-center text-[#123d0c] font-bold text-2xl mx-auto pulse-badge">
-                    🎉
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <span className="text-xs font-semibold text-gray-400 uppercase">Рекомендуемый образ</span>
-                    <h3 className="text-3xl font-extrabold text-gray-900">
-                      {quizResult === '3d' ? '3D VR-Аватар (Премиум)' : quizResult === '2d' ? '2D Live2D (Оптимальный)' : 'PNG-Аватар (Бюджетный)'}
-                    </h3>
-                    <p className="text-sm text-gray-500 max-w-md mx-auto">
-                      На основе ваших ответов мы подобрали идеальную конфигурацию для быстрого и эффективного старта.
-                    </p>
-                  </div>
+              {quizStep === 4 && quizResult && (() => {
+                const matchedProduct = products.find(p => p.type === quizResult) || {
+                  name: quizResult === '3d' ? '3D VR-Аватар (Премиум)' : quizResult === '2d' ? '2D Live2D (Оптимальный)' : 'PNG-Аватар (Бюджетный)',
+                  price: quizResult === '3d' ? 99000 : quizResult === '2d' ? 49000 : 19000,
+                  description: 'На основе ваших ответов мы подобрали идеальную конфигурацию для быстрого и эффективного старта.',
+                  features: ["Создание образа персонажа с нуля", `Настройка ${quizResult.toUpperCase()} трекинга и интеграции софта`, "3 часа техподдержки на тестовых трансляциях", "Полное сопровождение на первом стриме"]
+                };
 
-                  <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6 text-left space-y-4">
-                    <div className="flex items-center gap-4">
-                      <img 
-                        src={quizResult === '3d' ? '/avatar_3d.png' : quizResult === '2d' ? '/avatar_2d.png' : '/avatar_png.png'} 
-                        alt="Result Preview" 
-                        className="w-16 h-16 rounded-xl object-cover border border-gray-200"
-                      />
-                      <div>
-                        <span className="text-xs font-bold text-[#123d0c] bg-[#9FE870]/20 px-2 py-0.5 rounded uppercase">Рекомендация</span>
-                        <h4 className="font-bold text-gray-900 mt-1">Пакет «Запуск под ключ»</h4>
-                        <p className="text-xs text-gray-500">{quizResult === '3d' ? '99 000 руб.' : quizResult === '2d' ? '49 000' : '19 000'} руб.</p>
-                      </div>
-                    </div>
-                    <ul className="text-xs text-gray-500 space-y-2 border-t border-gray-200 pt-4">
-                      <li className="flex items-center gap-2">✓ Создание образа персонажа с нуля</li>
-                      <li className="flex items-center gap-2">✓ Настройка {quizResult.toUpperCase()} трекинга и интеграции софта</li>
-                      <li className="flex items-center gap-2">✓ 3 часа техподдержки на тестовых трансляциях</li>
-                      <li className="flex items-center gap-2">✓ Полное сопровождение на первом стриме</li>
-                    </ul>
-                  </div>
-
-                  {/* Submit result section & redirect to dashboard */}
-                  <div className="space-y-4 pt-4 border-t border-gray-100 text-left">
-                    <h4 className="font-bold text-gray-900 text-base">Сохранить результат и войти в кабинет:</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="form-group">
-                        <label className="text-xs font-bold uppercase text-gray-500">Ваше Имя</label>
-                        <input 
-                          type="text" 
-                          id="quizLeadName"
-                          placeholder="Анна Ковалева" 
-                          className="form-control placeholder-gray-400"
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label className="text-xs font-bold uppercase text-gray-500">Ваш Telegram ID или Username</label>
-                        <input 
-                          type="text" 
-                          id="quizLeadTelegram"
-                          placeholder="@anya_vt" 
-                          className="form-control placeholder-gray-400"
-                        />
-                      </div>
+                return (
+                  <div className="space-y-6 animate-fade-in text-center py-6">
+                    <div className="w-20 h-20 bg-lime-50 rounded-full flex items-center justify-center text-[#123d0c] font-bold text-2xl mx-auto pulse-badge">
+                      🎉
                     </div>
                     
-                    <button 
-                      onClick={() => {
-                        const nameEl = document.getElementById('quizLeadName');
-                        const tgEl = document.getElementById('quizLeadTelegram');
-                        if (nameEl && tgEl && nameEl.value && tgEl.value) {
-                          submitQuizLead(nameEl.value, tgEl.value);
-                        } else {
-                          alert('Пожалуйста, заполните форму для входа в кабинет');
-                        }
-                      }}
-                      className="btn btn-primary w-full py-4 text-base flex justify-center items-center gap-2"
-                    >
-                      Сохранить и войти в кабинет <ArrowRight className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => { setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }} 
-                      className="btn btn-secondary w-full py-3 text-sm"
-                    >
-                      Пройти квиз заново
-                    </button>
+                    <div className="space-y-2">
+                      <span className="text-xs font-semibold text-gray-400 uppercase">Рекомендуемый образ</span>
+                      <h3 className="text-3xl font-extrabold text-gray-900">
+                        {matchedProduct.name}
+                      </h3>
+                      <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
+                        {matchedProduct.description || 'На основе ваших ответов мы подобрали идеальную конфигурацию для быстрого и эффективного старта.'}
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6 text-left space-y-4">
+                      <div className="flex items-center gap-4">
+                        <img 
+                          src={quizResult === '3d' ? '/avatar_3d.png' : quizResult === '2d' ? '/avatar_2d.png' : '/avatar_png.png'} 
+                          alt="Result Preview" 
+                          className="w-16 h-16 rounded-xl object-cover border border-gray-200"
+                        />
+                        <div>
+                          <span className="text-xs font-bold text-[#123d0c] bg-[#9FE870]/20 px-2 py-0.5 rounded uppercase">Рекомендация</span>
+                          <h4 className="font-bold text-gray-900 mt-1">Пакет «Запуск под ключ»</h4>
+                          <p className="text-xs text-gray-500 font-bold mt-0.5">
+                            {Number(matchedProduct.price).toLocaleString('ru-RU')} руб.
+                          </p>
+                        </div>
+                      </div>
+                      <ul className="text-xs text-gray-500 space-y-2 border-t border-gray-200 pt-4">
+                        {matchedProduct.features && Array.isArray(matchedProduct.features) && matchedProduct.features.map((feat, idx) => (
+                          <li key={idx} className="flex items-center gap-2">✓ {feat}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Submit result section & redirect to dashboard */}
+                    <div className="space-y-4 pt-4 border-t border-gray-100 text-left">
+                      <h4 className="font-bold text-gray-900 text-base">Сохранить результат и войти в кабинет:</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="form-group">
+                          <label className="text-xs font-bold uppercase text-gray-500">Ваше Имя</label>
+                          <input 
+                            type="text" 
+                            id="quizLeadName"
+                            placeholder="Анна Ковалева" 
+                            className="form-control placeholder-gray-400"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="text-xs font-bold uppercase text-gray-500">Ваш Telegram ID или Username</label>
+                          <input 
+                            type="text" 
+                            id="quizLeadTelegram"
+                            placeholder="@anya_vt" 
+                            className="form-control placeholder-gray-400"
+                          />
+                        </div>
+                      </div>
+                      
+                      <button 
+                        onClick={() => {
+                          const nameEl = document.getElementById('quizLeadName');
+                          const tgEl = document.getElementById('quizLeadTelegram');
+                          if (nameEl && tgEl && nameEl.value && tgEl.value) {
+                            submitQuizLead(nameEl.value, tgEl.value);
+                          } else {
+                            alert('Пожалуйста, заполните форму для входа в кабинет');
+                          }
+                        }}
+                        className="btn btn-primary w-full py-4 text-base flex justify-center items-center gap-2"
+                      >
+                        Сохранить и войти в кабинет <ArrowRight className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => { setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }} 
+                        className="btn btn-secondary w-full py-3 text-sm"
+                      >
+                        Пройти квиз заново
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
         )}
@@ -1129,13 +1442,24 @@ export default function App() {
                   )}
 
                   {!cabinetCodeSent ? (
-                    <button 
-                      onClick={handleRequestCabinetCode}
-                      disabled={cabinetCodeLoading}
-                      className="btn btn-primary w-full py-4 text-sm mt-2"
-                    >
-                      {cabinetCodeLoading ? 'Отправка...' : 'Получить код'}
-                    </button>
+                    <>
+                      <button 
+                        onClick={handleRequestCabinetCode}
+                        disabled={cabinetCodeLoading}
+                        className="btn btn-primary w-full py-4 text-sm mt-2"
+                      >
+                        {cabinetCodeLoading ? 'Отправка...' : 'Получить код'}
+                      </button>
+
+                      {cabinetLoginMethod === 'telegram' && (
+                        <div className="pt-2">
+                          <TelegramLoginWidget 
+                            botName="ArrivalLabBOT" 
+                            onAuth={handleTelegramWidgetAuth} 
+                          />
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="flex flex-col gap-2">
                       <button 
@@ -1197,6 +1521,12 @@ export default function App() {
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${cabinetActiveTab === 'analytics' ? 'bg-[#9FE870]/20 text-[#123d0c] font-bold' : 'text-gray-500 hover:bg-gray-50'}`}
                       >
                         <Activity className="w-4 h-4" /> Аналитика канала
+                      </button>
+                      <button 
+                        onClick={() => setCabinetActiveTab('profile')}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${cabinetActiveTab === 'profile' ? 'bg-[#9FE870]/20 text-[#123d0c] font-bold' : 'text-gray-500 hover:bg-gray-50'}`}
+                      >
+                        <Settings className="w-4 h-4" /> Настройки профиля
                       </button>
                     </nav>
                   </div>
@@ -1366,6 +1696,218 @@ export default function App() {
                               <span className="text-[10px] text-gray-400">Стр.{idx+1}</span>
                             </div>
                           ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 4: PROFILE SETTINGS */}
+                  {cabinetActiveTab === 'profile' && (
+                    <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-8">
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-bold text-gray-900">Настройки аккаунта</h3>
+                        <p className="text-xs text-gray-500">Управляйте привязанными способами входа и объединяйте ваши аккаунты</p>
+                      </div>
+
+                      {profileError && (
+                        <div className="bg-red-50 border border-red-200 text-red-600 text-xs px-4 py-3 rounded-xl font-medium">
+                          {profileError}
+                        </div>
+                      )}
+                      {profileSuccess && (
+                        <div className="bg-lime-50 border border-lime-200 text-[#123d0c] text-xs px-4 py-3 rounded-xl font-medium">
+                          {profileSuccess}
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                        {/* Current Status */}
+                        <div className="md:col-span-5 space-y-4">
+                          <h4 className="font-bold text-sm text-gray-900 border-b border-gray-100 pb-2">Привязанные профили</h4>
+                          
+                          <div className="space-y-3">
+                            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-gray-400">Электронная почта</span>
+                                <p className="text-xs font-bold text-gray-800 mt-0.5">
+                                  {cabinetUser.email || 'Не привязана'}
+                                </p>
+                              </div>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cabinetUser.email ? 'bg-lime-100 text-lime-800' : 'bg-gray-150 text-gray-500'}`}>
+                                {cabinetUser.email ? 'Активен' : 'Пусто'}
+                              </span>
+                            </div>
+
+                            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-gray-400">Telegram аккаунт</span>
+                                <p className="text-xs font-bold text-gray-800 mt-0.5">
+                                  {cabinetUser.username || (cabinetUser.telegram_id ? `ID: ${cabinetUser.telegram_id}` : 'Не привязан')}
+                                </p>
+                              </div>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cabinetUser.telegram_id ? 'bg-lime-100 text-lime-800' : 'bg-gray-150 text-gray-500'}`}>
+                                {cabinetUser.telegram_id ? 'Активен' : 'Пусто'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="bg-lime-50/50 p-4 border border-lime-150 rounded-2xl text-[11px] text-gray-500 leading-relaxed">
+                            💡 <strong>Объединение аккаунтов:</strong> При привязке почты или Telegram к текущему профилю, система автоматически проверит наличие старых заявок и проектов на этих контактах и объединит их в единую историю.
+                          </div>
+                        </div>
+
+                        {/* Actions to Link */}
+                        <div className="md:col-span-7 space-y-6">
+                          
+                          {/* Link Email Form */}
+                          {!cabinetUser.email && (
+                            <div className="p-6 border border-gray-100 rounded-3xl space-y-4">
+                              <h4 className="font-bold text-sm text-gray-900">Привязать Email</h4>
+                              
+                              <div className="space-y-3">
+                                <div className="form-group">
+                                  <label className="text-[10px] uppercase font-bold text-gray-400">Email адрес</label>
+                                  <input 
+                                    type="email"
+                                    placeholder="your-email@example.com"
+                                    disabled={profileEmailCodeSent}
+                                    value={profileEmailInput}
+                                    onChange={(e) => setProfileEmailInput(e.target.value)}
+                                    className="form-control text-xs mt-1"
+                                  />
+                                </div>
+
+                                {profileEmailCodeSent && (
+                                  <div className="form-group">
+                                    <label className="text-[10px] uppercase font-bold text-gray-400">Код из письма</label>
+                                    <input 
+                                      type="text"
+                                      placeholder="123456"
+                                      value={profileEmailCodeInput}
+                                      onChange={(e) => setProfileEmailCodeInput(e.target.value)}
+                                      className="form-control text-xs mt-1"
+                                    />
+                                  </div>
+                                )}
+
+                                {!profileEmailCodeSent ? (
+                                  <button 
+                                    onClick={handleRequestLinkEmailCode}
+                                    disabled={profileEmailLoading}
+                                    className="btn btn-primary w-full py-3 text-xs mt-2"
+                                  >
+                                    {profileEmailLoading ? 'Отправка...' : 'Отправить код подтверждения'}
+                                  </button>
+                                ) : (
+                                  <div className="flex gap-2">
+                                    <button 
+                                      onClick={handleConfirmLinkEmail}
+                                      disabled={profileEmailLoading}
+                                      className="btn btn-primary flex-grow py-3 text-xs"
+                                    >
+                                      {profileEmailLoading ? 'Проверка...' : 'Подтвердить привязку'}
+                                    </button>
+                                    <button 
+                                      onClick={() => { setProfileEmailCodeSent(false); setProfileSuccess(''); }}
+                                      className="btn btn-secondary py-3 px-4 text-xs"
+                                    >
+                                      Сбросить
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Link Telegram Form */}
+                          {!cabinetUser.telegram_id && (
+                            <div className="p-6 border border-gray-100 rounded-3xl space-y-6">
+                              <div className="space-y-1">
+                                <h4 className="font-bold text-sm text-gray-900">Привязать Telegram аккаунт</h4>
+                                <p className="text-[11px] text-gray-400">Привяжите аккаунт в один клик или через код от бота</p>
+                              </div>
+
+                              {/* Option 1: Official Login Widget */}
+                              <TelegramLoginWidget 
+                                botName="ArrivalLabBOT" 
+                                onAuth={handleLinkTelegramWidgetAuth} 
+                                showDivider={false}
+                              />
+
+                              <div className="relative flex py-2 items-center">
+                                <div className="flex-grow border-t border-gray-100"></div>
+                                <span className="flex-shrink mx-4 text-gray-300 text-[10px] uppercase font-bold">или через код от бота</span>
+                                <div className="flex-grow border-t border-gray-100"></div>
+                              </div>
+
+                              {/* Option 2: Manual code link */}
+                              <div className="space-y-3">
+                                <div className="form-group">
+                                  <label className="text-[10px] uppercase font-bold text-gray-400">Telegram Username или ID</label>
+                                  <input 
+                                    type="text"
+                                    placeholder="@my_telegram"
+                                    disabled={profileTelegramCodeSent}
+                                    value={profileTelegramInput}
+                                    onChange={(e) => setProfileTelegramInput(e.target.value)}
+                                    className="form-control text-xs mt-1"
+                                  />
+                                </div>
+
+                                {profileTelegramCodeSent && (
+                                  <div className="form-group">
+                                    <label className="text-[10px] uppercase font-bold text-gray-400">Код от бота</label>
+                                    <input 
+                                      type="text"
+                                      placeholder="123456"
+                                      value={profileTelegramCodeInput}
+                                      onChange={(e) => setProfileTelegramCodeInput(e.target.value)}
+                                      className="form-control text-xs mt-1"
+                                    />
+                                  </div>
+                                )}
+
+                                {!profileTelegramCodeSent ? (
+                                  <button 
+                                    onClick={handleRequestLinkTelegramCode}
+                                    disabled={profileTelegramLoading}
+                                    className="btn btn-secondary w-full py-3 text-xs"
+                                  >
+                                    {profileTelegramLoading ? 'Запрос...' : 'Получить код в боте'}
+                                  </button>
+                                ) : (
+                                  <div className="flex gap-2">
+                                    <button 
+                                      onClick={handleConfirmLinkTelegram}
+                                      disabled={profileTelegramLoading}
+                                      className="btn btn-primary flex-grow py-3 text-xs"
+                                    >
+                                      {profileTelegramLoading ? 'Проверка...' : 'Привязать Telegram'}
+                                    </button>
+                                    <button 
+                                      onClick={() => { setProfileTelegramCodeSent(false); setProfileSuccess(''); }}
+                                      className="btn btn-secondary py-3 px-4 text-xs"
+                                    >
+                                      Сбросить
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {cabinetUser.email && cabinetUser.telegram_id && (
+                            <div className="p-8 border border-gray-100 rounded-3xl bg-lime-50/20 text-center space-y-3">
+                              <div className="w-12 h-12 bg-lime-100 rounded-full flex items-center justify-center text-lime-800 text-lg mx-auto">
+                                🎉
+                              </div>
+                              <h4 className="font-bold text-sm text-gray-900">Профиль полностью защищен!</h4>
+                              <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed">
+                                К вашему личному кабинету привязаны и Email адрес, и Telegram профиль. Вы можете использовать любой из этих способов для быстрого и безопасного входа.
+                              </p>
+                            </div>
+                          )}
+
                         </div>
                       </div>
                     </div>

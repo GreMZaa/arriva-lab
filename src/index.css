@@ -322,3 +322,9 @@ p {
   background-color: rgba(239, 68, 68, 0.15);
   color: var(--danger);
 }
+
+/* Reset default browser iframe borders */
+iframe {
+  border: none !important;
+  outline: none !important;
+}
