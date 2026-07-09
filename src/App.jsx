@@ -196,6 +196,27 @@ export default function App() {
   const [crmPurchases, setCrmPurchases] = useState([]);
   const [crmSearch, setCrmSearch] = useState('');
   const [crmFilterStatus, setCrmFilterStatus] = useState('all');
+  const [crmActiveTab, setCrmActiveTab] = useState('applications'); // 'applications', 'products', 'quiz'
+  const [products, setProducts] = useState([]);
+  const [crmQuestions, setCrmQuestions] = useState([]);
+  const [crmSelectedProduct, setCrmSelectedProduct] = useState(null);
+  const [crmSelectedQuestion, setCrmSelectedQuestion] = useState(null);
+  const [isEditingProduct, setIsEditingProduct] = useState(false);
+  const [isEditingQuestion, setIsEditingQuestion] = useState(false);
+
+  // Product Form states
+  const [productFormName, setProductFormName] = useState('');
+  const [productFormPrice, setProductFormPrice] = useState('');
+  const [productFormType, setProductFormType] = useState('2d');
+  const [productFormDesc, setProductFormDesc] = useState('');
+  const [productFormFeatures, setProductFormFeatures] = useState('');
+
+  // Question Form states
+  const [questionFormText, setQuestionFormText] = useState('');
+  const [questionFormStepIndex, setQuestionFormStepIndex] = useState(0);
+  const [questionFormChoices, setQuestionFormChoices] = useState('');
+
+  const [quizQuestions, setQuizQuestions] = useState([]);
   const [crmSelectedLead, setCrmSelectedLead] = useState(null); // Right drawer details
   const [crmLoading, setCrmLoading] = useState(false);
 
@@ -206,13 +227,30 @@ export default function App() {
     }
   }, [view, crmLoggedIn]);
 
+  // Load quiz questions on mount
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        const qs = await db.getAllQuestions();
+        setQuizQuestions(qs);
+      } catch (err) {
+        console.error('Failed to load quiz questions:', err);
+      }
+    };
+    loadQuestions();
+  }, []);
+
   const loadCrmData = async () => {
     setCrmLoading(true);
     try {
       const apps = await db.getAllApplications();
       const purchases = await db.getAllPurchases();
+      const products = await db.getAllProducts();
+      const questions = await db.getAllQuestions();
       setCrmApplications(apps);
       setCrmPurchases(purchases);
+      setProducts(products);
+      setCrmQuestions(questions);
     } catch (err) {
       console.error(err);
     } finally {
@@ -257,10 +295,13 @@ export default function App() {
     }
   };
 
-  // Quiz Navigation & Submit
-  const handleQuizAnswer = (question, answer) => {
-    setQuizAnswers(prev => ({ ...prev, [question]: answer }));
-    if (quizStep < 3) {
+  const handleQuizAnswer = (stepIndex, answer) => {
+    const keys = ['budget', 'exp', 'goal', 'hardware'];
+    const key = keys[stepIndex] || `step_${stepIndex}`;
+    setQuizAnswers(prev => ({ ...prev, [key]: answer }));
+    
+    const totalSteps = quizQuestions.length > 0 ? quizQuestions.length : 4;
+    if (stepIndex < totalSteps - 1) {
       setQuizStep(prev => prev + 1);
     } else {
       calculateQuizResult();
@@ -674,6 +715,149 @@ export default function App() {
       }
     } catch (err) {
       alert('Ошибка смены статуса: ' + err.message);
+    }
+  };
+
+  // CRM Product actions
+  const handleSelectProduct = (product) => {
+    setCrmSelectedProduct(product);
+    if (product) {
+      setProductFormName(product.name);
+      setProductFormPrice(product.price);
+      setProductFormType(product.type || '2d');
+      setProductFormDesc(product.description || '');
+      setProductFormFeatures(product.features ? product.features.join('\n') : '');
+      setIsEditingProduct(true);
+    } else {
+      setProductFormName('');
+      setProductFormPrice('');
+      setProductFormType('2d');
+      setProductFormDesc('');
+      setProductFormFeatures('');
+      setIsEditingProduct(true); // Opening empty for add
+    }
+  };
+
+  const handleSaveProduct = async () => {
+    try {
+      const featuresArray = productFormFeatures
+        .split('\n')
+        .map(f => f.trim())
+        .filter(f => f.length > 0);
+
+      const payload = {
+        name: productFormName,
+        price: Number(productFormPrice),
+        type: productFormType,
+        description: productFormDesc,
+        features: featuresArray
+      };
+
+      if (crmSelectedProduct) {
+        const updated = await db.updateProduct(crmSelectedProduct.id, payload);
+        setProducts(prev => prev.map(p => p.id === crmSelectedProduct.id ? updated : p));
+      } else {
+        const created = await db.createProduct(payload);
+        setProducts(prev => [...prev, created]);
+      }
+      setCrmSelectedProduct(null);
+      setIsEditingProduct(false);
+      alert('Услуга успешно сохранена!');
+    } catch (err) {
+      alert('Ошибка сохранения услуги: ' + err.message);
+    }
+  };
+
+  const handleDeleteProduct = async (id) => {
+    if (!window.confirm('Вы действительно хотите удалить эту услугу?')) return;
+    try {
+      await db.deleteProduct(id);
+      setProducts(prev => prev.filter(p => p.id !== id));
+      setCrmSelectedProduct(null);
+      setIsEditingProduct(false);
+      alert('Услуга удалена!');
+    } catch (err) {
+      alert('Ошибка удаления: ' + err.message);
+    }
+  };
+
+  // CRM Quiz Question actions
+  const handleSelectQuestion = (question) => {
+    setCrmSelectedQuestion(question);
+    if (question) {
+      setQuestionFormText(question.question_text);
+      setQuestionFormStepIndex(question.step_index);
+      
+      const choicesText = question.options 
+        ? question.options.map(opt => `${opt.value} | ${opt.label} | ${opt.sublabel || ''}`).join('\n')
+        : '';
+      setQuestionFormChoices(choicesText);
+      setIsEditingQuestion(true);
+    } else {
+      setQuestionFormText('');
+      setQuestionFormStepIndex(crmQuestions.length);
+      setQuestionFormChoices('');
+      setIsEditingQuestion(true); // Opening empty for add
+    }
+  };
+
+  const handleSaveQuestion = async () => {
+    try {
+      const choicesArray = questionFormChoices
+        .split('\n')
+        .map(line => {
+          const parts = line.split('|').map(s => s.trim());
+          if (parts.length >= 2) {
+            return {
+              value: parts[0],
+              label: parts[1],
+              sublabel: parts[2] || ''
+            };
+          }
+          return null;
+        })
+        .filter(c => c !== null);
+
+      const payload = {
+        question_text: questionFormText,
+        step_index: Number(questionFormStepIndex),
+        options: choicesArray
+      };
+
+      let updatedQuestions = [];
+      if (crmSelectedQuestion) {
+        const updated = await db.updateQuestion(crmSelectedQuestion.id, payload);
+        updatedQuestions = crmQuestions.map(q => q.id === crmSelectedQuestion.id ? updated : q);
+      } else {
+        const created = await db.createQuestion(payload);
+        updatedQuestions = [...crmQuestions, created];
+      }
+      
+      // Sort and update state
+      const sortedQuestions = updatedQuestions.sort((a, b) => a.step_index - b.step_index);
+      setCrmQuestions(sortedQuestions);
+      setQuizQuestions(sortedQuestions); // Also sync main quiz
+      
+      setCrmSelectedQuestion(null);
+      setIsEditingQuestion(false);
+      alert('Вопрос успешно сохранен!');
+    } catch (err) {
+      alert('Ошибка сохранения вопроса: ' + err.message);
+    }
+  };
+
+  const handleDeleteQuestion = async (id) => {
+    if (!window.confirm('Вы действительно хотите удалить этот вопрос квиза?')) return;
+    try {
+      await db.deleteQuestion(id);
+      const updated = crmQuestions.filter(q => q.id !== id);
+      setCrmQuestions(updated);
+      setQuizQuestions(updated);
+      setCrmSelectedQuestion(null);
+      setIsEditingQuestion(false);
+      alert('Вопрос удален!');
+    } catch (err) {
+      alert('Ошибка удаления: ' + err.message);
     }
   };
 
@@ -1149,147 +1333,44 @@ export default function App() {
           <div className="animate-fade-in py-16 px-6 max-w-2xl mx-auto">
             <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-xl text-left space-y-8">
               
-              {/* Header with progress */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-xs font-semibold text-gray-400">
-                  <span>Шаг {Math.min(quizStep + 1, 4)} из 4</span>
-                  <span>{quizStep * 25}% завершено</span>
-                </div>
-                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#9FE870] transition-all duration-300" style={{ width: `${(quizStep) * 25}%` }}></div>
-                </div>
-              </div>
-
-              {quizStep === 0 && (
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-extrabold text-gray-900">1. Какой у вас планируемый бюджет на запуск?</h3>
-                  <div className="grid grid-cols-1 gap-4">
-                    <button 
-                      onClick={() => handleQuizAnswer('budget', 'low')} 
-                      className="p-5 border border-gray-150 rounded-2xl text-left hover:border-[#9FE870] hover:bg-lime-50/20 transition-all flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="font-bold text-gray-900 block">Минимальный (до 20 000 руб.)</span>
-                        <span className="text-xs text-gray-500">Хочу попробовать формат стриминга с минимальными вложениями</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </button>
-                    <button 
-                      onClick={() => handleQuizAnswer('budget', 'medium')} 
-                      className="p-5 border border-gray-155 rounded-2xl text-left hover:border-[#9FE870] hover:bg-lime-50/20 transition-all flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="font-bold text-gray-900 block">Средний (до 60 000 руб.)</span>
-                        <span className="text-xs text-gray-500">Настроен на качественную Live2D анимацию лица и хороший звук</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </button>
-                    <button 
-                      onClick={() => handleQuizAnswer('budget', 'high')} 
-                      className="p-5 border border-gray-155 rounded-2xl text-left hover:border-[#9FE870] hover:bg-lime-50/20 transition-all flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="font-bold text-gray-900 block">Премиальный (60 000+ руб.)</span>
-                        <span className="text-xs text-gray-500">Интересует полноценная 3D-модель с трекингом тела и рук</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </button>
+              {quizQuestions.length === 0 ? (
+                <div className="text-center py-12 text-gray-400 font-medium">Загрузка вопросов квиза...</div>
+              ) : (
+                <>
+                  {/* Header with progress */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-xs font-semibold text-gray-400">
+                      <span>Шаг {Math.min(quizStep + 1, quizQuestions.length)} из {quizQuestions.length}</span>
+                      <span>{Math.round((quizStep) / quizQuestions.length * 100)}% завершено</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#9FE870] transition-all duration-300" style={{ width: `${(quizStep) / quizQuestions.length * 100}%` }}></div>
+                    </div>
                   </div>
-                </div>
-              )}
 
-              {quizStep === 1 && (
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-extrabold text-gray-900">2. Есть ли у вас опыт ведения стримов или блогов?</h3>
-                  <div className="grid grid-cols-1 gap-4">
-                    <button 
-                      onClick={() => handleQuizAnswer('exp', 'none')} 
-                      className="p-5 border border-gray-150 rounded-2xl text-left hover:border-[#9FE870] hover:bg-lime-50/20 transition-all flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="font-bold text-gray-900 block">Нет опыта</span>
-                        <span className="text-xs text-gray-500">Начинаю абсолютно с нуля, не знаю как настраивать софт</span>
+                  {quizStep < quizQuestions.length && quizQuestions[quizStep] && (
+                    <div className="space-y-6 animate-fade-in">
+                      <h3 className="text-2xl font-extrabold text-gray-900">
+                        {quizQuestions[quizStep].question_text}
+                      </h3>
+                      <div className="grid grid-cols-1 gap-4">
+                        {quizQuestions[quizStep].options && quizQuestions[quizStep].options.map((opt) => (
+                          <button 
+                            key={opt.value}
+                            onClick={() => handleQuizAnswer(quizStep, opt.value)} 
+                            className="p-5 border border-gray-150 rounded-2xl text-left hover:border-[#9FE870] hover:bg-lime-50/20 transition-all flex items-center justify-between group duration-200"
+                          >
+                            <div>
+                              <span className="font-bold text-gray-900 block group-hover:text-black">{opt.label}</span>
+                              {opt.sublabel && <span className="text-xs text-gray-500">{opt.sublabel}</span>}
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-[#9FE870] group-hover:translate-x-1 transition-all" />
+                          </button>
+                        ))}
                       </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </button>
-                    <button 
-                      onClick={() => handleQuizAnswer('exp', 'some')} 
-                      className="p-5 border border-gray-150 rounded-2xl text-left hover:border-[#9FE870] hover:bg-lime-50/20 transition-all flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="font-bold text-gray-900 block">Есть небольшой опыт</span>
-                        <span className="text-xs text-gray-500">Стримил с вебкамерой, знаком с OBS Studio</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </button>
-                    <button 
-                      onClick={() => handleQuizAnswer('exp', 'pro')} 
-                      className="p-5 border border-gray-150 rounded-2xl text-left hover:border-[#9FE870] hover:bg-lime-50/20 transition-all flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="font-bold text-gray-900 block">Профессиональный блогер</span>
-                        <span className="text-xs text-gray-500">Имею базу подписчиков, перехожу в VTuber формат ради анонимности/образа</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {quizStep === 2 && (
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-extrabold text-gray-900">3. Какова ваша главная цель при запуске?</h3>
-                  <div className="grid grid-cols-1 gap-4">
-                    <button 
-                      onClick={() => handleQuizAnswer('goal', 'test')} 
-                      className="p-5 border border-gray-150 rounded-2xl text-left hover:border-[#9FE870] hover:bg-lime-50/20 transition-all flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="font-bold text-gray-900 block">Протестировать формат</span>
-                        <span className="text-xs text-gray-500">Хочу понять, нравится ли мне стримить за виртуальным аватаром</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </button>
-                    <button 
-                      onClick={() => handleQuizAnswer('goal', 'career')} 
-                      className="p-5 border border-gray-150 rounded-2xl text-left hover:border-[#9FE870] hover:bg-lime-50/20 transition-all flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="font-bold text-gray-900 block">Построить карьеру и бренд</span>
-                        <span className="text-xs text-gray-500">Планирую стать топ-витубером, настроен на долгую работу и монетизацию</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {quizStep === 3 && (
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-extrabold text-gray-900">4. Какое оборудование у вас сейчас есть?</h3>
-                  <div className="grid grid-cols-1 gap-4">
-                    <button 
-                      onClick={() => handleQuizAnswer('hardware', 'basic')} 
-                      className="p-5 border border-gray-150 rounded-2xl text-left hover:border-[#9FE870] hover:bg-lime-50/20 transition-all flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="font-bold text-gray-900 block">Обычный ПК + вебкамера</span>
-                        <span className="text-xs text-gray-500">Простая конфигурация без отдельного оборудования для трекинга</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </button>
-                    <button 
-                      onClick={() => handleQuizAnswer('hardware', 'iphone')} 
-                      className="p-5 border border-gray-150 rounded-2xl text-left hover:border-[#9FE870] hover:bg-lime-50/20 transition-all flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="font-bold text-gray-900 block">Игровой ПК + iPhone (X или новее)</span>
-                        <span className="text-xs text-gray-500">Идеально подходит для профессионального трекинга лица (ARKit)</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                    </button>
-                  </div>
-                </div>
+                    </div>
+                  )}
+                </>
               )}
 
               {quizStep === 4 && quizResult && (() => {
@@ -2070,6 +2151,41 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Navigation Menu */}
+                    <div className="space-y-1.5 pt-4">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase block tracking-wider mb-2">Навигация</span>
+                      <button
+                        onClick={() => { setCrmActiveTab('applications'); setCrmSelectedLead(null); }}
+                        className={`w-full text-left text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-3 transition-all ${
+                          crmActiveTab === 'applications' 
+                            ? 'bg-[#9FE870] text-black shadow-sm' 
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <User className="w-4 h-4" /> Заявки (Лиды)
+                      </button>
+                      <button
+                        onClick={() => { setCrmActiveTab('products'); setCrmSelectedLead(null); }}
+                        className={`w-full text-left text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-3 transition-all ${
+                          crmActiveTab === 'products' 
+                            ? 'bg-[#9FE870] text-black shadow-sm' 
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <Layers className="w-4 h-4" /> Услуги (Тарифы)
+                      </button>
+                      <button
+                        onClick={() => { setCrmActiveTab('quiz'); setCrmSelectedLead(null); }}
+                        className={`w-full text-left text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-3 transition-all ${
+                          crmActiveTab === 'quiz' 
+                            ? 'bg-[#9FE870] text-black shadow-sm' 
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <HelpCircle className="w-4 h-4" /> Квиз (Вопросы)
+                      </button>
+                    </div>
+
                     <div className="space-y-2">
                       <span className="text-[10px] font-bold text-gray-500 uppercase block tracking-wider">База Данных</span>
                       <div className="text-sm font-semibold text-[#9FE870] bg-white/5 border border-white/10 px-3 py-2 rounded-xl flex justify-between items-center">
@@ -2087,93 +2203,201 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* Main CRM Workspace (Table / leads) */}
-                <div className="flex-grow p-6 sm:p-8 space-y-6 relative overflow-hidden">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h3 className="text-2xl font-black text-gray-950">Заявки в Агентство</h3>
-                    
-                    {/* Search & Filters */}
-                    <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                      <div className="relative flex-grow sm:flex-grow-0">
-                        <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
-                        <input 
-                          type="text" 
-                          placeholder="Поиск по имени..." 
-                          value={crmSearch}
-                          onChange={(e) => setCrmSearch(e.target.value)}
-                          className="form-control pl-10 py-2.5 text-xs rounded-xl"
-                        />
+                {/* Main CRM Workspace (Dynamic tabs) */}
+                <div className="flex-grow p-6 sm:p-8 space-y-6 relative overflow-hidden flex flex-col justify-start">
+                  
+                  {/* Applications Tab */}
+                  {crmActiveTab === 'applications' && (
+                    <div className="space-y-6 flex-grow flex flex-col">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h3 className="text-2xl font-black text-gray-950">Заявки в Агентство</h3>
+                        
+                        {/* Search & Filters */}
+                        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                          <div className="relative flex-grow sm:flex-grow-0">
+                            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
+                            <input 
+                              type="text" 
+                              placeholder="Поиск по имени..." 
+                              value={crmSearch}
+                              onChange={(e) => setCrmSearch(e.target.value)}
+                              className="form-control pl-10 py-2.5 text-xs rounded-xl"
+                            />
+                          </div>
+                          <select 
+                            value={crmFilterStatus}
+                            onChange={(e) => setCrmFilterStatus(e.target.value)}
+                            className="form-control py-2.5 text-xs rounded-xl w-32"
+                          >
+                            <option value="all">Все статусы</option>
+                            <option value="pending">Ожидающие</option>
+                            <option value="approved">Одобренные</option>
+                            <option value="rejected">Отклоненные</option>
+                          </select>
+                        </div>
                       </div>
-                      <select 
-                        value={crmFilterStatus}
-                        onChange={(e) => setCrmFilterStatus(e.target.value)}
-                        className="form-control py-2.5 text-xs rounded-xl w-32"
-                      >
-                        <option value="all">Все статусы</option>
-                        <option value="pending">Ожидающие</option>
-                        <option value="approved">Одобренные</option>
-                        <option value="rejected">Отклоненные</option>
-                      </select>
-                    </div>
-                  </div>
 
-                  {crmLoading ? (
-                    <div className="py-20 text-center text-gray-400 font-medium">Загрузка данных из Supabase...</div>
-                  ) : (
-                    <div className="border border-gray-100 rounded-2xl overflow-x-auto shadow-sm">
-                      <table className="crm-table">
-                        <thead className="bg-gray-50 border-b border-gray-100">
-                          <tr>
-                            <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Клиент</th>
-                            <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Telegram</th>
-                            <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Дата / Желаемый Старт</th>
-                            <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Статус</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {crmApplications
-                            .filter(app => {
-                              const matchesSearch = app.full_name.toLowerCase().includes(crmSearch.toLowerCase());
-                              const matchesStatus = crmFilterStatus === 'all' || app.status === crmFilterStatus;
-                              return matchesSearch && matchesStatus;
-                            })
-                            .map((app) => (
-                              <tr 
-                                key={app.id} 
-                                onClick={() => setCrmSelectedLead(app)}
-                                className="cursor-pointer hover:bg-gray-50 transition-colors"
-                              >
-                                <td className="px-5 py-4 font-bold text-gray-900 text-sm">
-                                  {app.full_name}
-                                </td>
-                                <td className="px-5 py-4 text-xs font-semibold text-gray-500">
-                                  {app.telegram_id ? `@user_${app.telegram_id}` : 'Не указан'}
-                                </td>
-                                <td className="px-5 py-4 text-xs text-gray-500">
-                                  {app.birth_date || app.submitted_at?.split('T')[0]}
-                                </td>
-                                <td className="px-5 py-4">
-                                  <span className={`badge uppercase text-[9px] font-bold ${app.status === 'approved' ? 'badge-approved' : app.status === 'rejected' ? 'badge-error' : 'badge-pending'}`}>
-                                    {app.status === 'approved' ? 'Одобрено' : app.status === 'rejected' ? 'Отклонено' : 'В обработке'}
-                                  </span>
-                                </td>
+                      {crmLoading ? (
+                        <div className="py-20 text-center text-gray-400 font-medium">Загрузка данных из Supabase...</div>
+                      ) : (
+                        <div className="border border-gray-100 rounded-2xl overflow-x-auto shadow-sm bg-white">
+                          <table className="crm-table">
+                            <thead className="bg-gray-50 border-b border-gray-100">
+                              <tr>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Клиент</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Telegram</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Дата / Желаемый Старт</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Статус</th>
                               </tr>
-                            ))}
-                        </tbody>
-                      </table>
+                            </thead>
+                            <tbody>
+                              {crmApplications
+                                .filter(app => {
+                                  const matchesSearch = app.full_name.toLowerCase().includes(crmSearch.toLowerCase());
+                                  const matchesStatus = crmFilterStatus === 'all' || app.status === crmFilterStatus;
+                                  return matchesSearch && matchesStatus;
+                                })
+                                .map((app) => (
+                                  <tr 
+                                    key={app.id} 
+                                    onClick={() => setCrmSelectedLead(app)}
+                                    className="cursor-pointer hover:bg-gray-50 transition-colors"
+                                  >
+                                    <td className="px-5 py-4 font-bold text-gray-900 text-sm">
+                                      {app.full_name}
+                                    </td>
+                                    <td className="px-5 py-4 text-xs font-semibold text-gray-500">
+                                      {app.telegram_id ? `@user_${app.telegram_id}` : 'Не указан'}
+                                    </td>
+                                    <td className="px-5 py-4 text-xs text-gray-500">
+                                      {app.birth_date || app.submitted_at?.split('T')[0]}
+                                    </td>
+                                    <td className="px-5 py-4">
+                                      <span className={`badge uppercase text-[9px] font-bold ${app.status === 'approved' ? 'badge-approved' : app.status === 'rejected' ? 'badge-error' : 'badge-pending'}`}>
+                                        {app.status === 'approved' ? 'Одобрено' : app.status === 'rejected' ? 'Отклонено' : 'В обработке'}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {/* Right Detail Drawer */}
+                  {/* Products Tab */}
+                  {crmActiveTab === 'products' && (
+                    <div className="space-y-6 flex-grow flex flex-col">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-2xl font-black text-gray-950">Услуги и Тарифы</h3>
+                        <button 
+                          onClick={() => handleSelectProduct(null)}
+                          className="btn btn-primary text-xs py-2.5 px-4 flex items-center gap-1.5 font-bold"
+                        >
+                          <Plus className="w-4 h-4" /> Добавить услугу
+                        </button>
+                      </div>
+
+                      {crmLoading ? (
+                        <div className="py-20 text-center text-gray-400 font-medium">Загрузка тарифов...</div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                          {products.map((p) => (
+                            <div key={p.id} className="bg-white border border-gray-150 rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+                              <div className="space-y-3">
+                                <div className="flex justify-between items-start">
+                                  <h4 className="font-extrabold text-gray-900 text-lg leading-tight">{p.name}</h4>
+                                  <span className="text-[10px] font-extrabold uppercase bg-lime-100 text-[#123d0c] px-2 py-0.5 rounded">
+                                    {p.type}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-500 font-bold">{p.price.toLocaleString('ru-RU')} руб.</p>
+                                <p className="text-xs text-gray-500 leading-relaxed">{p.description}</p>
+                                <ul className="text-[11px] text-gray-400 space-y-1.5 border-t border-gray-100 pt-3">
+                                  {p.features && p.features.map((f, idx) => (
+                                    <li key={idx} className="flex items-center gap-1.5">✓ {f}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                              <button 
+                                onClick={() => handleSelectProduct(p)}
+                                className="btn btn-secondary text-xs w-full py-2"
+                              >
+                                Редактировать
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Quiz Questions Tab */}
+                  {crmActiveTab === 'quiz' && (
+                    <div className="space-y-6 flex-grow flex flex-col">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-2xl font-black text-gray-950">Вопросы Квиза</h3>
+                        <button 
+                          onClick={() => handleSelectQuestion(null)}
+                          className="btn btn-primary text-xs py-2.5 px-4 flex items-center gap-1.5 font-bold"
+                        >
+                          <Plus className="w-4 h-4" /> Добавить вопрос
+                        </button>
+                      </div>
+
+                      {crmLoading ? (
+                        <div className="py-20 text-center text-gray-400 font-medium">Загрузка вопросов...</div>
+                      ) : (
+                        <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm bg-white">
+                          <table className="crm-table">
+                            <thead className="bg-gray-50 border-b border-gray-100">
+                              <tr>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4 w-20">Шаг</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Текст вопроса</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Варианты ответов (количество)</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4 w-32">Действия</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {crmQuestions.map((q) => (
+                                <tr key={q.id}>
+                                  <td className="px-5 py-4 text-xs font-bold text-gray-600 text-center">{q.step_index}</td>
+                                  <td className="px-5 py-4 text-sm font-extrabold text-gray-950">{q.question_text}</td>
+                                  <td className="px-5 py-4 text-xs text-gray-500">
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {q.options && q.options.map((o) => (
+                                        <span key={o.value} className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px]" title={o.sublabel}>
+                                          {o.label}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </td>
+                                  <td className="px-5 py-4">
+                                    <button 
+                                      onClick={() => handleSelectQuestion(q)}
+                                      className="btn btn-secondary text-[11px] py-1.5 px-3"
+                                    >
+                                      Изменить
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Lead Detail Drawer */}
                   {crmSelectedLead && (
                     <div className="absolute inset-0 z-40 flex justify-end">
-                      {/* Dark overlay backdrop */}
                       <div 
                         onClick={() => setCrmSelectedLead(null)}
                         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
                       ></div>
                       
-                      {/* Drawer Panel */}
                       <div className="relative w-full max-w-md bg-white h-full shadow-2xl p-6 sm:p-8 flex flex-col justify-between border-l border-gray-100 z-50 animate-fade-in">
                         <div className="space-y-6">
                           <div className="flex justify-between items-center">
@@ -2205,7 +2429,6 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Action buttons inside drawer */}
                         <div className="space-y-3 pt-6 border-t border-gray-100">
                           <div className="flex gap-3">
                             <button 
@@ -2220,6 +2443,177 @@ export default function App() {
                             >
                               Отклонить
                             </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Product Editor Drawer */}
+                  {isEditingProduct && (
+                    <div className="absolute inset-0 z-40 flex justify-end">
+                      <div 
+                        onClick={() => setIsEditingProduct(false)}
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+                      ></div>
+                      
+                      <div className="relative w-full max-w-md bg-white h-full shadow-2xl p-6 sm:p-8 flex flex-col justify-between border-l border-gray-100 z-50 animate-fade-in overflow-y-auto">
+                        <div className="space-y-6">
+                          <div className="flex justify-between items-center">
+                            <h4 className="text-lg font-black text-gray-950">
+                              {crmSelectedProduct ? 'Редактировать услугу' : 'Добавить услугу'}
+                            </h4>
+                            <button onClick={() => setIsEditingProduct(false)} className="p-1 rounded-lg hover:bg-gray-100">
+                              <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="form-group">
+                              <label className="text-[10px] font-bold uppercase text-gray-500">Название услуги</label>
+                              <input 
+                                type="text"
+                                value={productFormName}
+                                onChange={(e) => setProductFormName(e.target.value)}
+                                className="form-control mt-1"
+                                placeholder="Например: 2D Live2D (Оптимальный)"
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label className="text-[10px] font-bold uppercase text-gray-500">Цена (руб.)</label>
+                              <input 
+                                type="number"
+                                value={productFormPrice}
+                                onChange={(e) => setProductFormPrice(e.target.value)}
+                                className="form-control mt-1"
+                                placeholder="49000"
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label className="text-[10px] font-bold uppercase text-gray-500">Тип модели</label>
+                              <select
+                                value={productFormType}
+                                onChange={(e) => setProductFormType(e.target.value)}
+                                className="form-control mt-1"
+                              >
+                                <option value="png">png</option>
+                                <option value="2d">2d</option>
+                                <option value="3d">3d</option>
+                              </select>
+                            </div>
+                            <div className="form-group">
+                              <label className="text-[10px] font-bold uppercase text-gray-500">Краткое описание</label>
+                              <textarea
+                                value={productFormDesc}
+                                onChange={(e) => setProductFormDesc(e.target.value)}
+                                className="form-control mt-1 h-20"
+                                placeholder="Например: Оптимальный пакет для большинства стримеров..."
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label className="text-[10px] font-bold uppercase text-gray-500">Особенности (по одной на строку)</label>
+                              <textarea
+                                value={productFormFeatures}
+                                onChange={(e) => setProductFormFeatures(e.target.value)}
+                                className="form-control mt-1 h-32 font-sans text-xs"
+                                placeholder="Создание образа персонажа с нуля&#10;Настройка трекинга&#10;3 часа техподдержки"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3 pt-6 border-t border-gray-100">
+                          <div className="flex gap-3">
+                            <button 
+                              onClick={handleSaveProduct}
+                              className="btn btn-primary flex-grow text-xs py-3 font-bold"
+                            >
+                              Сохранить
+                            </button>
+                            {crmSelectedProduct && (
+                              <button 
+                                onClick={() => handleDeleteProduct(crmSelectedProduct.id)}
+                                className="btn btn-secondary border-red-200 text-red-500 hover:bg-red-50 px-4 text-xs py-3"
+                              >
+                                Удалить
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quiz Question Editor Drawer */}
+                  {isEditingQuestion && (
+                    <div className="absolute inset-0 z-40 flex justify-end">
+                      <div 
+                        onClick={() => setIsEditingQuestion(false)}
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+                      ></div>
+                      
+                      <div className="relative w-full max-w-md bg-white h-full shadow-2xl p-6 sm:p-8 flex flex-col justify-between border-l border-gray-100 z-50 animate-fade-in overflow-y-auto">
+                        <div className="space-y-6">
+                          <div className="flex justify-between items-center">
+                            <h4 className="text-lg font-black text-gray-950">
+                              {crmSelectedQuestion ? 'Редактировать вопрос' : 'Добавить вопрос'}
+                            </h4>
+                            <button onClick={() => setIsEditingQuestion(false)} className="p-1 rounded-lg hover:bg-gray-100">
+                              <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="form-group">
+                              <label className="text-[10px] font-bold uppercase text-gray-500">Текст вопроса</label>
+                              <input 
+                                type="text"
+                                value={questionFormText}
+                                onChange={(e) => setQuestionFormText(e.target.value)}
+                                className="form-control mt-1"
+                                placeholder="Например: Какой у вас планируемый бюджет?"
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label className="text-[10px] font-bold uppercase text-gray-500">Порядковый шаг (начиная с 0)</label>
+                              <input 
+                                type="number"
+                                value={questionFormStepIndex}
+                                onChange={(e) => setQuestionFormStepIndex(e.target.value)}
+                                className="form-control mt-1"
+                                placeholder="0"
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label className="text-[10px] font-bold uppercase text-gray-500">
+                                Варианты ответов (формат: значение | заголовок | подзаголовок)
+                              </label>
+                              <textarea
+                                value={questionFormChoices}
+                                onChange={(e) => setQuestionFormChoices(e.target.value)}
+                                className="form-control mt-1 h-48 font-sans text-xs"
+                                placeholder="low | До 20 тыс. руб | Минимальный бюджет&#10;medium | До 60 тыс. руб | Оптимальный бюджет"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3 pt-6 border-t border-gray-100">
+                          <div className="flex gap-3">
+                            <button 
+                              onClick={handleSaveQuestion}
+                              className="btn btn-primary flex-grow text-xs py-3 font-bold"
+                            >
+                              Сохранить
+                            </button>
+                            {crmSelectedQuestion && (
+                              <button 
+                                onClick={() => handleDeleteQuestion(crmSelectedQuestion.id)}
+                                className="btn btn-secondary border-red-200 text-red-500 hover:bg-red-50 px-4 text-xs py-3"
+                              >
+                                Удалить
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
