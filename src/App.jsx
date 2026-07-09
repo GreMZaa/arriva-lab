@@ -24,7 +24,8 @@ import {
   Plus,
   Sliders,
   Bell,
-  Settings
+  Settings,
+  Trash
 } from 'lucide-react';
 import { db, getTelegramIdHash } from './supabase';
 const TelegramLoginWidget = ({ botName, onAuth, showDivider = true }) => {
@@ -240,7 +241,7 @@ export default function App() {
   // Question Form states
   const [questionFormText, setQuestionFormText] = useState('');
   const [questionFormStepIndex, setQuestionFormStepIndex] = useState(0);
-  const [questionFormChoices, setQuestionFormChoices] = useState('');
+  const [questionFormOptions, setQuestionFormOptions] = useState([]);
 
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [crmSelectedLead, setCrmSelectedLead] = useState(null); // Right drawer details
@@ -819,41 +820,41 @@ export default function App() {
     if (question) {
       setQuestionFormText(question.question_text);
       setQuestionFormStepIndex(question.step_index);
-      
-      const choicesText = question.options 
-        ? question.options.map(opt => `${opt.value} | ${opt.label} | ${opt.sublabel || ''}`).join('\n')
-        : '';
-      setQuestionFormChoices(choicesText);
+      setQuestionFormOptions(question.options || []);
       setIsEditingQuestion(true);
     } else {
       setQuestionFormText('');
       setQuestionFormStepIndex(crmQuestions.length);
-      setQuestionFormChoices('');
+      setQuestionFormOptions([
+        { value: '', label: '', sublabel: '' }
+      ]);
       setIsEditingQuestion(true); // Opening empty for add
     }
   };
 
+  const handleAddOption = () => {
+    setQuestionFormOptions(prev => [...prev, { value: '', label: '', sublabel: '' }]);
+  };
+
+  const handleRemoveOption = (index) => {
+    setQuestionFormOptions(prev => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleUpdateOption = (index, field, val) => {
+    setQuestionFormOptions(prev => prev.map((opt, idx) => idx === index ? { ...opt, [field]: val } : opt));
+  };
+
   const handleSaveQuestion = async () => {
     try {
-      const choicesArray = questionFormChoices
-        .split('\n')
-        .map(line => {
-          const parts = line.split('|').map(s => s.trim());
-          if (parts.length >= 2) {
-            return {
-              value: parts[0],
-              label: parts[1],
-              sublabel: parts[2] || ''
-            };
-          }
-          return null;
-        })
-        .filter(c => c !== null);
+      const cleanOptions = questionFormOptions.filter(opt => opt.value.trim() && opt.label.trim());
+      if (cleanOptions.length === 0) {
+        throw new Error('Добавьте хотя бы один заполненный вариант ответа (код и текст кнопки)');
+      }
 
       const payload = {
         question_text: questionFormText,
         step_index: Number(questionFormStepIndex),
-        options: choicesArray
+        options: cleanOptions
       };
 
       let updatedQuestions = [];
@@ -2614,16 +2615,71 @@ export default function App() {
                                 placeholder="0"
                               />
                             </div>
-                            <div className="form-group">
-                              <label className="text-[10px] font-bold uppercase text-gray-500">
-                                Варианты ответов (формат: значение | заголовок | подзаголовок)
-                              </label>
-                              <textarea
-                                value={questionFormChoices}
-                                onChange={(e) => setQuestionFormChoices(e.target.value)}
-                                className="form-control mt-1 h-48 font-sans text-xs"
-                                placeholder="low | До 20 тыс. руб | Минимальный бюджет&#10;medium | До 60 тыс. руб | Оптимальный бюджет"
-                              />
+                            <div className="space-y-4">
+                              <div className="flex justify-between items-center">
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Варианты ответов</label>
+                                <span className="text-[9px] text-gray-400 font-medium">Для связи: png, 2d, 3d, career</span>
+                              </div>
+                              
+                              <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                                {questionFormOptions.map((opt, index) => (
+                                  <div key={index} className="p-4 border border-gray-100 rounded-2xl bg-gray-50/50 space-y-3 relative group">
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-[10px] font-black text-gray-400">Вариант #{index + 1}</span>
+                                      {questionFormOptions.length > 1 && (
+                                        <button 
+                                          type="button"
+                                          onClick={() => handleRemoveOption(index)}
+                                          className="text-gray-400 hover:text-red-500 transition-colors text-[10px] font-bold flex items-center gap-1"
+                                        >
+                                          <Trash className="w-3.5 h-3.5" /> Удалить
+                                        </button>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="text-[9px] font-bold text-gray-500 uppercase">Текст (Заголовок)</label>
+                                        <input 
+                                          type="text"
+                                          value={opt.label}
+                                          onChange={(e) => handleUpdateOption(index, 'label', e.target.value)}
+                                          className="form-control mt-1 text-xs py-2"
+                                          placeholder="Например: До 20 тыс. руб"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-[9px] font-bold text-gray-500 uppercase">Код связи (Value)</label>
+                                        <input 
+                                          type="text"
+                                          value={opt.value}
+                                          onChange={(e) => handleUpdateOption(index, 'value', e.target.value)}
+                                          className="form-control mt-1 text-xs py-2 font-mono"
+                                          placeholder="png, 2d, 3d или др."
+                                        />
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <label className="text-[9px] font-bold text-gray-500 uppercase">Подзаголовок (Пояснение)</label>
+                                      <input 
+                                        type="text"
+                                        value={opt.sublabel || ''}
+                                        onChange={(e) => handleUpdateOption(index, 'sublabel', e.target.value)}
+                                        className="form-control mt-1 text-xs py-2"
+                                        placeholder="Например: Бюджетный аватар для стрима"
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={handleAddOption}
+                                className="w-full py-2.5 border border-dashed border-gray-200 rounded-2xl text-xs font-bold text-gray-500 hover:text-[#123d0c] hover:border-[#9FE870] hover:bg-lime-50/10 transition-all flex justify-center items-center gap-1.5"
+                              >
+                                <Plus className="w-3.5 h-3.5" /> Добавить вариант ответа
+                              </button>
                             </div>
                           </div>
                         </div>
