@@ -336,19 +336,25 @@ export default function App() {
 
   const calculateQuizResult = async () => {
     setQuizLoading(true);
-    // Simple decision logic
-    const budget = quizAnswers.budget || 'low';
+    const budget = quizAnswers.budget || '';
     const goal = quizAnswers.goal || 'test';
     
-    let result = 'png';
-    if (budget === 'high' || (budget === 'medium' && goal === 'career')) {
-      result = '3d';
-    } else if (budget === 'medium' || (budget === 'low' && goal === 'career')) {
-      result = '2d';
+    let result = budget;
+    if (budget === 'low') result = 'png';
+    else if (budget === 'medium') result = '2d';
+    else if (budget === 'high') result = '3d';
+    
+    if (goal === 'career') {
+      if (result === 'png') result = '2d';
+      else if (result === '2d') result = '3d';
+    }
+    
+    if (!result) {
+      result = 'png';
     }
     
     setQuizResult(result);
-    setQuizStep(4);
+    setQuizStep(quizQuestions.length);
     setQuizLoading(false);
     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
   };
@@ -1399,7 +1405,7 @@ export default function App() {
                 </>
               )}
 
-              {quizStep === 4 && quizResult && (() => {
+              {quizStep === quizQuestions.length && quizResult && (() => {
                 const matchedProduct = products.find(p => p.type === quizResult) || {
                   name: quizResult === '3d' ? '3D VR-Аватар (Премиум)' : quizResult === '2d' ? '2D Live2D (Оптимальный)' : 'PNG-Аватар (Бюджетный)',
                   price: quizResult === '3d' ? 99000 : quizResult === '2d' ? 49000 : 19000,
