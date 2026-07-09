@@ -2517,15 +2517,13 @@ export default function App() {
                             </div>
                             <div className="form-group">
                               <label className="text-[10px] font-bold uppercase text-gray-500">Тип модели</label>
-                              <select
+                              <input 
+                                type="text"
                                 value={productFormType}
                                 onChange={(e) => setProductFormType(e.target.value)}
                                 className="form-control mt-1"
-                              >
-                                <option value="png">png</option>
-                                <option value="2d">2d</option>
-                                <option value="3d">3d</option>
-                              </select>
+                                placeholder="Например: png, 2d, 3d или свой тип"
+                              />
                             </div>
                             <div className="form-group">
                               <label className="text-[10px] font-bold uppercase text-gray-500">Краткое описание</label>
