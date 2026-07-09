@@ -279,8 +279,8 @@ p {
 .crm-table th {
   padding: 16px 20px;
   font-weight: 600;
-  color: var(--text-dark-muted);
-  border-bottom: 1px solid var(--border-dark);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-light);
   text-transform: uppercase;
   font-size: 0.8rem;
   letter-spacing: 0.05em;
@@ -288,13 +288,13 @@ p {
 
 .crm-table td {
   padding: 18px 20px;
-  color: var(--text-light);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--text-dark);
+  border-bottom: 1px solid var(--border-light);
   transition: background-color var(--transition-fast);
 }
 
 .crm-table tr:hover td {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--bg-subtle);
   cursor: pointer;
 }
 
