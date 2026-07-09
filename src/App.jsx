@@ -84,19 +84,45 @@ const TelegramLoginWidget = ({ botName, onAuth, showDivider = true }) => {
 
 export default function App() {
   const [view, setView] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash === 'crm' || hash === 'cabinet' || hash === 'quiz') {
+      return hash;
+    }
     const params = new URLSearchParams(window.location.search);
-    if (params.get('admin') === 'true' || params.get('crm') === 'true' || window.location.hash === '#crm') {
+    if (params.get('admin') === 'true' || params.get('crm') === 'true') {
       return 'crm';
     }
-    return localStorage.getItem('arriva_current_view') || 'home';
+    return 'home';
   }); // 'home', 'quiz', 'cabinet', 'crm'
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [logoClicks, setLogoClicks] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Sync state view -> URL Hash
   useEffect(() => {
+    if (view === 'home') {
+      if (window.location.hash) {
+        window.history.pushState("", document.title, window.location.pathname + window.location.search);
+      }
+    } else {
+      window.location.hash = `#${view}`;
+    }
     localStorage.setItem('arriva_current_view', view);
   }, [view]);
+
+  // Sync URL Hash -> state view (browser back/forward button support)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'crm' || hash === 'cabinet' || hash === 'quiz') {
+        setView(hash);
+      } else if (!hash) {
+        setView('home');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
