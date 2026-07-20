@@ -1579,10 +1579,15 @@ export default function App() {
                             className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870]"
                           >
                             <option value="" className="bg-gray-900 text-white">Выберите вариант...</option>
-                            <option value="АРХИВ 002 — базовый" className="bg-gray-900 text-white">АРХИВ 002 — базовый (14 900 ₽)</option>
-                            <option value="АРХИВ 002 PREMIUM" className="bg-gray-900 text-white">АРХИВ 002 PREMIUM (49 900 ₽)</option>
-                            <option value="АРХИВ 003" className="bg-gray-900 text-white">АРХИВ 003 (от 59 900 ₽)</option>
-                            <option value="АРХИВ 004 — РЕСТАРТ" className="bg-gray-900 text-white">АРХИВ 004 — РЕСТАРТ (39 900 ₽)</option>
+                            {(() => {
+                              const typeOrder = { 'basic': 1, 'premium': 2, 'restart': 3, '18+': 4 };
+                              const list = (products && products.length > 0) ? products : defaultProducts;
+                              return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
+                            })().map((prod) => (
+                              <option key={prod.name} value={prod.name} className="bg-gray-900 text-white">
+                                {prod.name} ({Number(prod.price).toLocaleString('ru-RU')} ₽)
+                              </option>
+                            ))}
                             <option value="ORIVA TALENTS" className="bg-gray-900 text-white">ORIVA TALENTS (15% от дохода)</option>
                           </select>
                         </div>
