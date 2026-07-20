@@ -27,7 +27,7 @@
 * Без бесплатной модели аватара в подарок.
 
 ### 🎨 Промпт для Nano Banana (16:9)
-> **Prompt:** A futuristic gaming room, a sleek computer setup with neon green glow, three monitors showing vtuber face-tracking software with the glowing text logo 'ARRIVA lab' on the screens, a clean white gaming chair, modern tech aesthetics, vibrant lime green details, cinematic lighting, highly detailed, cyberpunk anime style, 16:9 aspect ratio --ar 16:9
+> **Prompt:** A luxury modern streaming workspace, minimalist design, matte black desk, clean computer setup with high-end monitors, a stylish white ergonomic designer chair, soft warm ambient backlighting, realistic lighting, highly detailed interior photography style, corporate premium aesthetic, the elegant brand logo 'ARRIVA lab' subtly glowing on one screen, 8k resolution, 16:9 aspect ratio --ar 16:9
 
 ---
 
@@ -50,7 +50,7 @@
 * Полный запуск под ключ с готовым техническим сценарием на дебютный стрим.
 
 ### 🎨 Промпт для Nano Banana (16:9)
-> **Prompt:** A premium high-tech streaming laboratory, a holographic 3D anime girl avatar floating above a futuristic console, the prominent glowing brand logo 'ARRIVA lab' on the background holographic wall and interfaces, professional microphones, soft pink and cyan neon ambient lighting, premium glassmorphism panels, cinematic atmosphere, masterpiece, detailed anime key art, 16:9 aspect ratio --ar 16:9
+> **Prompt:** A high-end futuristic studio laboratory, a floating holographic 3D anime girl avatar in high fidelity, premium sound console, sleek warm golden and white atmospheric studio lighting, minimalist glassmorphism interface panels showing a clean elegant brand logo 'ARRIVA lab', professional photography, cinematic, masterpiece, 16:9 aspect ratio --ar 16:9
 
 ---
 
@@ -74,7 +74,7 @@
 * Круглосуточная поддержка 24/7.
 
 ### 🎨 Промпт для Nano Banana (16:9)
-> **Prompt:** A dark cyberpunk hacking and streaming room, multiple glowing purple screens showing cryptographic locks and security interfaces with the glowing stealth logo 'ARRIVA lab' in the corner, mysterious anime streamer silhouette behind a glowing holographic mask, privacy theme, high tech, highly detailed, masterwork anime style, 16:9 aspect ratio --ar 16:9
+> **Prompt:** An elegant and mysterious dark workspace, brushed steel textures, clean glowing deep indigo and violet ambient lighting, multiple screens showing elegant abstract network graphs with a small corporate 'ARRIVA lab' logo in the corner, cinematic shadows, high-end dark tech theme, highly detailed photography, 16:9 aspect ratio --ar 16:9
 
 ---
 
@@ -99,4 +99,4 @@
 * Круглосуточная поддержка 24/7.
 
 ### 🎨 Промпт для Nano Banana (16:9)
-> **Prompt:** A stunning digital transformation scene, a real human silhouette fading and morphing into a virtual 2D live2D anime character on a giant holographic stream screen displaying the brand logo 'ARRIVA lab', neon green cybernetic sparkles, digital restart theme, stage backdrop, cinematic lighting, highly detailed anime illustration, 16:9 aspect ratio --ar 16:9
+> **Prompt:** A professional digital media stage, a minimalist background screen showing a transformation from a human silhouette to a beautiful virtual anime avatar with a sleek 'ARRIVA lab' branding on it, warm studio spotlights, high-end corporate presentation style, clean platinum and soft gray color palette, highly detailed, 16:9 aspect ratio --ar 16:9
