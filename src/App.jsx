@@ -1367,19 +1367,19 @@ export default function App() {
                         className="bg-gray-50 border border-gray-100 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#9FE870] transition-all duration-300 group"
                       >
                         <div className="space-y-6 text-left">
-                          <div className="flex justify-between items-start">
-                            <span className="text-[10px] font-extrabold uppercase bg-lime-100 text-[#123d0c] px-3 py-1 rounded-full">
+                          <div className="flex justify-center mb-2">
+                            <span className="text-3xl font-black uppercase bg-[#9FE870]/20 text-[#123d0c] px-6 py-2.5 rounded-2xl border border-[#9FE870]/40 tracking-widest">
                               {product.type}
                             </span>
                           </div>
-                          <div>
+                          <div className="text-center">
                             <h3 className="font-extrabold text-gray-900 text-xl leading-tight group-hover:text-black transition-colors">{product.name}</h3>
                             <p className="text-sm text-gray-400 mt-2 leading-relaxed">{product.description}</p>
                           </div>
-                          <div className="text-3xl font-black text-gray-950">
+                          <div className="text-3xl font-black text-gray-950 text-center">
                             {Number(product.price).toLocaleString('ru-RU')} ₽
                           </div>
-                          <ul className="text-sm text-gray-500 space-y-3 border-t border-gray-200 pt-6">
+                          <ul className="text-sm text-gray-500 space-y-3 border-t border-gray-200 pt-6 text-left">
                             {product.features && product.features.map((feat, idx) => (
                               <li key={idx} className="flex items-start gap-2.5 leading-snug">
                                 <span className="text-[#123d0c] font-bold">✓</span>
