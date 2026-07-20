@@ -377,7 +377,10 @@ export default function App() {
   // Submission handler
   const handleContactSubmit = async (e) => {
     e.preventDefault();
-    if (!contactName || !contactTelegram) return;
+    if (!contactName || !contactTelegram || !contactDate || !contactAbout) {
+      alert('Пожалуйста, заполните все обязательные поля (Имя, Telegram, Дата рождения, Продукт)!');
+      return;
+    }
 
     // Telegram Username validation
     const cleanedTg = contactTelegram.startsWith('@') ? contactTelegram.slice(1) : contactTelegram;
@@ -1546,9 +1549,10 @@ export default function App() {
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="form-group text-left">
-                          <label className="text-gray-300 text-xs font-semibold uppercase">Дата старта (желаемая)</label>
+                          <label className="text-gray-300 text-xs font-semibold uppercase">Дата рождения</label>
                           <input 
                             type="date" 
+                            required
                             value={contactDate} 
                             onChange={(e) => setContactDate(e.target.value)}
                             className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] text-gray-400"
@@ -1557,6 +1561,7 @@ export default function App() {
                         <div className="form-group text-left">
                            <label className="text-gray-300 text-xs font-semibold uppercase">Какой продукт интересует?</label>
                           <select 
+                            required
                             value={contactAbout}
                             onChange={(e) => setContactAbout(e.target.value)}
                             className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870]"
