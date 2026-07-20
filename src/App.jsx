@@ -1380,12 +1380,21 @@ export default function App() {
                             {Number(product.price).toLocaleString('ru-RU')} ₽
                           </div>
                           <ul className="text-sm text-gray-500 space-y-3 border-t border-gray-200 pt-6 text-left">
-                            {product.features && product.features.map((feat, idx) => (
-                              <li key={idx} className="flex items-start gap-2.5 leading-snug">
-                                <span className="text-[#123d0c] font-bold">✓</span>
-                                <span>{feat}</span>
-                              </li>
-                            ))}
+                            {product.features && product.features.map((feat, idx) => {
+                              const isExcluded = feat.startsWith('Без') || feat.startsWith('без');
+                              return (
+                                <li key={idx} className="flex items-start gap-2.5 leading-snug">
+                                  {isExcluded ? (
+                                    <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                                  ) : (
+                                    <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                                  )}
+                                  <span className={isExcluded ? 'text-gray-400 font-medium line-through decoration-red-200/50 decoration-1' : 'text-gray-700 font-medium'}>
+                                    {feat}
+                                  </span>
+                                </li>
+                              );
+                            })}
                           </ul>
                         </div>
 
@@ -2062,12 +2071,21 @@ export default function App() {
                                   {Number(product.price).toLocaleString('ru-RU')} ₽
                                 </div>
                                 <ul className="text-[11px] text-gray-500 space-y-2 border-t border-gray-50 pt-3">
-                                  {product.features && product.features.slice(0, 5).map((feat, idx) => (
-                                    <li key={idx} className="flex items-start gap-1.5 leading-snug">
-                                      <span className="text-[#123d0c] font-bold">✓</span>
-                                      <span>{feat}</span>
-                                    </li>
-                                  ))}
+                                  {product.features && product.features.slice(0, 5).map((feat, idx) => {
+                                    const isExcluded = feat.startsWith('Без') || feat.startsWith('без');
+                                    return (
+                                      <li key={idx} className="flex items-start gap-1.5 leading-snug">
+                                        {isExcluded ? (
+                                          <X className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+                                        ) : (
+                                          <Check className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
+                                        )}
+                                        <span className={isExcluded ? 'text-gray-400 line-through decoration-red-200/40' : 'text-gray-600'}>
+                                          {feat}
+                                        </span>
+                                      </li>
+                                    );
+                                  })}
                                   {product.features && product.features.length > 5 && (
                                     <li className="text-[10px] text-gray-400 italic">И еще {product.features.length - 5} пунктов в архиве...</li>
                                   )}
