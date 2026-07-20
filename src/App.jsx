@@ -402,6 +402,17 @@ export default function App() {
       // Submit app
       const app = await db.submitApplication(tgId, contactName, contactDate || new Date().toISOString().split('T')[0], wishesCombined);
       
+      // Auto register a purchase suggestion in the DB for this user!
+      let price = 14900;
+      if (contactAbout.toLowerCase().includes('premium')) price = 49900;
+      else if (contactAbout.toLowerCase().includes('003') || contactAbout.toLowerCase().includes('18+')) price = 59900;
+      else if (contactAbout.toLowerCase().includes('004') || contactAbout.toLowerCase().includes('рестарт')) price = 39900;
+      
+      await db.createPurchase(tgId, contactAbout, price);
+
+      // Automatically authenticate the user (creates session context for cabinet)
+      setCabinetUser({ telegram_id: tgId, first_name: contactName, username: contactTelegram });
+
       // Notify Admin Group via Serverless API!
       try {
         await fetch(`/api/notify-admin`, {
@@ -411,7 +422,7 @@ export default function App() {
             id: app.id,
             name: contactName,
             telegram: contactTelegram,
-            wishes: `Дата старта: ${contactDate || 'не указана'}. Продукт: ${contactAbout || 'не выбран'}. Комментарий: ${contactComment || 'нет'}`
+            wishes: `Дата рождения: ${contactDate || 'не указана'}. Продукт: ${contactAbout || 'не выбран'}. Комментарий: ${contactComment || 'нет'}`
           })
         });
       } catch (notifyErr) {
@@ -420,6 +431,22 @@ export default function App() {
 
       setContactSubmitted(true);
       confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
+
+      // Open Paywall link for payment if it's not the 18+ (АРХИВ 003) tariff
+      if (!contactAbout.toLowerCase().includes('003') && !contactAbout.toLowerCase().includes('18+')) {
+        let link = 'https://paywall.ru';
+        if (contactAbout.toLowerCase().includes('premium')) {
+          link = 'https://paywall.ru/arrivalab/products/1152545118';
+        } else if (contactAbout.toLowerCase().includes('004') || contactAbout.toLowerCase().includes('рестарт')) {
+          link = 'https://paywall.ru/arrivalab/products/1194159971';
+        } else {
+          // default/basic
+          link = 'https://paywall.ru/arrivalab/products/1491893657';
+        }
+        setTimeout(() => {
+          window.open(link, '_blank');
+        }, 1200); // 1.2 seconds delay to allow success transition
+      }
     } catch (error) {
       alert('Ошибка при отправке заявки: ' + error.message);
     } finally {
@@ -1440,28 +1467,13 @@ export default function App() {
                           </ul>
                         </div>
 
-                        {product.type === '18+' ? (
-                          <a
-                            href="#contacts"
-                            onClick={() => setContactAbout(product.name)}
-                            className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
-                          >
-                            Выбрать тариф
-                          </a>
-                        ) : (
-                          <a
-                            href={
-                              product.type === 'basic' ? 'https://paywall.ru/arrivalab/products/1491893657' :
-                              product.type === 'premium' ? 'https://paywall.ru/arrivalab/products/1152545118' :
-                              product.type === 'restart' ? 'https://paywall.ru/arrivalab/products/1194159971' : 'https://paywall.ru'
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
-                          >
-                            Выбрать тариф
-                          </a>
-                        )}
+                        <a
+                          href="#contacts"
+                          onClick={() => setContactAbout(product.name)}
+                          className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
+                        >
+                          Выбрать тариф
+                        </a>
                       </div>
                     ))}
                   </div>
