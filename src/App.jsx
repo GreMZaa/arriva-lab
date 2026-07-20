@@ -505,7 +505,17 @@ export default function App() {
         setClientTasks(getChecklistForProduct(active.program_name));
       }
       
-      alert(`Тариф успешно изменен на «${product.name}»!`);
+      if (product.type !== '18+') {
+        let link = 'https://paywall.ru';
+        if (product.type === 'basic') link = 'https://paywall.ru/arrivalab/products/1491893657';
+        else if (product.type === 'premium') link = 'https://paywall.ru/arrivalab/products/1152545118';
+        else if (product.type === 'restart') link = 'https://paywall.ru/arrivalab/products/1194159971';
+        
+        window.open(link, '_blank');
+        alert(`Тариф изменен на «${product.name}»! Открываем страницу оплаты Paywall.`);
+      } else {
+        alert(`Заявка на тариф «${product.name}» создана! Данный тариф требует подтверждения совершеннолетия. Наш менеджер свяжется с вами в Telegram.`);
+      }
       setCabinetActiveTab('project');
     } catch (err) {
       alert('Ошибка смены тарифа: ' + err.message);
@@ -1402,13 +1412,28 @@ export default function App() {
                           </ul>
                         </div>
 
-                        <a
-                          href="#contacts"
-                          onClick={() => setContactAbout(product.name)}
-                          className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold"
-                        >
-                          Выбрать тариф
-                        </a>
+                        {product.type === '18+' ? (
+                          <a
+                            href="#contacts"
+                            onClick={() => setContactAbout(product.name)}
+                            className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
+                          >
+                            Выбрать тариф
+                          </a>
+                        ) : (
+                          <a
+                            href={
+                              product.type === 'basic' ? 'https://paywall.ru/arrivalab/products/1491893657' :
+                              product.type === 'premium' ? 'https://paywall.ru/arrivalab/products/1152545118' :
+                              product.type === 'restart' ? 'https://paywall.ru/arrivalab/products/1194159971' : 'https://paywall.ru'
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
+                          >
+                            Выбрать тариф
+                          </a>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1945,14 +1970,24 @@ export default function App() {
                               Ваш заказ «<strong>{activePurchase.program_name}</strong>» успешно оформлен. Чтобы получить полный доступ к пошаговому обучению, базе знаний и начать работу над вашим персонажем, пожалуйста, оплатите счет.
                             </p>
                           </div>
-                          <a 
-                            href="https://paywall.ru" 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="px-6 py-4 bg-gradient-to-r from-[#9FE870] to-[#8de05b] hover:from-[#abf37d] hover:to-[#96e964] text-gray-950 font-black rounded-2xl flex items-center gap-2 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 text-sm shadow-[0_4px_20px_rgba(159,232,112,0.4)] whitespace-nowrap self-stretch md:self-auto justify-center"
-                          >
-                            Оплатить {Number(activePurchase.price).toLocaleString('ru-RU')} ₽ <ArrowRight className="w-4 h-4" />
-                          </a>
+                          {activePurchase.program_name.includes('003') ? (
+                            <div className="px-6 py-4 bg-white/10 text-white font-bold rounded-2xl text-xs text-center border border-white/20 w-full md:w-auto">
+                              Ожидайте проверки возраста куратором
+                            </div>
+                          ) : (
+                            <a 
+                              href={
+                                activePurchase.program_name.toLowerCase().includes('premium') ? 'https://paywall.ru/arrivalab/products/1152545118' :
+                                activePurchase.program_name.toLowerCase().includes('рестарт') || activePurchase.program_name.toLowerCase().includes('004') ? 'https://paywall.ru/arrivalab/products/1194159971' :
+                                'https://paywall.ru/arrivalab/products/1491893657'
+                              } 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="px-6 py-4 bg-gradient-to-r from-[#9FE870] to-[#8de05b] hover:from-[#abf37d] hover:to-[#96e964] text-gray-950 font-black rounded-2xl flex items-center gap-2 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 text-sm shadow-[0_4px_20px_rgba(159,232,112,0.4)] whitespace-nowrap self-stretch md:self-auto justify-center"
+                            >
+                              Оплатить {Number(activePurchase.price).toLocaleString('ru-RU')} ₽ <ArrowRight className="w-4 h-4" />
+                            </a>
+                          )}
                         </div>
                       )}
 
@@ -2031,6 +2066,35 @@ export default function App() {
                               <p className="text-[11px] text-gray-500 leading-relaxed">
                                 Цена: {Number(activePurchase.price).toLocaleString('ru-RU')} ₽ • Статус: <span className={activePurchase.status === 'approved' ? 'text-green-600 font-bold' : 'text-purple-600 font-bold'}>{activePurchase.status === 'approved' ? 'Оплачено' : 'Ожидает оплаты'}</span>
                               </p>
+                            </div>
+                          )}
+
+                          {activePurchase && activePurchase.status === 'approved' && (
+                            <div className="bg-gradient-to-r from-lime-500/10 to-[#9FE870]/20 border border-[#9FE870]/40 rounded-3xl p-6 space-y-4">
+                              <div className="flex items-start gap-3 text-left">
+                                <div className="p-2.5 bg-[#9FE870]/20 rounded-xl text-[#123d0c] shrink-0">
+                                  <Layers className="w-5 h-5" />
+                                </div>
+                                <div className="space-y-1">
+                                  <h4 className="font-bold text-gray-950 text-sm">Материалы архива</h4>
+                                  <p className="text-[11px] text-gray-500 leading-normal">
+                                    Оплата подтверждена. Вы можете скачать файлы обучения и дополнительные материалы.
+                                  </p>
+                                </div>
+                              </div>
+                              <a 
+                                href={
+                                  activePurchase.program_name.toLowerCase().includes('premium') ? 'https://drive.google.com/drive/folders/arriva_premium_archive' :
+                                  activePurchase.program_name.toLowerCase().includes('рестарт') || activePurchase.program_name.toLowerCase().includes('004') ? 'https://drive.google.com/drive/folders/arriva_restart_archive' :
+                                  activePurchase.program_name.toLowerCase().includes('003') ? 'https://drive.google.com/drive/folders/arriva_18_archive' :
+                                  'https://drive.google.com/drive/folders/arriva_basic_archive'
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full btn btn-primary py-3 text-xs font-bold text-center inline-block"
+                              >
+                                Скачать архив программ
+                              </a>
                             </div>
                           )}
                         </div>
