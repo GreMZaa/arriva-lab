@@ -435,10 +435,8 @@ export default function App() {
       result = '18+';
     } else if (hardware === 'premium') {
       result = 'premium';
-    } else if (budget === '2d') {
-      result = '2d';
-    } else if (budget === '3d') {
-      result = '3d';
+    } else if (budget === '2d' || budget === '3d') {
+      result = 'premium';
     } else {
       result = 'basic';
     }
@@ -462,9 +460,7 @@ export default function App() {
       // Auto register a purchase suggestion
       let productName = 'АРХИВ 002 — базовый';
       let price = 14900;
-      if (quizResult === '2d') { productName = 'АРХИВ 002 + 2D (скидка 50%)'; price = 29900; }
-      else if (quizResult === '3d') { productName = 'АРХИВ 002 + 3D (скидка 50%)'; price = 34900; }
-      else if (quizResult === 'premium') { productName = 'АРХИВ 002 PREMIUM'; price = 49900; }
+      if (quizResult === 'premium') { productName = 'АРХИВ 002 PREMIUM'; price = 49900; }
       else if (quizResult === '18+') { productName = 'АРХИВ 003'; price = 59900; }
       else if (quizResult === 'restart') { productName = 'АРХИВ 004 — РЕСТАРТ'; price = 39900; }
       
@@ -1502,8 +1498,6 @@ export default function App() {
                           >
                             <option value="" className="bg-gray-900 text-white">Выберите вариант...</option>
                             <option value="АРХИВ 002 — базовый" className="bg-gray-900 text-white">АРХИВ 002 — базовый (14 900 ₽)</option>
-                            <option value="АРХИВ 002 + 2D (скидка 50%)" className="bg-gray-900 text-white">АРХИВ 002 + 2D (29 900 ₽)</option>
-                            <option value="АРХИВ 002 + 3D (скидка 50%)" className="bg-gray-900 text-white">АРХИВ 002 + 3D (34 900 ₽)</option>
                             <option value="АРХИВ 002 PREMIUM" className="bg-gray-900 text-white">АРХИВ 002 PREMIUM (49 900 ₽)</option>
                             <option value="АРХИВ 003" className="bg-gray-900 text-white">АРХИВ 003 (от 59 900 ₽)</option>
                             <option value="АРХИВ 004 — РЕСТАРТ" className="bg-gray-900 text-white">АРХИВ 004 — РЕСТАРТ (39 900 ₽)</option>
