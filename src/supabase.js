@@ -549,7 +549,7 @@ export const db = {
 };
 
 // Default products initial data for LocalStorage fallback
-const defaultProducts = [
+export const defaultProducts = [
   {
     id: 1,
     name: "АРХИВ 002 — базовый",

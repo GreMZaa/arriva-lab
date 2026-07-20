@@ -27,7 +27,7 @@ import {
   Settings,
   Trash
 } from 'lucide-react';
-import { db, getTelegramIdHash } from './supabase';
+import { db, getTelegramIdHash, defaultProducts } from './supabase';
 const TelegramLoginWidget = ({ botName, onAuth, showDivider = true }) => {
   React.useEffect(() => {
     if (!document.getElementById('telegram-widget-script')) {
@@ -334,17 +334,23 @@ export default function App() {
     }
   }, [view, crmLoggedIn]);
 
-  // Load quiz questions on mount
+  // Load quiz questions and products on mount
   useEffect(() => {
-    const loadQuestions = async () => {
+    const loadInitialData = async () => {
       try {
         const qs = await db.getAllQuestions();
         setQuizQuestions(qs);
       } catch (err) {
         console.error('Failed to load quiz questions:', err);
       }
+      try {
+        const ps = await db.getAllProducts();
+        setProducts(ps);
+      } catch (err) {
+        console.error('Failed to load products:', err);
+      }
     };
-    loadQuestions();
+    loadInitialData();
   }, []);
 
   const loadCrmData = async () => {
@@ -1044,6 +1050,7 @@ export default function App() {
             <a href="#services" className="hover:text-black transition-colors" onClick={() => setView('home')}>Услуги</a>
             <a href="#steps" className="hover:text-black transition-colors" onClick={() => setView('home')}>Как это работает</a>
             <a href="#portfolio" className="hover:text-black transition-colors" onClick={() => setView('home')}>Портфолио</a>
+            <a href="#tariffs" className="hover:text-black transition-colors" onClick={() => setView('home')}>Тарифы</a>
             <a href="#contacts" className="hover:text-black transition-colors" onClick={() => setView('home')}>Контакты</a>
             
             <span className="w-px h-4 bg-gray-200"></span>
@@ -1084,6 +1091,7 @@ export default function App() {
             <a href="#services" className="py-2 border-b border-gray-50" onClick={() => { setView('home'); setMobileMenuOpen(false); }}>Услуги</a>
             <a href="#steps" className="py-2 border-b border-gray-50" onClick={() => { setView('home'); setMobileMenuOpen(false); }}>Как это работает</a>
             <a href="#portfolio" className="py-2 border-b border-gray-50" onClick={() => { setView('home'); setMobileMenuOpen(false); }}>Портфолио</a>
+            <a href="#tariffs" className="py-2 border-b border-gray-50" onClick={() => { setView('home'); setMobileMenuOpen(false); }}>Тарифы</a>
             <a href="#contacts" className="py-2 border-b border-gray-50" onClick={() => { setView('home'); setMobileMenuOpen(false); }}>Контакты</a>
             
             <button onClick={() => { setView('cabinet'); setMobileMenuOpen(false); }} className="py-2 border-b border-gray-50 text-left">
@@ -1123,11 +1131,8 @@ export default function App() {
                     От идеи персонажа до первых трансляций и дальнейшего продюсирования — всё в одной команде. Без поиска отдельных специалистов и без страха ошибиться на старте.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                    <button onClick={() => setView('quiz')} className="btn btn-primary text-base px-8 py-4">
-                      Запустить VTuber-карьеру <ArrowRight className="w-4 h-4" />
-                    </button>
-                    <a href="#contacts" className="btn btn-secondary text-base px-8 py-4">
-                      Получить бесплатную консультацию
+                    <a href="#tariffs" className="btn btn-primary text-base px-8 py-4">
+                      Тарифы <ArrowRight className="w-4 h-4" />
                     </a>
                   </div>
                 </div>
@@ -1347,11 +1352,61 @@ export default function App() {
                       </div>
                     </div>
                   </div>
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
 
-            {/* FAQ SECTION */}
+              {/* TARIFFS SECTION */}
+              <section id="tariffs" className="py-24 bg-white border-t border-gray-100">
+                <div className="max-w-7xl mx-auto px-6">
+                  <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+                    <h2 className="text-gray-900 font-extrabold tracking-tight">Тарифы и Программы</h2>
+                    <p className="text-gray-500 text-lg">Выберите подходящий формат для быстрого и уверенного старта</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {((products && products.length > 0) ? products : defaultProducts).map((product) => (
+                      <div 
+                        key={product.id || product.name} 
+                        className="bg-gray-50 border border-gray-100 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#9FE870] transition-all duration-300 group"
+                      >
+                        <div className="space-y-6 text-left">
+                          <div className="flex justify-between items-start">
+                            <span className="text-[10px] font-extrabold uppercase bg-lime-100 text-[#123d0c] px-3 py-1 rounded-full">
+                              {product.type}
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="font-extrabold text-gray-900 text-xl leading-tight group-hover:text-black transition-colors">{product.name}</h3>
+                            <p className="text-sm text-gray-400 mt-2 leading-relaxed">{product.description}</p>
+                          </div>
+                          <div className="text-3xl font-black text-gray-950">
+                            {Number(product.price).toLocaleString('ru-RU')} ₽
+                          </div>
+                          <ul className="text-sm text-gray-500 space-y-3 border-t border-gray-200 pt-6">
+                            {product.features && product.features.map((feat, idx) => (
+                              <li key={idx} className="flex items-start gap-2.5 leading-snug">
+                                <span className="text-[#123d0c] font-bold">✓</span>
+                                <span>{feat}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <a
+                          href="#contacts"
+                          onClick={() => setContactAbout(product.name)}
+                          className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold"
+                        >
+                          Выбрать тариф
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              {/* FAQ SECTION */}
             <section className="py-24 bg-gray-50 border-t border-gray-100">
               <div className="max-w-4xl mx-auto px-6">
                 <div className="text-center mb-12 space-y-4">
@@ -2875,6 +2930,7 @@ export default function App() {
               <li><a href="#services" className="hover:text-white transition-colors" onClick={() => setView('home')}>Наши Услуги</a></li>
               <li><a href="#steps" className="hover:text-white transition-colors" onClick={() => setView('home')}>Этапы запуска</a></li>
               <li><a href="#portfolio" className="hover:text-white transition-colors" onClick={() => setView('home')}>Наши Кейсы</a></li>
+              <li><a href="#tariffs" className="hover:text-white transition-colors" onClick={() => setView('home')}>Тарифы</a></li>
             </ul>
           </div>
 
