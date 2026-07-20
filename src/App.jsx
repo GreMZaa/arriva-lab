@@ -2141,21 +2141,8 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Order info and technician brief */}
+                        {/* Order info and active program */}
                         <div className="md:col-span-5 flex flex-col gap-6">
-                          <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
-                            <h4 className="font-bold text-gray-900 text-base">Куратор проекта</h4>
-                            <div className="flex items-center gap-3">
-                              <div className="w-11 h-11 bg-lime-50 rounded-xl flex items-center justify-center font-bold text-green-700">
-                                ML
-                              </div>
-                              <div>
-                                <h5 className="font-bold text-sm text-gray-800">Максим Леонов</h5>
-                                <p className="text-[11px] text-gray-400">Ведущий техник ARRIVA lab</p>
-                              </div>
-                            </div>
-                          </div>
-
                           {activePurchase && (
                             <div className="bg-gray-50 border border-gray-100 rounded-3xl p-6 space-y-2">
                               <h5 className="text-xs font-semibold text-gray-400 uppercase">Активная программа</h5>
@@ -3129,9 +3116,7 @@ export default function App() {
           <div>
             <h5 className="font-bold text-sm text-gray-200 mb-4">Связь</h5>
             <ul className="text-xs text-gray-400 space-y-2">
-              <li>Telegram: @arriva_lab</li>
-              <li>Email: contact@arriva.lab</li>
-              <li>Адрес: Санкт-Петербург, Россия</li>
+              <li>Telegram: <a href="https://t.me/ArrivalLabBOT" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">@ArrivalLabBOT</a></li>
             </ul>
           </div>
         </div>
