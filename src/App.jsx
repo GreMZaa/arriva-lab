@@ -402,13 +402,46 @@ export default function App() {
       // Submit app
       const app = await db.submitApplication(tgId, contactName, contactDate || new Date().toISOString().split('T')[0], wishesCombined);
       
+      // Find the matched product object to get its type and price reliably
+      const selectedProduct = ((products && products.length > 0) ? products : defaultProducts).find(p => {
+        const optionName = `${p.name} (${Number(p.price).toLocaleString('ru-RU')} ₽)`;
+        return optionName === contactAbout || p.name === contactAbout;
+      });
+
+      let price = 24900;
+      let is18Plus = false;
+      let paywallLink = '';
+
+      if (selectedProduct) {
+        price = selectedProduct.price;
+        is18Plus = selectedProduct.type === '18+';
+        
+        if (selectedProduct.type === 'premium') {
+          paywallLink = 'https://paywall.ru/arrivalab/products/1152545118';
+        } else if (selectedProduct.type === 'restart') {
+          paywallLink = 'https://paywall.ru/arrivalab/products/1194159971';
+        } else if (selectedProduct.type === 'basic') {
+          paywallLink = 'https://paywall.ru/arrivalab/products/1491893657';
+        }
+      } else {
+        // Fallback matching logic
+        if (contactAbout.toLowerCase().includes('premium') || contactAbout.includes('49 900') || contactAbout.includes('49900')) {
+          price = 49900;
+          paywallLink = 'https://paywall.ru/arrivalab/products/1152545118';
+        } else if (contactAbout.toLowerCase().includes('restart') || contactAbout.includes('39 900') || contactAbout.includes('39900')) {
+          price = 39900;
+          paywallLink = 'https://paywall.ru/arrivalab/products/1194159971';
+        } else if (contactAbout.toLowerCase().includes('18+') || contactAbout.includes('59 900') || contactAbout.includes('59900') || contactAbout.includes('003')) {
+          price = 59900;
+          is18Plus = true;
+        } else {
+          price = 24900;
+          paywallLink = 'https://paywall.ru/arrivalab/products/1491893657';
+        }
+      }
+
       // Auto register a purchase suggestion in the DB for this user!
-      let price = 14900;
-      if (contactAbout.toLowerCase().includes('premium')) price = 49900;
-      else if (contactAbout.toLowerCase().includes('003') || contactAbout.toLowerCase().includes('18+')) price = 59900;
-      else if (contactAbout.toLowerCase().includes('004') || contactAbout.toLowerCase().includes('рестарт')) price = 39900;
-      
-      await db.createPurchase(tgId, contactAbout, price);
+      await db.createPurchase(tgId, selectedProduct ? selectedProduct.name : contactAbout, price);
 
       // Automatically authenticate the user (creates session context for cabinet)
       setCabinetUser({ telegram_id: tgId, first_name: contactName, username: contactTelegram });
@@ -433,18 +466,9 @@ export default function App() {
       confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
 
       // Open Paywall link for payment if it's not the 18+ (АРХИВ 003) tariff
-      if (!contactAbout.toLowerCase().includes('003') && !contactAbout.toLowerCase().includes('18+')) {
-        let link = 'https://paywall.ru';
-        if (contactAbout.toLowerCase().includes('premium')) {
-          link = 'https://paywall.ru/arrivalab/products/1152545118';
-        } else if (contactAbout.toLowerCase().includes('004') || contactAbout.toLowerCase().includes('рестарт')) {
-          link = 'https://paywall.ru/arrivalab/products/1194159971';
-        } else {
-          // default/basic
-          link = 'https://paywall.ru/arrivalab/products/1491893657';
-        }
+      if (!is18Plus && paywallLink) {
         setTimeout(() => {
-          window.open(link, '_blank');
+          window.open(paywallLink, '_blank');
         }, 1200); // 1.2 seconds delay to allow success transition
       }
     } catch (error) {
