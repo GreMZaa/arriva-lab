@@ -256,6 +256,27 @@ export const db = {
     }
   },
 
+  // Update purchase
+  async updatePurchase(id, updates) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('purchases')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } else {
+      const purchases = JSON.parse(localStorage.getItem('arriva_purchases') || '[]');
+      const index = purchases.findIndex(p => p.id === id);
+      if (index === -1) throw new Error('Purchase not found');
+      purchases[index] = { ...purchases[index], ...updates };
+      localStorage.setItem('arriva_purchases', JSON.stringify(purchases));
+      return purchases[index];
+    }
+  },
+
   // Generate login code (useful for mock testing)
   async generateLoginCode(telegramId, email = null) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();

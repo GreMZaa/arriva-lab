@@ -477,6 +477,39 @@ export default function App() {
     }
   };
 
+  const handleChangeCabinetTariff = async (product) => {
+    if (!cabinetUser) return;
+    try {
+      const pendingPurchase = cabinetPurchases.find(p => p.status === 'pending');
+      
+      if (pendingPurchase) {
+        await db.updatePurchase(pendingPurchase.id, {
+          program_name: product.name,
+          price: product.price
+        });
+      } else {
+        await db.createPurchase(cabinetUser.telegram_id, product.name, product.price);
+      }
+      
+      // Reload cabinet data
+      const allPurchases = await db.getAllPurchases();
+      const userPurchases = allPurchases.filter(p => p.telegram_id === cabinetUser.telegram_id);
+      setCabinetPurchases(userPurchases);
+      
+      const approved = userPurchases.find(p => p.status === 'approved');
+      const active = approved || userPurchases[0] || null;
+      setActivePurchase(active);
+      if (active) {
+        setClientTasks(getChecklistForProduct(active.program_name));
+      }
+      
+      alert(`Тариф успешно изменен на «${product.name}»!`);
+      setCabinetActiveTab('project');
+    } catch (err) {
+      alert('Ошибка смены тарифа: ' + err.message);
+    }
+  };
+
   // Cabinet Auth Flow
   const handleRequestCabinetCode = async () => {
     if (cabinetLoginMethod === 'telegram') {
@@ -1807,16 +1840,10 @@ export default function App() {
                         <Layers className="w-4 h-4" /> Проект запуска
                       </button>
                       <button 
-                        onClick={() => setCabinetActiveTab('guide')}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${cabinetActiveTab === 'guide' ? 'bg-[#9FE870]/20 text-[#123d0c] font-bold' : 'text-gray-500 hover:bg-gray-50'}`}
+                        onClick={() => setCabinetActiveTab('tariffs')}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${cabinetActiveTab === 'tariffs' ? 'bg-[#9FE870]/20 text-[#123d0c] font-bold' : 'text-gray-500 hover:bg-gray-50'}`}
                       >
-                        <Shield className="w-4 h-4" /> База знаний
-                      </button>
-                      <button 
-                        onClick={() => setCabinetActiveTab('analytics')}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${cabinetActiveTab === 'analytics' ? 'bg-[#9FE870]/20 text-[#123d0c] font-bold' : 'text-gray-500 hover:bg-gray-50'}`}
-                      >
-                        <Activity className="w-4 h-4" /> Аналитика канала
+                        <Sliders className="w-4 h-4" /> Выбор тарифа
                       </button>
                       <button 
                         onClick={() => setCabinetActiveTab('profile')}
@@ -1933,9 +1960,6 @@ export default function App() {
                                 <p className="text-[11px] text-gray-400">Ведущий техник ARRIVA lab</p>
                               </div>
                             </div>
-                            <p className="text-xs text-gray-500 leading-relaxed">
-                              Максим подключится к вам в Discord для совместной калибровки софта и оборудования, как только вы оплатите архив и изучите базовую инструкцию.
-                            </p>
                           </div>
 
                           {activePurchase && (
@@ -1952,89 +1976,65 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* TAB 2: GUIDE DATABASE */}
-                  {cabinetActiveTab === 'guide' && (
-                    <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
-                      <h3 className="text-xl font-bold text-gray-900">Инструкции по настройке и стримингу</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="p-5 border border-gray-100 rounded-2xl hover:border-gray-300 transition-colors space-y-2">
-                          <h4 className="font-bold text-sm text-gray-900">1. Подготовка VTube Studio на iPhone</h4>
-                          <p className="text-xs text-gray-500">
-                            Как включить калибровку ARKit, подключить телефон по Wi-Fi к компьютеру и настроить идеальную частоту кадров (60 FPS) без нагрева батареи.
-                          </p>
-                        </div>
-                        <div className="p-5 border border-gray-100 rounded-2xl hover:border-gray-300 transition-colors space-y-2">
-                          <h4 className="font-bold text-sm text-gray-900">2. Настройка сцены в OBS Studio</h4>
-                          <p className="text-xs text-gray-500">
-                            Добавление прозрачного окна VTube Studio, настройка цветового ключа, интеграция игрового захвата и выравнивание оверлеев.
-                          </p>
-                        </div>
-                        <div className="p-5 border border-gray-100 rounded-2xl hover:border-gray-300 transition-colors space-y-2">
-                          <h4 className="font-bold text-sm text-gray-900">3. Правила сохранения анонимности</h4>
-                          <p className="text-xs text-gray-500">
-                            Как не спалить свое лицо при включении веб-камеры, как настроить фильтр шума микрофона и изменить голос на трансляции без задержки.
-                          </p>
-                        </div>
-                        <div className="p-5 border border-gray-100 rounded-2xl hover:border-gray-300 transition-colors space-y-2">
-                          <h4 className="font-bold text-sm text-gray-900">4. Идеи для первого дебютного стрима</h4>
-                          <p className="text-xs text-gray-500">
-                            Как написать сценарий дебюта, какие факты о себе рассказать виртуальному персонажу и как организовать интерактив с чатом.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 3: MOCK ANALYTICS */}
-                  {cabinetActiveTab === 'analytics' && (
-                    <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
-                      <div className="flex justify-between items-center">
-                        <h3 className="text-xl font-bold text-gray-900">Статистика канала (Тест)</h3>
-                        <span className="text-[11px] text-gray-400 bg-gray-50 px-2 py-1 rounded">Обновлено: только что</span>
+                  {/* TAB 2: TARIFF SELECTOR */}
+                  {cabinetActiveTab === 'tariffs' && (
+                    <div className="space-y-6">
+                      <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-2 text-left">
+                        <h3 className="text-xl font-bold text-gray-900">Выбор и изменение тарифа</h3>
+                        <p className="text-xs text-gray-500">
+                          Вы можете сменить программу в любой момент. Если у вас уже есть выставленный счет в Paywall, он автоматически обновится.
+                        </p>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100">
-                          <span className="text-[10px] font-semibold text-gray-400 uppercase">Просмотры</span>
-                          <h4 className="text-2xl font-bold text-gray-900 mt-1">4.2K</h4>
-                          <span className="text-xs text-green-600 font-semibold">+18% к прошлому стриму</span>
-                        </div>
-                        <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100">
-                          <span className="text-[10px] font-semibold text-gray-400 uppercase">Фолловеры</span>
-                          <h4 className="text-2xl font-bold text-gray-900 mt-1">295</h4>
-                          <span className="text-xs text-green-600 font-semibold">+42 новых автора</span>
-                        </div>
-                        <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100">
-                          <span className="text-[10px] font-semibold text-gray-400 uppercase">Макс. онлайн</span>
-                          <h4 className="text-2xl font-bold text-gray-900 mt-1">48</h4>
-                          <span className="text-xs text-red-500 font-semibold">-5% удержание аудитории</span>
-                        </div>
-                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {((products && products.length > 0) ? products : defaultProducts).map((product) => {
+                          const isCurrent = activePurchase && activePurchase.program_name === product.name;
+                          return (
+                            <div 
+                              key={product.id || product.name} 
+                              className={`bg-white border rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 ${isCurrent ? 'border-[#9FE870] ring-2 ring-[#9FE870]/25 shadow-md scale-[1.01]' : 'border-gray-100 hover:border-gray-200 shadow-sm'}`}
+                            >
+                              <div className="space-y-4">
+                                <div className="flex justify-between items-start">
+                                  <span className="text-[9px] font-extrabold uppercase bg-lime-100 text-[#123d0c] px-2 py-0.5 rounded">
+                                    {product.type}
+                                  </span>
+                                  {isCurrent && (
+                                    <span className="text-[9px] font-bold uppercase bg-gray-900 text-white px-2 py-0.5 rounded">
+                                      Активный
+                                    </span>
+                                  )}
+                                </div>
+                                <div>
+                                  <h4 className="font-extrabold text-gray-900 text-base leading-tight">{product.name}</h4>
+                                  <p className="text-xs text-gray-400 mt-1 leading-relaxed">{product.description}</p>
+                                </div>
+                                <div className="text-lg font-black text-gray-950">
+                                  {Number(product.price).toLocaleString('ru-RU')} ₽
+                                </div>
+                                <ul className="text-[11px] text-gray-500 space-y-2 border-t border-gray-50 pt-3">
+                                  {product.features && product.features.slice(0, 5).map((feat, idx) => (
+                                    <li key={idx} className="flex items-start gap-1.5 leading-snug">
+                                      <span className="text-[#123d0c] font-bold">✓</span>
+                                      <span>{feat}</span>
+                                    </li>
+                                  ))}
+                                  {product.features && product.features.length > 5 && (
+                                    <li className="text-[10px] text-gray-400 italic">И еще {product.features.length - 5} пунктов в архиве...</li>
+                                  )}
+                                </ul>
+                              </div>
 
-                      {/* Mock SVG Analytics Chart */}
-                      <div className="border border-gray-100 rounded-2xl p-6 space-y-2">
-                        <h4 className="font-bold text-sm text-gray-900">График онлайна (последние 7 стримов)</h4>
-                        <div className="w-full h-48 bg-gray-50 rounded-xl flex items-end justify-between p-4 pt-8 relative">
-                          <svg className="absolute inset-0 w-full h-full p-4 overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
-                            <path 
-                              d="M 0 90 Q 15 70, 30 50 T 60 40 T 90 20 L 100 20 L 100 100 L 0 100 Z" 
-                              fill="rgba(159, 232, 112, 0.15)"
-                            />
-                            <path 
-                              d="M 0 90 Q 15 70, 30 50 T 60 40 T 90 20" 
-                              fill="none" 
-                              stroke="#9FE870" 
-                              strokeWidth="2" 
-                              vectorEffect="non-scaling-stroke"
-                            />
-                          </svg>
-                          {[12, 18, 25, 30, 28, 42, 48].map((val, idx) => (
-                            <div key={idx} className="flex flex-col items-center z-10">
-                              <span className="text-[9px] font-bold text-gray-700 bg-white px-1 py-0.5 rounded shadow-sm border border-gray-100 mb-1">{val}</span>
-                              <span className="text-[10px] text-gray-400">Стр.{idx+1}</span>
+                              <button
+                                disabled={isCurrent}
+                                onClick={() => handleChangeCabinetTariff(product)}
+                                className={`w-full mt-6 py-3 rounded-2xl text-xs font-bold transition-all duration-200 ${isCurrent ? 'bg-gray-100 text-gray-400 cursor-default' : 'bg-gray-900 text-white hover:bg-gray-800'}`}
+                              >
+                                {isCurrent ? 'Текущий тариф' : 'Выбрать этот тариф'}
+                              </button>
                             </div>
-                          ))}
-                        </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
