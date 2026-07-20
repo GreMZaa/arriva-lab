@@ -1326,16 +1326,20 @@ export default function App() {
                           />
                         </div>
                         <div className="form-group">
-                          <label className="text-gray-300 text-xs font-semibold uppercase">Какая модель интересует?</label>
+                           <label className="text-gray-300 text-xs font-semibold uppercase">Какой продукт интересует?</label>
                           <select 
                             value={contactAbout}
                             onChange={(e) => setContactAbout(e.target.value)}
                             className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870]"
                           >
                             <option value="" className="bg-gray-900 text-white">Выберите вариант...</option>
-                            <option value="PNG аватар" className="bg-gray-900 text-white">PNG-аватар (бюджетный)</option>
-                            <option value="2D Live2D модель" className="bg-gray-900 text-white">2D Live2D (оптимальный)</option>
-                            <option value="3D VR модель" className="bg-gray-900 text-white">3D VR (премиум)</option>
+                            <option value="АРХИВ 002 — базовый" className="bg-gray-900 text-white">АРХИВ 002 — базовый (14 900 ₽)</option>
+                            <option value="АРХИВ 002 + 2D (скидка 50%)" className="bg-gray-900 text-white">АРХИВ 002 + 2D (29 900 ₽)</option>
+                            <option value="АРХИВ 002 + 3D (скидка 50%)" className="bg-gray-900 text-white">АРХИВ 002 + 3D (34 900 ₽)</option>
+                            <option value="АРХИВ 002 PREMIUM" className="bg-gray-900 text-white">АРХИВ 002 PREMIUM (49 900 ₽)</option>
+                            <option value="АРХИВ 003" className="bg-gray-900 text-white">АРХИВ 003 (от 59 900 ₽)</option>
+                            <option value="АРХИВ 004 — РЕСТАРТ" className="bg-gray-900 text-white">АРХИВ 004 — РЕСТАРТ (39 900 ₽)</option>
+                            <option value="ORIVA TALENTS" className="bg-gray-900 text-white">ORIVA TALENTS (15% от дохода)</option>
                           </select>
                         </div>
                       </div>
