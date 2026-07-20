@@ -323,7 +323,7 @@ export default function App() {
   };
 
   const handleQuizAnswer = (stepIndex, answer) => {
-    const keys = ['budget', 'exp', 'goal', 'hardware'];
+    const keys = ['exp', 'goal', 'budget', 'hardware'];
     const key = keys[stepIndex] || `step_${stepIndex}`;
     setQuizAnswers(prev => ({ ...prev, [key]: answer }));
     
@@ -337,21 +337,24 @@ export default function App() {
 
   const calculateQuizResult = async () => {
     setQuizLoading(true);
-    const budget = quizAnswers.budget || '';
-    const goal = quizAnswers.goal || 'test';
+    const exp = quizAnswers.exp || 'new';
+    const goal = quizAnswers.goal || 'public';
+    const budget = quizAnswers.budget || 'none';
+    const hardware = quizAnswers.hardware || 'self';
     
-    let result = budget;
-    if (budget === 'low') result = 'png';
-    else if (budget === 'medium') result = '2d';
-    else if (budget === 'high') result = '3d';
-    
-    if (goal === 'career') {
-      if (result === 'png') result = '2d';
-      else if (result === '2d') result = '3d';
-    }
-    
-    if (!result) {
-      result = 'png';
+    let result = 'basic';
+    if (exp === 'cam') {
+      result = 'restart';
+    } else if (goal === 'anonymous') {
+      result = '18+';
+    } else if (hardware === 'premium') {
+      result = 'premium';
+    } else if (budget === '2d') {
+      result = '2d';
+    } else if (budget === '3d') {
+      result = '3d';
+    } else {
+      result = 'basic';
     }
     
     setQuizResult(result);
@@ -367,12 +370,19 @@ export default function App() {
       const tgId = getTelegramIdHash(telegram);
       await db.createUser(tgId, fullName, telegram);
       
-      const details = `Подобрана модель: ${quizResult.toUpperCase()}. Бюджет: ${quizAnswers.budget}, Опыт: ${quizAnswers.exp}, Цель: ${quizAnswers.goal}`;
+      const details = `Подобрана модель: ${quizResult.toUpperCase()}. Статус: ${quizAnswers.exp}, Платформы: ${quizAnswers.goal}, Модель: ${quizAnswers.budget}, Сопровождение: ${quizAnswers.hardware}`;
       await db.submitApplication(tgId, fullName, new Date().toISOString().split('T')[0], details);
       
       // Auto register a purchase suggestion
-      const price = quizResult === '3d' ? 99000 : quizResult === '2d' ? 49000 : 19000;
-      await db.createPurchase(tgId, `Запуск VTuber-карьеры (${quizResult.toUpperCase()})`, price);
+      let productName = 'АРХИВ 002 — базовый';
+      let price = 14900;
+      if (quizResult === '2d') { productName = 'АРХИВ 002 + 2D (скидка 50%)'; price = 29900; }
+      else if (quizResult === '3d') { productName = 'АРХИВ 002 + 3D (скидка 50%)'; price = 34900; }
+      else if (quizResult === 'premium') { productName = 'АРХИВ 002 PREMIUM'; price = 49900; }
+      else if (quizResult === '18+') { productName = 'АРХИВ 003'; price = 59900; }
+      else if (quizResult === 'restart') { productName = 'АРХИВ 004 — РЕСТАРТ'; price = 39900; }
+      
+      await db.createPurchase(tgId, productName, price);
       
       // Automatically log user in
       setCabinetUser({ telegram_id: tgId, first_name: fullName, username: telegram });
@@ -1407,12 +1417,14 @@ export default function App() {
               )}
 
               {quizStep === quizQuestions.length && quizResult && (() => {
-                const matchedProduct = products.find(p => p.type === quizResult) || {
-                  name: quizResult === '3d' ? '3D VR-Аватар (Премиум)' : quizResult === '2d' ? '2D Live2D (Оптимальный)' : 'PNG-Аватар (Бюджетный)',
-                  price: quizResult === '3d' ? 99000 : quizResult === '2d' ? 49000 : 19000,
-                  description: 'На основе ваших ответов мы подобрали идеальную конфигурацию для быстрого и эффективного старта.',
-                  features: ["Создание образа персонажа с нуля", `Настройка ${quizResult.toUpperCase()} трекинга и интеграции софта`, "3 часа техподдержки на тестовых трансляциях", "Полное сопровождение на первом стриме"]
-                };
+                const matchedProduct = products.find(p => p.type === quizResult) || (() => {
+                  if (quizResult === '2d') return { name: 'АРХИВ 002 + 2D (скидка 50%)', price: 29900, description: 'Архив + 2D-аватар', features: ["Всё из базового архива", "Скидка 50% на создание 2D-аватара", "Помощь с полной сборкой"] };
+                  if (quizResult === '3d') return { name: 'АРХИВ 002 + 3D (скидка 50%)', price: 34900, description: 'Архив + 3D-аватар', features: ["Всё из базового архива", "Скидка 50% на создание 3D/VRM-модели", "Помощь с полной сборкой"] };
+                  if (quizResult === 'premium') return { name: 'АРХИВ 002 PREMIUM', price: 49900, description: 'Полное сопровождение', features: ["Всё из базового архива", "Личное сопровождение", "2D или 3D модель — в подарок"] };
+                  if (quizResult === '18+') return { name: 'АРХИВ 003', price: 59900, description: 'Специализированный доступ', features: ["Полный архив: 19 разделов", "Паспорт профессии", "Скидка 50% на создание 3D/VRM-модели"] };
+                  if (quizResult === 'restart') return { name: 'АРХИВ 004 — РЕСТАРТ', price: 39900, description: 'Переход на виртуальный формат', features: ["Полный архив: 24 страницы", "Финансовый план перехода", "Готовая VRM-модель"] };
+                  return { name: 'АРХИВ 002 — базовый', price: 14900, description: 'Базовый запуск с нуля', features: ["Полный архив: 8 этапов + доп. раздел", "Пошаговый запуск", "Поддержка 24/7"] };
+                })();
 
                 return (
                   <div className="space-y-6 animate-fade-in text-center py-6">
@@ -1433,7 +1445,7 @@ export default function App() {
                     <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6 text-left space-y-4">
                       <div className="flex items-center gap-4">
                         <img 
-                          src={quizResult === '3d' ? '/avatar_3d.png' : quizResult === '2d' ? '/avatar_2d.png' : '/avatar_png.png'} 
+                          src={quizResult === '3d' ? '/avatar_3d.png' : (quizResult === '2d' || quizResult === 'premium') ? '/avatar_2d.png' : '/avatar_png.png'} 
                           alt="Result Preview" 
                           className="w-16 h-16 rounded-xl object-cover border border-gray-200"
                         />
