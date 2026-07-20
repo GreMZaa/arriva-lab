@@ -1469,7 +1469,7 @@ export default function App() {
 
                         <a
                           href="#contacts"
-                          onClick={() => setContactAbout(product.name)}
+                          onClick={() => setContactAbout(`${product.name} (${Number(product.price).toLocaleString('ru-RU')} ₽)`)}
                           className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
                         >
                           Выбрать тариф
@@ -1584,11 +1584,10 @@ export default function App() {
                               const list = (products && products.length > 0) ? products : defaultProducts;
                               return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
                             })().map((prod) => (
-                              <option key={prod.name} value={prod.name} className="bg-gray-900 text-white">
+                              <option key={prod.id || prod.name} value={`${prod.name} (${Number(prod.price).toLocaleString('ru-RU')} ₽)`} className="bg-gray-900 text-white">
                                 {prod.name} ({Number(prod.price).toLocaleString('ru-RU')} ₽)
                               </option>
                             ))}
-                            <option value="ORIVA TALENTS" className="bg-gray-900 text-white">ORIVA TALENTS (15% от дохода)</option>
                           </select>
                         </div>
                       </div>
