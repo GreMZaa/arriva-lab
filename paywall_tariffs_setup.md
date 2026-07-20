@@ -27,7 +27,7 @@
 * Без бесплатной модели аватара в подарок.
 
 ### 🎨 Промпт для Nano Banana (16:9)
-> **Prompt:** A luxury modern streaming workspace, minimalist design, matte black desk, clean computer setup with high-end monitors, a stylish white ergonomic designer chair, soft warm ambient backlighting, realistic lighting, highly detailed interior photography style, corporate premium aesthetic, the elegant brand logo 'ARRIVA lab' subtly glowing on one screen, 8k resolution, 16:9 aspect ratio --ar 16:9
+> **Prompt:** A luxury modern streaming workspace. In the center of a minimalist desk, a sleek high-tech tablet glows softly showing the book cover page text 'ARRIVA lab: ARCHIVE 002 - BASIC', clean elegant typography, minimalist digital folders icons, soft warm ambient backlighting, realistic lighting, highly detailed interior photography style, corporate premium aesthetic, 8k resolution, 16:9 aspect ratio --ar 16:9
 
 ---
 
@@ -50,7 +50,7 @@
 * Полный запуск под ключ с готовым техническим сценарием на дебютный стрим.
 
 ### 🎨 Промпт для Nano Banana (16:9)
-> **Prompt:** A high-end futuristic studio laboratory, a floating holographic 3D anime girl avatar in high fidelity, premium sound console, sleek warm golden and white atmospheric studio lighting, minimalist glassmorphism interface panels showing a clean elegant brand logo 'ARRIVA lab', professional photography, cinematic, masterpiece, 16:9 aspect ratio --ar 16:9
+> **Prompt:** A high-end media production stage. In the center, a beautiful virtual anime model is being custom-configured inside a glowing holographic design frame. Transparent glassmorphism panels display the text 'ARRIVA lab: PREMIUM SETUP' in clean typography, surrounded by custom color wheels. Warm luxury studio lighting, professional photography, cinematic masterpiece key art, 16:9 aspect ratio --ar 16:9
 
 ---
 
@@ -74,7 +74,7 @@
 * Круглосуточная поддержка 24/7.
 
 ### 🎨 Промпт для Nano Banana (16:9)
-> **Prompt:** An elegant and mysterious dark workspace, brushed steel textures, clean glowing deep indigo and violet ambient lighting, multiple screens showing elegant abstract network graphs with a small corporate 'ARRIVA lab' logo in the corner, cinematic shadows, high-end dark tech theme, highly detailed photography, 16:9 aspect ratio --ar 16:9
+> **Prompt:** An elegant and mysterious dark workspace. Centered on the main display is a sleek security vault folder with a glowing metallic lock icon and the text 'ARRIVA lab: SECURE ARCHIVE 003'. Surrounding screens show abstract secure network visualizations, deep indigo and violet ambient lighting, privacy concept, cinematic shadows, highly detailed photography, 16:9 aspect ratio --ar 16:9
 
 ---
 
@@ -99,4 +99,4 @@
 * Круглосуточная поддержка 24/7.
 
 ### 🎨 Промпт для Nano Banana (16:9)
-> **Prompt:** A professional digital media stage, a minimalist background screen showing a transformation from a human silhouette to a beautiful virtual anime avatar with a sleek 'ARRIVA lab' branding on it, warm studio spotlights, high-end corporate presentation style, clean platinum and soft gray color palette, highly detailed, 16:9 aspect ratio --ar 16:9
+> **Prompt:** A sleek professional recording studio. A large main screen shows a stylized creative split-screen transition visual: one side displays a camera lens icon, and the other side displays a beautiful virtual anime avatar with the text 'ARRIVA lab: RESTART 004'. Clean platinum and soft gray color palette, high-end corporate presentation style, highly detailed, 16:9 aspect ratio --ar 16:9
