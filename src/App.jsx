@@ -150,6 +150,7 @@ export default function App() {
   const [contactTelegram, setContactTelegram] = useState('');
   const [contactDate, setContactDate] = useState('');
   const [contactAbout, setContactAbout] = useState('');
+  const [contactComment, setContactComment] = useState('');
   const [contactSubmitted, setContactSubmitted] = useState(false);
   const [contactLoading, setContactLoading] = useState(false);
 
@@ -377,13 +378,26 @@ export default function App() {
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     if (!contactName || !contactTelegram) return;
+
+    // Telegram Username validation
+    const cleanedTg = contactTelegram.startsWith('@') ? contactTelegram.slice(1) : contactTelegram;
+    const usernameRegex = /^[a-zA-Z0-9_]{5,32}$/;
+    if (!usernameRegex.test(cleanedTg)) {
+      alert('Ошибка: Введите корректный Telegram username (только латинские буквы, цифры и знак подчеркивания, от 5 символов, например: @username)');
+      return;
+    }
+
     setContactLoading(true);
     try {
       const tgId = getTelegramIdHash(contactTelegram);
       // Ensure user entry exists
       await db.createUser(tgId, contactName, contactTelegram);
+      
+      // Concatenate comment with wishes to store in 'about' field
+      const wishesCombined = `Продукт: ${contactAbout || 'не выбран'}${contactComment ? ` | Комментарий: ${contactComment}` : ''}`;
+      
       // Submit app
-      const app = await db.submitApplication(tgId, contactName, contactDate || new Date().toISOString().split('T')[0], contactAbout);
+      const app = await db.submitApplication(tgId, contactName, contactDate || new Date().toISOString().split('T')[0], wishesCombined);
       
       // Notify Admin Group via Serverless API!
       try {
@@ -394,7 +408,7 @@ export default function App() {
             id: app.id,
             name: contactName,
             telegram: contactTelegram,
-            wishes: `Дата рождения: ${contactDate || 'не указана'}. Пожелания: ${contactAbout || 'не указаны'}`
+            wishes: `Дата старта: ${contactDate || 'не указана'}. Продукт: ${contactAbout || 'не выбран'}. Комментарий: ${contactComment || 'нет'}`
           })
         });
       } catch (notifyErr) {
@@ -451,6 +465,15 @@ export default function App() {
 
   const submitQuizLead = async (fullName, telegram) => {
     if (!fullName || !telegram) return;
+
+    // Telegram Username validation
+    const cleanedTg = telegram.startsWith('@') ? telegram.slice(1) : telegram;
+    const usernameRegex = /^[a-zA-Z0-9_]{5,32}$/;
+    if (!usernameRegex.test(cleanedTg)) {
+      alert('Ошибка: Введите корректный Telegram username (только латинские буквы, цифры и знак подчеркивания, от 5 символов, например: @username)');
+      return;
+    }
+
     setQuizLoading(true);
     try {
       const tgId = getTelegramIdHash(telegram);
@@ -1495,7 +1518,7 @@ export default function App() {
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="form-group">
+                        <div className="form-group text-left">
                           <label className="text-gray-300 text-xs font-semibold uppercase">Ваше Имя</label>
                           <input 
                             type="text" 
@@ -1506,11 +1529,13 @@ export default function App() {
                             className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] placeholder-gray-500"
                           />
                         </div>
-                        <div className="form-group">
-                          <label className="text-gray-300 text-xs font-semibold uppercase">Telegram Username или ID</label>
+                        <div className="form-group text-left">
+                          <label className="text-gray-300 text-xs font-semibold uppercase">Telegram Username</label>
                           <input 
                             type="text" 
                             required
+                            pattern="^@?[a-zA-Z0-9_]{5,32}$"
+                            title="Введите корректный Telegram username (например, @username, только латинские буквы, цифры и знак подчеркивания, от 5 символов)"
                             placeholder="@arriva_lab" 
                             value={contactTelegram} 
                             onChange={(e) => setContactTelegram(e.target.value)}
@@ -1520,7 +1545,7 @@ export default function App() {
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="form-group">
+                        <div className="form-group text-left">
                           <label className="text-gray-300 text-xs font-semibold uppercase">Дата старта (желаемая)</label>
                           <input 
                             type="date" 
@@ -1529,7 +1554,7 @@ export default function App() {
                             className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] text-gray-400"
                           />
                         </div>
-                        <div className="form-group">
+                        <div className="form-group text-left">
                            <label className="text-gray-300 text-xs font-semibold uppercase">Какой продукт интересует?</label>
                           <select 
                             value={contactAbout}
@@ -1544,6 +1569,17 @@ export default function App() {
                             <option value="ORIVA TALENTS" className="bg-gray-900 text-white">ORIVA TALENTS (15% от дохода)</option>
                           </select>
                         </div>
+                      </div>
+
+                      <div className="form-group text-left">
+                        <label className="text-gray-300 text-xs font-semibold uppercase">Комментарий (необязательно)</label>
+                        <textarea 
+                          placeholder="Ваши пожелания, вопросы или дополнительные детали проекта..." 
+                          value={contactComment} 
+                          onChange={(e) => setContactComment(e.target.value)}
+                          rows="3"
+                          className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] placeholder-gray-500 resize-none mt-1"
+                        ></textarea>
                       </div>
 
                       <button 
@@ -1564,7 +1600,7 @@ export default function App() {
                         Мы получили вашу информацию и уже подбираем концепты. Наш менеджер свяжется с вами в Telegram в течение 30 минут.
                       </p>
                       <button 
-                        onClick={() => { setContactSubmitted(false); setContactName(''); setContactTelegram(''); }}
+                        onClick={() => { setContactSubmitted(false); setContactName(''); setContactTelegram(''); setContactComment(''); }}
                         className="btn btn-secondary border-white/20 text-white hover:bg-white/10 hover:border-white/40"
                       >
                         Отправить еще одну заявку
