@@ -955,6 +955,20 @@ export default function App() {
   const handleUpdateStatus = async (id, status) => {
     try {
       const updated = await db.updateApplicationStatus(id, status);
+      
+      // Automatically sync corresponding purchases for this user
+      if (updated && updated.telegram_id) {
+        try {
+          const allPurchases = await db.getAllPurchases();
+          const userPurchases = allPurchases.filter(p => p.telegram_id === updated.telegram_id);
+          for (const purchase of userPurchases) {
+            await db.updatePurchase(purchase.id, { status: status });
+          }
+        } catch (purchaseErr) {
+          console.error('Failed to sync purchase status:', purchaseErr);
+        }
+      }
+
       // Refresh local CRM data
       setCrmApplications(prev => prev.map(a => a.id === id ? updated : a));
       if (crmSelectedLead && crmSelectedLead.id === id) {
