@@ -3114,15 +3114,21 @@ export default function App() {
           </div>
 
           <div>
-            <h5 className="font-bold text-sm text-gray-200 mb-4">Связь</h5>
+            <h5 className="font-bold text-sm text-gray-200 mb-4">Связь и Поддержка</h5>
             <ul className="text-xs text-gray-400 space-y-2">
-              <li>Telegram: <a href="https://t.me/ArrivalLabBOT" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">@ArrivalLabBOT</a></li>
+              <li>Telegram Бот: <a href="https://t.me/ArrivalLabBOT" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">@ArrivalLabBOT</a></li>
+              <li>Telegram Поддержка: <a href="https://t.me/ArrivalLabBOT" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">@ArrivalLabBOT</a></li>
+              <li>Email: <a href="mailto:support@arrivalab.ru" className="hover:text-white transition-colors">support@arrivalab.ru</a></li>
             </ul>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 border-t border-gray-800 mt-12 pt-6 text-center text-xs text-gray-500 flex flex-col sm:flex-row justify-between items-center gap-4">
           <span>&copy; {new Date().getFullYear()} ARRIVA lab. Все права защищены.</span>
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+            <a href="https://telegra.ph/Politika-konfidencialnosti-06-21-31" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors underline">Политика конфиденциальности</a>
+            <a href="https://telegra.ph/Polzovatelskoe-soglashenie-04-01-19" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors underline">Пользовательское соглашение</a>
+          </div>
           <span>Разработано с заботой о вашей анонимности.</span>
         </div>
       </footer>
