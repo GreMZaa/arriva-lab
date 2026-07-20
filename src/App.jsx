@@ -28,6 +28,8 @@ import {
   Trash
 } from 'lucide-react';
 import { db, getTelegramIdHash, defaultProducts } from './supabase';
+import confetti from 'canvas-confetti';
+
 const TelegramLoginWidget = ({ botName, onAuth, showDivider = true }) => {
   React.useEffect(() => {
     if (!document.getElementById('telegram-widget-script')) {
