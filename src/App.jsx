@@ -190,12 +190,92 @@ export default function App() {
   const [cabinetError, setCabinetError] = useState('');
   const [cabinetSuccessMessage, setCabinetSuccessMessage] = useState('');
   const [cabinetActiveTab, setCabinetActiveTab] = useState('project'); // 'project', 'guide', 'analytics'
-  const [clientTasks, setClientTasks] = useState([
-    { id: 1, text: 'Согласование концепт-арта персонажа', completed: true },
-    { id: 2, text: 'Проверка слоев и нарезка 2D-модели', completed: true },
-    { id: 3, text: 'Калибровка отслеживания лица в VTube Studio', completed: false },
-    { id: 4, text: 'Тестовый стрим-выход на Twitch', completed: false }
-  ]);
+  const [cabinetPurchases, setCabinetPurchases] = useState([]);
+  const [activePurchase, setActivePurchase] = useState(null);
+  const [clientTasks, setClientTasks] = useState([]);
+
+  const getChecklistForProduct = (productName) => {
+    if (!productName) return [];
+    const name = productName.toLowerCase();
+    
+    if (name.includes('рестарт') || name.includes('004')) {
+      return [
+        { id: 1, text: 'Изучение 6 фаз перехода на виртуальный формат', completed: true },
+        { id: 2, text: 'Разработка плана объявления аудитории о переходе', completed: false },
+        { id: 3, text: 'Настройка сцен переходов и оформление аватара в OBS', completed: false },
+        { id: 4, text: 'Настройка Tip Menu и интерактивов для зрителей', completed: false },
+        { id: 5, text: 'Проведение стрима-презентации нового аватара (Дебют-Рестарт)', completed: false }
+      ];
+    }
+    
+    if (name.includes('003')) {
+      return [
+        { id: 1, text: 'Изучение разделов по анонимности и безопасности', completed: true },
+        { id: 2, text: 'Проработка паспорта и легенды персонажа', completed: false },
+        { id: 3, text: 'Выбор и настройка платформ (18+ / Анонимно)', completed: false },
+        { id: 4, text: 'Настройка софта для изменения голоса', completed: false },
+        { id: 5, text: 'Проведение первого анонимного тестового эфира', completed: false }
+      ];
+    }
+    
+    if (name.includes('premium') || name.includes('премиум')) {
+      return [
+        { id: 1, text: 'Разбор ваших целей с личным куратором в Telegram', completed: true },
+        { id: 2, text: 'Создание дизайна и концепт-арта персонажа (2D или 3D)', completed: false },
+        { id: 3, text: 'Сборка готовой модели и её калибровка в VTube Studio / VSFace', completed: false },
+        { id: 4, text: 'Полная настройка сцен, оверлеев и виджетов в OBS', completed: false },
+        { id: 5, text: 'Разбор ниши и контент-плана на первую неделю', completed: false },
+        { id: 6, text: 'Проведение дебютного стрима под присмотром куратора', completed: false }
+      ];
+    }
+    
+    if (name.includes('2d') || name.includes('3d')) {
+      return [
+        { id: 1, text: 'Изучение теоретической части архива', completed: true },
+        { id: 2, text: 'Согласование референсов и ТЗ для художника', completed: false },
+        { id: 3, text: 'Проверка слоев модели / 3D-сетки', completed: false },
+        { id: 4, text: 'Импорт модели в VTube Studio / VSFace', completed: false },
+        { id: 5, text: 'Настройка OBS и проведение первого тестового эфира', completed: false }
+      ];
+    }
+    
+    return [
+      { id: 1, text: 'Изучение первых разделов (Оборудование и софт)', completed: true },
+      { id: 2, text: 'Выбор концепта персонажа и проработка референсов', completed: false },
+      { id: 3, text: 'Настройка OBS Studio по инструкции из Архива', completed: false },
+      { id: 4, text: 'Подключение веб-камеры и микрофона', completed: false },
+      { id: 5, text: 'Запуск пробного стрима на YouTube/Twitch', completed: false }
+    ];
+  };
+
+  useEffect(() => {
+    const loadCabinetData = async () => {
+      if (cabinetUser) {
+        try {
+          const allPurchases = await db.getAllPurchases();
+          const userPurchases = allPurchases.filter(p => p.telegram_id === cabinetUser.telegram_id);
+          setCabinetPurchases(userPurchases);
+          
+          const approved = userPurchases.find(p => p.status === 'approved');
+          const active = approved || userPurchases[0] || null;
+          setActivePurchase(active);
+          
+          if (active) {
+            setClientTasks(getChecklistForProduct(active.program_name));
+          } else {
+            setClientTasks([
+              { id: 1, text: 'Пройти интерактивный опрос на сайте', completed: true },
+              { id: 2, text: 'Выбрать интересующую программу обучения', completed: false },
+              { id: 3, text: 'Согласовать детали с менеджером в Telegram', completed: false }
+            ]);
+          }
+        } catch (err) {
+          console.error("Failed to load cabinet data:", err);
+        }
+      }
+    };
+    loadCabinetData();
+  }, [cabinetUser]);
   // Profile settings / Link accounts state
   const [profileEmailInput, setProfileEmailInput] = useState('');
   const [profileEmailCodeInput, setProfileEmailCodeInput] = useState('');
@@ -1762,17 +1842,53 @@ export default function App() {
                   {/* TAB 1: PROJECT TRACKER */}
                   {cabinetActiveTab === 'project' && (
                     <div className="space-y-6">
+                      {/* Paywall pending payment banner */}
+                      {activePurchase && activePurchase.status === 'pending' && (
+                        <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-lg border border-purple-500/30">
+                          <div className="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl"></div>
+                          <div className="space-y-2 max-w-xl">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 border border-purple-400/30 text-purple-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
+                              ОЖИДАЕТ ОПЛАТЫ В PAYWALL
+                            </span>
+                            <h3 className="text-xl sm:text-2xl font-black tracking-tight">Доступ к материалам ограничен</h3>
+                            <p className="text-xs text-purple-200/80 leading-relaxed">
+                              Ваш заказ «<strong>{activePurchase.program_name}</strong>» успешно оформлен. Чтобы получить полный доступ к пошаговому обучению, базе знаний и начать работу над вашим персонажем, пожалуйста, оплатите счет.
+                            </p>
+                          </div>
+                          <a 
+                            href="https://paywall.ru" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="px-6 py-4 bg-gradient-to-r from-[#9FE870] to-[#8de05b] hover:from-[#abf37d] hover:to-[#96e964] text-gray-950 font-black rounded-2xl flex items-center gap-2 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 text-sm shadow-[0_4px_20px_rgba(159,232,112,0.4)] whitespace-nowrap self-stretch md:self-auto justify-center"
+                          >
+                            Оплатить {Number(activePurchase.price).toLocaleString('ru-RU')} ₽ <ArrowRight className="w-4 h-4" />
+                          </a>
+                        </div>
+                      )}
+
                       {/* Active Status Banner */}
                       <div className="bg-gray-900 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-[#9FE870]/10 rounded-full blur-2xl"></div>
                         <div className="space-y-2">
-                          <span className="text-xs font-semibold text-[#9FE870] uppercase tracking-wider">Текущий статус</span>
-                          <h3 className="text-2xl font-extrabold tracking-tight">Подготовка VTuber-образа</h3>
-                          <p className="text-xs text-gray-400">Команда работает над слоями Live2D-арта. Готовность ~75%</p>
+                          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Текущий статус</span>
+                          <h3 className="text-2xl font-extrabold tracking-tight">
+                            {!activePurchase ? 'Заявка на рассмотрении' : activePurchase.status === 'approved' ? 'Доступ открыт (Обучение началось)' : 'Ожидание подтверждения оплаты'}
+                          </h3>
+                          <p className="text-xs text-gray-400">
+                            {!activePurchase 
+                              ? 'Мы подбираем оптимальную программу для вас. Менеджер свяжется с вами.'
+                              : activePurchase.status === 'approved'
+                                ? 'Вам открыты все пошаговые материалы. Выполняйте пункты чек-листа.'
+                                : 'Для старта необходимо оплатить подписку/доступ на Paywall. После этого статус изменится на «Активен».'
+                            }
+                          </p>
                         </div>
                         <div className="px-5 py-2.5 bg-white/10 border border-white/20 rounded-2xl flex items-center gap-3">
-                          <div className="w-3 h-3 bg-[#9FE870] rounded-full animate-pulse"></div>
-                          <span className="text-xs font-bold">В РАБОТЕ</span>
+                          <div className={`w-3 h-3 rounded-full ${!activePurchase ? 'bg-gray-400' : activePurchase.status === 'approved' ? 'bg-[#9FE870] animate-pulse' : 'bg-purple-400 animate-pulse'}`}></div>
+                          <span className="text-xs font-bold uppercase">
+                            {!activePurchase ? 'НЕТ ПРОГРАММЫ' : activePurchase.status === 'approved' ? 'АКТИВЕН' : 'ОЖИДАЕТ ОПЛАТЫ'}
+                          </span>
                         </div>
                       </div>
 
@@ -1781,22 +1897,26 @@ export default function App() {
                         
                         {/* Checklist Widget */}
                         <div className="md:col-span-7 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-6">
-                          <h4 className="font-bold text-gray-900 text-lg">Чек-лист подготовки</h4>
+                          <h4 className="font-bold text-gray-900 text-lg">Чек-лист по программе</h4>
                           <div className="space-y-3">
-                            {clientTasks.map(task => (
-                              <button 
-                                key={task.id}
-                                onClick={() => toggleClientTask(task.id)}
-                                className="w-full flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100/60 rounded-2xl border border-gray-100 text-left transition-colors"
-                              >
-                                <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-colors ${task.completed ? 'bg-[#9FE870] border-[#9FE870] text-[#123d0c]' : 'border-gray-300'}`}>
-                                  {task.completed && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                                </div>
-                                <span className={`text-xs font-medium text-gray-700 ${task.completed ? 'line-through text-gray-400' : ''}`}>
-                                  {task.text}
-                                </span>
-                              </button>
-                            ))}
+                            {clientTasks.length === 0 ? (
+                              <div className="text-gray-400 text-xs py-4 text-center">Задачи по программе отсутствуют</div>
+                            ) : (
+                              clientTasks.map(task => (
+                                <button 
+                                  key={task.id}
+                                  onClick={() => toggleClientTask(task.id)}
+                                  className="w-full flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100/60 rounded-2xl border border-gray-100 text-left transition-colors"
+                                >
+                                  <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-colors ${task.completed ? 'bg-[#9FE870] border-[#9FE870] text-[#123d0c]' : 'border-gray-300'}`}>
+                                    {task.completed && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                  </div>
+                                  <span className={`text-xs font-medium text-gray-700 ${task.completed ? 'line-through text-gray-400' : ''}`}>
+                                    {task.text}
+                                  </span>
+                                </button>
+                              ))
+                            )}
                           </div>
                         </div>
 
@@ -1813,18 +1933,20 @@ export default function App() {
                                 <p className="text-[11px] text-gray-400">Ведущий техник ARRIVA lab</p>
                               </div>
                             </div>
-                            <p className="text-xs text-gray-500">
-                              Максим подключится к вам в Discord для настройки ПО и iPhone-трекинга, как только арт-директор согласует финальную модель.
+                            <p className="text-xs text-gray-500 leading-relaxed">
+                              Максим подключится к вам в Discord для совместной калибровки софта и оборудования, как только вы оплатите архив и изучите базовую инструкцию.
                             </p>
                           </div>
 
-                          <div className="bg-gray-50 border border-gray-100 rounded-3xl p-6 space-y-2">
-                            <h5 className="text-xs font-semibold text-gray-400 uppercase">Пакет услуг</h5>
-                            <h4 className="font-bold text-gray-950">Запуск VTuber под ключ (2D)</h4>
-                            <p className="text-[11px] text-gray-500">
-                              Включает в себя разработку 2D-образа, настройку трекинга, оверлеи и 3 часа сопровождения.
-                            </p>
-                          </div>
+                          {activePurchase && (
+                            <div className="bg-gray-50 border border-gray-100 rounded-3xl p-6 space-y-2">
+                              <h5 className="text-xs font-semibold text-gray-400 uppercase">Активная программа</h5>
+                              <h4 className="font-bold text-gray-950">{activePurchase.program_name}</h4>
+                              <p className="text-[11px] text-gray-500 leading-relaxed">
+                                Цена: {Number(activePurchase.price).toLocaleString('ru-RU')} ₽ • Статус: <span className={activePurchase.status === 'approved' ? 'text-green-600 font-bold' : 'text-purple-600 font-bold'}>{activePurchase.status === 'approved' ? 'Оплачено' : 'Ожидает оплаты'}</span>
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
