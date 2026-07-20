@@ -1361,7 +1361,11 @@ export default function App() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {((products && products.length > 0) ? products : defaultProducts).map((product) => (
+                    {(() => {
+                      const typeOrder = { 'basic': 1, 'premium': 2, 'restart': 3, '18+': 4 };
+                      const list = (products && products.length > 0) ? products : defaultProducts;
+                      return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
+                    })().map((product) => (
                       <div 
                         key={product.id || product.name} 
                         className="bg-gray-50 border border-gray-100 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#9FE870] transition-all duration-300 group"
@@ -2045,7 +2049,11 @@ export default function App() {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {((products && products.length > 0) ? products : defaultProducts).map((product) => {
+                        {(() => {
+                          const typeOrder = { 'basic': 1, 'premium': 2, 'restart': 3, '18+': 4 };
+                          const list = (products && products.length > 0) ? products : defaultProducts;
+                          return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
+                        })().map((product) => {
                           const isCurrent = activePurchase && activePurchase.program_name === product.name;
                           return (
                             <div 
