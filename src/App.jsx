@@ -88,7 +88,7 @@ const TelegramLoginWidget = ({ botName, onAuth, showDivider = true }) => {
 export default function App() {
   const [view, setView] = useState(() => {
     const hash = window.location.hash.replace('#', '');
-    if (hash === 'crm' || hash === 'cabinet' || hash === 'quiz') {
+    if (hash === 'crm' || hash === 'cabinet' || hash === 'quiz' || hash === 'privacy' || hash === 'terms') {
       return hash;
     }
     const params = new URLSearchParams(window.location.search);
@@ -96,7 +96,7 @@ export default function App() {
       return 'crm';
     }
     return 'home';
-  }); // 'home', 'quiz', 'cabinet', 'crm'
+  }); // 'home', 'quiz', 'cabinet', 'crm', 'privacy', 'terms'
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [logoClicks, setLogoClicks] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -117,7 +117,7 @@ export default function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
-      if (hash === 'crm' || hash === 'cabinet' || hash === 'quiz') {
+      if (hash === 'crm' || hash === 'cabinet' || hash === 'quiz' || hash === 'privacy' || hash === 'terms') {
         setView(hash);
       } else if (!hash) {
         setView('home');
@@ -3073,6 +3073,186 @@ export default function App() {
           </div>
         )}
 
+        {/* VIEW 5: PRIVACY POLICY PAGE */}
+        {view === 'privacy' && (
+          <div className="animate-fade-in py-16 px-6 max-w-4xl mx-auto">
+            <button onClick={() => { setView('home'); window.scrollTo(0,0); }} className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-black transition-colors mb-8 group">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+              Вернуться на главную
+            </button>
+            <div className="bg-white border border-gray-100 rounded-3xl p-8 md:p-12 shadow-xl">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#9FE870] to-[#7BC95B] flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Политика конфиденциальности</h1>
+              </div>
+              <p className="text-gray-500 text-sm mb-8">Дата публикации: 21 июня 2026 г.</p>
+
+              <div className="prose prose-gray max-w-none text-gray-700 leading-relaxed space-y-4">
+                <p>Политика конфиденциальности регулирует сбор, использование и защиту информации пользователей сервиса. Собираются идентификаторы аккаунта, техническая информация и история взаимодействий. Данные используются для обеспечения работы сервиса, связи с пользователем и анализа. Передача информации третьим лицам возможна только в законодательно установленных случаях или с согласия пользователя. Хранение данных осуществляется в течение необходимого срока, их защита — в разумных пределах. Пользователь самостоятельно несёт ответственность за риски, связанные с передачей данных. Администрация вправе вносить изменения в Политику без уведомления — согласие считается принятым при дальнейшем использовании сервиса.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">1. Общие положения</h3>
+                <p>1.1. Настоящая Политика конфиденциальности (далее — «Политика») регулирует порядок обработки и защиты информации, которую Пользователь передаёт при использовании сервиса (далее — «Сервис»).</p>
+                <p>1.2. Используя Сервис, Пользователь подтверждает своё согласие с условиями Политики. Если Пользователь не согласен с условиями — он обязан прекратить использование Сервиса.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">2. Сбор информации</h3>
+                <p>2.1. Сервис может собирать следующие типы данных:</p>
+                <ul className="list-disc pl-6 space-y-1">
+                  <li>идентификаторы аккаунта (логин, ID, никнейм и т.п.);</li>
+                  <li>техническую информацию (IP-адрес, данные о браузере, устройстве и операционной системе);</li>
+                  <li>историю взаимодействий с Сервисом.</li>
+                </ul>
+                <p>2.2. Сервис не требует от Пользователя предоставления паспортных данных, документов, фотографий или другой личной информации, кроме минимально необходимой для работы.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">3. Использование информации</h3>
+                <p>3.1. Сервис может использовать полученную информацию исключительно для:</p>
+                <ul className="list-disc pl-6 space-y-1">
+                  <li>обеспечения работы функционала;</li>
+                  <li>связи с Пользователем (в том числе для уведомлений и поддержки);</li>
+                  <li>анализа и улучшения работы Сервиса.</li>
+                </ul>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">4. Передача информации третьим лицам</h3>
+                <p>4.1. Администрация не передаёт полученные данные третьим лицам, за исключением случаев:</p>
+                <ul className="list-disc pl-6 space-y-1">
+                  <li>если это требуется по закону;</li>
+                  <li>если это необходимо для исполнения обязательств перед Пользователем (например, при работе с платёжными системами);</li>
+                  <li>если Пользователь сам дал на это согласие.</li>
+                </ul>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">5. Хранение и защита данных</h3>
+                <p>5.1. Данные хранятся в течение срока, необходимого для достижения целей обработки.</p>
+                <p>5.2. Администрация принимает разумные меры для защиты данных, но не гарантирует абсолютную безопасность информации при передаче через интернет.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">6. Отказ от ответственности</h3>
+                <p>6.1. Пользователь понимает и соглашается, что передача информации через интернет всегда сопряжена с рисками.</p>
+                <p>6.2. Администрация не несёт ответственности за утрату, кражу или раскрытие данных, если это произошло по вине третьих лиц или самого Пользователя.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">7. Изменения в Политике</h3>
+                <p>7.1. Администрация вправе изменять условия Политики без предварительного уведомления.</p>
+                <p>7.2. Продолжение использования Сервиса после внесения изменений означает согласие Пользователя с новой редакцией Политики.</p>
+              </div>
+
+              <div className="mt-10 pt-6 border-t border-gray-100 text-sm text-gray-400 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <span>© {new Date().getFullYear()} ARRIVA lab</span>
+                <button onClick={() => { setView('terms'); window.scrollTo(0,0); }} className="text-[#7BC95B] hover:text-[#5ea040] transition-colors underline bg-transparent border-none cursor-pointer text-sm">
+                  Перейти к Пользовательскому соглашению →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW 6: USER AGREEMENT PAGE */}
+        {view === 'terms' && (
+          <div className="animate-fade-in py-16 px-6 max-w-4xl mx-auto">
+            <button onClick={() => { setView('home'); window.scrollTo(0,0); }} className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-black transition-colors mb-8 group">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+              Вернуться на главную
+            </button>
+            <div className="bg-white border border-gray-100 rounded-3xl p-8 md:p-12 shadow-xl">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#9FE870] to-[#7BC95B] flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Пользовательское соглашение</h1>
+              </div>
+              <p className="text-gray-500 text-sm mb-8">Дата публикации: 1 апреля 2026 г.</p>
+
+              <div className="prose prose-gray max-w-none text-gray-700 leading-relaxed space-y-4">
+                <h3 className="text-lg font-bold text-gray-900 pt-2">1. Общие положения</h3>
+                <p>1.1. Настоящее Пользовательское соглашение (далее — <strong>«Соглашение»</strong>) регулирует порядок использования онлайн-сервиса (далее — <strong>«Сервис»</strong>), предоставляемого Администрацией.</p>
+                <p>1.2. Используя Сервис, включая запуск бота, регистрацию, оплату услуг или получение доступа к материалам, Пользователь подтверждает, что полностью ознакомился с условиями настоящего Соглашения и принимает их в полном объёме.</p>
+                <p>1.3. В случае несогласия с условиями Соглашения Пользователь обязан прекратить использование Сервиса.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">2. Характер услуг и цифровых товаров</h3>
+                <p>2.1. Сервис предоставляет цифровые товары и услуги нематериального характера, включая, но не ограничиваясь: информационные материалы, обучающие программы, консультации, цифровые продукты и сервисные услуги.</p>
+                <p>2.2. Материалы, предоставляемые через Сервис, могут включать:</p>
+                <ul className="list-disc pl-6 space-y-1">
+                  <li>информацию из открытых источников;</li>
+                  <li>авторские материалы Администрации и/или третьих лиц;</li>
+                  <li>аналитические обзоры, подборки, рекомендации, структурированные данные.</li>
+                </ul>
+                <p>2.3. Пользователь осознаёт и соглашается, что ценность цифровых товаров и услуг Сервиса заключается в систематизации, анализе, форме подачи, сопровождении, поддержке и обновлениях, а не в эксклюзивности отдельных фрагментов информации.</p>
+                <p>2.4. Сервис не заявляет и не гарантирует уникальность, исключительность или недоступность отдельных элементов материалов вне Сервиса.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">3. Отказ от гарантий и ответственности</h3>
+                <p>3.1. Сервис предоставляется на условиях «AS IS» («как есть»).</p>
+                <p>3.2. Администрация не гарантирует:</p>
+                <ul className="list-disc pl-6 space-y-1">
+                  <li>соответствие Сервиса ожиданиям Пользователя;</li>
+                  <li>достижение каких-либо финансовых, коммерческих, профессиональных или иных результатов;</li>
+                  <li>бесперебойную и безошибочную работу Сервиса.</li>
+                </ul>
+                <p>3.3. Администрация не несёт ответственности за:</p>
+                <ul className="list-disc pl-6 space-y-1">
+                  <li>любые прямые или косвенные убытки, включая упущенную выгоду;</li>
+                  <li>последствия применения Пользователем полученных материалов;</li>
+                  <li>действия или бездействие третьих лиц;</li>
+                  <li>временные технические сбои и ограничения доступа.</li>
+                </ul>
+                <p>3.4. Все решения о применении материалов, рекомендаций и услуг принимаются Пользователем самостоятельно и на его риск.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">4. Законность использования</h3>
+                <p>4.1. Сервис не предназначен для поощрения, организации или содействия противоправной деятельности.</p>
+                <p>4.2. Пользователь обязуется использовать Сервис исключительно в рамках применимого законодательства и правил третьих сторон.</p>
+                <p>4.3. Ответственность за законность использования материалов и услуг Сервиса полностью возлагается на Пользователя.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">5. Интеллектуальная собственность</h3>
+                <p>5.1. Все материалы, размещённые в Сервисе, охраняются законодательством об интеллектуальной собственности.</p>
+                <p>5.2. Пользователю запрещается копировать, распространять, перепродавать, передавать третьим лицам или иным образом использовать материалы Сервиса без разрешения правообладателя.</p>
+                <p>5.3. Нарушение прав интеллектуальной собственности может повлечь ограничение доступа к Сервису без компенсации.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">6. Ограничение доступа</h3>
+                <p>6.1. Администрация вправе приостановить или ограничить доступ Пользователя к Сервису в случае:</p>
+                <ul className="list-disc pl-6 space-y-1">
+                  <li>нарушения условий настоящего Соглашения;</li>
+                  <li>выявления злоупотреблений;</li>
+                  <li>требований законодательства или платёжных провайдеров.</li>
+                </ul>
+                <p>6.2. Ограничение доступа не освобождает Пользователя от обязательств, возникших ранее.</p>
+                <p>6.3. Администрация оставляет за собой право отказывать в обслуживании Пользователям, чьи действия могут создавать повышенные риски для Сервиса, платёжных провайдеров или третьих лиц.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">7. Платежи и возвраты</h3>
+                <p>7.1. Оплата услуг и цифровых товаров производится на условиях, указанных в Сервисе до момента оплаты.</p>
+                <p>7.2. В связи с нематериальным характером цифровых товаров и услуг, возврат денежных средств после предоставления доступа не осуществляется, за исключением случаев, указанных ниже.</p>
+                <p>7.3. Возврат средств возможен только если:</p>
+                <ul className="list-disc pl-6 space-y-1">
+                  <li>услуга не была оказана по технической вине Сервиса;</li>
+                  <li>доступ к цифровому товару фактически не был предоставлен.</li>
+                </ul>
+                <p>7.4. Для рассмотрения вопроса о возврате Пользователь обязан обратиться в службу поддержки в течение 24 часов с момента оплаты.</p>
+                <p>7.5. Решение о возврате принимается Администрацией индивидуально.</p>
+                <p>7.6. Пользователь подтверждает, что обязуется не инициировать возврат платежа (chargeback) через платёжные системы без предварительного обращения в службу поддержки Сервиса.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">8. Конфиденциальность</h3>
+                <p>8.1. Администрация может собирать минимально необходимые технические данные для обеспечения работы Сервиса.</p>
+                <p>8.2. Администрация принимает разумные меры для защиты данных, однако не гарантирует абсолютную безопасность передаваемой информации.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">9. Изменение условий</h3>
+                <p>9.1. Администрация вправе вносить изменения в настоящее Соглашение.</p>
+                <p>9.2. Актуальная версия Соглашения публикуется в Сервисе.</p>
+                <p>9.3. Продолжение использования Сервиса означает согласие Пользователя с обновлёнными условиями.</p>
+
+                <h3 className="text-lg font-bold text-gray-900 pt-4">10. Контакты</h3>
+                <p>10.1. По всем вопросам Пользователь может обратиться в службу поддержки через форму в самом боте или по email: <a href="mailto:support@arrivalab.ru" className="text-[#7BC95B] hover:text-[#5ea040] transition-colors underline">support@arrivalab.ru</a>.</p>
+
+                <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <p className="text-sm text-gray-500 italic">Используя Сервис (в том числе запуская бота и/или вводя команду /start), Пользователь подтверждает, что ознакомлен с настоящим Соглашением и принимает его условия в полном объёме.</p>
+                </div>
+              </div>
+
+              <div className="mt-10 pt-6 border-t border-gray-100 text-sm text-gray-400 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <span>© {new Date().getFullYear()} ARRIVA lab</span>
+                <button onClick={() => { setView('privacy'); window.scrollTo(0,0); }} className="text-[#7BC95B] hover:text-[#5ea040] transition-colors underline bg-transparent border-none cursor-pointer text-sm">
+                  ← Перейти к Политике конфиденциальности
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* Modern Footer */}
@@ -3126,8 +3306,8 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-6 border-t border-gray-800 mt-12 pt-6 text-center text-xs text-gray-500 flex flex-col sm:flex-row justify-between items-center gap-4">
           <span>&copy; {new Date().getFullYear()} ARRIVA lab. Все права защищены.</span>
           <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-            <a href="https://telegra.ph/Politika-konfidencialnosti-06-21-31" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors underline">Политика конфиденциальности</a>
-            <a href="https://telegra.ph/Polzovatelskoe-soglashenie-04-01-19" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors underline">Пользовательское соглашение</a>
+            <button onClick={() => { setView('privacy'); window.scrollTo(0,0); }} className="hover:text-white transition-colors underline cursor-pointer bg-transparent border-none text-gray-500 text-xs">Политика конфиденциальности</button>
+            <button onClick={() => { setView('terms'); window.scrollTo(0,0); }} className="hover:text-white transition-colors underline cursor-pointer bg-transparent border-none text-gray-500 text-xs">Пользовательское соглашение</button>
           </div>
           <span>Разработано с заботой о вашей анонимности.</span>
         </div>
