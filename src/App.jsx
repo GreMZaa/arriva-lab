@@ -150,7 +150,7 @@ export default function App() {
   // Contacts form state
   const [contactName, setContactName] = useState('');
   const [contactTelegram, setContactTelegram] = useState('');
-  const [contactDate, setContactDate] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
   const [contactAbout, setContactAbout] = useState('');
   const [contactComment, setContactComment] = useState('');
   const [contactSubmitted, setContactSubmitted] = useState(false);
@@ -380,8 +380,8 @@ export default function App() {
   // Submission handler
   const handleContactSubmit = async (e) => {
     e.preventDefault();
-    if (!contactName || !contactTelegram || !contactDate || !contactAbout) {
-      alert('Пожалуйста, заполните все обязательные поля (Имя, Telegram, Дата рождения, Продукт)!');
+    if (!contactName || !contactTelegram || !contactEmail || !contactAbout) {
+      alert('Пожалуйста, заполните все обязательные поля (Имя, Telegram, Email, Продукт)!');
       return;
     }
 
@@ -396,14 +396,14 @@ export default function App() {
     setContactLoading(true);
     try {
       const tgId = getTelegramIdHash(contactTelegram);
-      // Ensure user entry exists
-      await db.createUser(tgId, contactName, contactTelegram);
+      // Ensure user entry exists with email
+      await db.createUser(tgId, contactName, contactTelegram, contactEmail);
       
       // Concatenate comment with wishes to store in 'about' field
-      const wishesCombined = `Продукт: ${contactAbout || 'не выбран'}${contactComment ? ` | Комментарий: ${contactComment}` : ''}`;
+      const wishesCombined = `Email: ${contactEmail} | Продукт: ${contactAbout || 'не выбран'}${contactComment ? ` | Комментарий: ${contactComment}` : ''}`;
       
       // Submit app
-      const app = await db.submitApplication(tgId, contactName, contactDate || new Date().toISOString().split('T')[0], wishesCombined);
+      const app = await db.submitApplication(tgId, contactName, new Date().toISOString().split('T')[0], wishesCombined);
       
       // Find the matched product object to get its type and price reliably
       const selectedProduct = ((products && products.length > 0) ? products : defaultProducts).find(p => {
@@ -447,7 +447,7 @@ export default function App() {
       await db.createPurchase(tgId, selectedProduct ? selectedProduct.name : contactAbout, price);
 
       // Automatically authenticate the user (creates session context for cabinet)
-      setCabinetUser({ telegram_id: tgId, first_name: contactName, username: contactTelegram });
+      setCabinetUser({ telegram_id: tgId, first_name: contactName, username: contactTelegram, email: contactEmail });
 
       // Notify Admin Group via Serverless API!
       try {
@@ -458,7 +458,7 @@ export default function App() {
             id: app.id,
             name: contactName,
             telegram: contactTelegram,
-            wishes: `Дата рождения: ${contactDate || 'не указана'}. Продукт: ${contactAbout || 'не выбран'}. Комментарий: ${contactComment || 'нет'}`
+            wishes: `Email: ${contactEmail}. Продукт: ${contactAbout || 'не выбран'}. Комментарий: ${contactComment || 'нет'}`
           })
         });
       } catch (notifyErr) {
@@ -1705,13 +1705,14 @@ export default function App() {
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="form-group text-left">
-                          <label className="text-gray-300 text-xs font-semibold uppercase">Дата рождения</label>
+                          <label className="text-gray-300 text-xs font-semibold uppercase">Email адрес</label>
                           <input 
-                            type="date" 
+                            type="email" 
                             required
-                            value={contactDate} 
-                            onChange={(e) => setContactDate(e.target.value)}
-                            className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] text-gray-400"
+                            placeholder="name@example.com"
+                            value={contactEmail} 
+                            onChange={(e) => setContactEmail(e.target.value)}
+                            className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] placeholder-gray-500"
                           />
                         </div>
                         <div className="form-group text-left">
@@ -1792,7 +1793,7 @@ export default function App() {
                           Перейти в Личный кабинет
                         </button>
                         <button 
-                          onClick={() => { setContactSubmitted(false); setContactName(''); setContactTelegram(''); setContactComment(''); setSubmittedPaywallLink(''); }}
+                          onClick={() => { setContactSubmitted(false); setContactName(''); setContactTelegram(''); setContactEmail(''); setContactComment(''); setSubmittedPaywallLink(''); }}
                           className="btn btn-secondary border-white/10 text-gray-400 hover:bg-white/5 text-xs py-3 px-5"
                         >
                           Оформить еще одну заявку
