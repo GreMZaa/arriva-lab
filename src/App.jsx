@@ -155,6 +155,7 @@ export default function App() {
   const [contactComment, setContactComment] = useState('');
   const [contactSubmitted, setContactSubmitted] = useState(false);
   const [contactLoading, setContactLoading] = useState(false);
+  const [submittedPaywallLink, setSubmittedPaywallLink] = useState('');
 
   // FAQ state
   const [activeFaq, setActiveFaq] = useState(null);
@@ -464,14 +465,20 @@ export default function App() {
         console.error('Failed to send admin notification:', notifyErr);
       }
 
+      setSubmittedPaywallLink(!is18Plus && paywallLink ? paywallLink : '');
       setContactSubmitted(true);
       confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
 
-      // Open Paywall link for payment if it's not the 18+ (АРХИВ 003) tariff
+      // Optional redirect attempt (if browser allows popup)
       if (!is18Plus && paywallLink) {
-        setTimeout(() => {
-          window.open(paywallLink, '_blank');
-        }, 1200); // 1.2 seconds delay to allow success transition
+        try {
+          const w = window.open(paywallLink, '_blank');
+          if (!w) {
+            // Popup was blocked, direct link on screen will handle it
+          }
+        } catch (e) {
+          // Ignored, user can click direct button on screen
+        }
       }
     } catch (error) {
       alert('Ошибка при отправке заявки: ' + error.message);
@@ -1513,13 +1520,49 @@ export default function App() {
                           </ul>
                         </div>
 
-                        <a
-                          href="#contacts"
-                          onClick={() => setContactAbout(`${product.name} (${Number(product.price).toLocaleString('ru-RU')} ₽)`)}
-                          className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
-                        >
-                          Выбрать тариф
-                        </a>
+                        {(() => {
+                          const paywallLink = product.type === 'basic' 
+                            ? 'https://paywall.ru/arrivalab/products/1491893657' 
+                            : product.type === 'premium' 
+                            ? 'https://paywall.ru/arrivalab/products/1152545118' 
+                            : product.type === 'restart' 
+                            ? 'https://paywall.ru/arrivalab/products/1194159971' 
+                            : null;
+
+                          if (paywallLink) {
+                            return (
+                              <div className="flex flex-col gap-2.5 mt-8">
+                                <a
+                                  href={paywallLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn btn-primary w-full py-3.5 text-sm font-extrabold text-center flex items-center justify-center gap-2 shadow-sm"
+                                >
+                                  Оплатить онлайн <ArrowRight className="w-4 h-4" />
+                                </a>
+                                <a
+                                  href="#contacts"
+                                  onClick={() => setContactAbout(`${product.name} (${Number(product.price).toLocaleString('ru-RU')} ₽)`)}
+                                  className="btn btn-secondary w-full py-2.5 text-xs font-bold text-center border-gray-200 text-gray-700 hover:bg-gray-100"
+                                >
+                                  Оставить заявку / Консультация
+                                </a>
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <div className="flex flex-col gap-2.5 mt-8">
+                                <a
+                                  href="#contacts"
+                                  onClick={() => setContactAbout(`${product.name} (${Number(product.price).toLocaleString('ru-RU')} ₽)`)}
+                                  className="btn btn-primary w-full py-3.5 text-sm font-extrabold text-center flex items-center justify-center gap-2"
+                                >
+                                  Запросить доступ (18+) <ArrowRight className="w-4 h-4" />
+                                </a>
+                              </div>
+                            );
+                          }
+                        })()}
                       </div>
                     ))}
                   </div>
@@ -1758,11 +1801,28 @@ export default function App() {
                       </div>
                       <h2 className="text-white text-3xl font-extrabold tracking-tight">Заявка принята!</h2>
                       <p className="text-gray-400 text-base max-w-md mx-auto">
-                        Мы получили вашу информацию и уже подбираем концепты. Наш менеджер свяжется с вами в Telegram в течение 30 минут.
+                        Мы получили вашу информацию. Наш менеджер также свяжется с вами в Telegram.
                       </p>
+
+                      {submittedPaywallLink && (
+                        <div className="w-full max-w-md my-4 p-5 bg-[#9FE870]/10 border border-[#9FE870]/30 rounded-2xl flex flex-col items-center gap-3">
+                          <p className="text-[#9FE870] text-sm font-bold text-center">
+                            Вы можете сразу перейти к безопасной оплате на Paywall:
+                          </p>
+                          <a 
+                            href={submittedPaywallLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-primary w-full py-4 text-base font-extrabold flex justify-center items-center gap-2"
+                          >
+                            Перейти к оплате на Paywall <ArrowRight className="w-5 h-5" />
+                          </a>
+                        </div>
+                      )}
+
                       <button 
-                        onClick={() => { setContactSubmitted(false); setContactName(''); setContactTelegram(''); setContactComment(''); }}
-                        className="btn btn-secondary border-white/20 text-white hover:bg-white/10 hover:border-white/40"
+                        onClick={() => { setContactSubmitted(false); setContactName(''); setContactTelegram(''); setContactComment(''); setSubmittedPaywallLink(''); }}
+                        className="btn btn-secondary border-white/20 text-white hover:bg-white/10 hover:border-white/40 text-xs py-2.5 px-5 mt-2"
                       >
                         Отправить еще одну заявку
                       </button>
@@ -3414,6 +3474,23 @@ export default function App() {
           <span>Разработано с заботой о вашей анонимности.</span>
         </div>
       </footer>
+
+      {/* FLOATING MOBILE ACTION BAR */}
+      <div className="md:hidden fixed bottom-4 left-4 right-4 z-40 bg-gray-900/90 backdrop-blur-xl p-2 rounded-full border border-white/10 shadow-2xl flex items-center justify-between gap-2">
+        <button 
+          onClick={() => { setView('quiz'); window.scrollTo(0,0); }} 
+          className="flex-1 btn btn-primary text-xs py-3 px-4 font-extrabold flex items-center justify-center gap-1.5 shadow-glow"
+        >
+          <Sparkles className="w-4 h-4" /> Подобрать образ
+        </button>
+        <a 
+          href="#tariffs" 
+          onClick={() => { if (view !== 'home') setView('home'); }} 
+          className="btn btn-secondary text-xs py-3 px-4 bg-white/10 hover:bg-white/20 text-white border-white/10 font-bold"
+        >
+          Тарифы
+        </a>
+      </div>
     </div>
   );
 }
