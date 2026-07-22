@@ -1233,6 +1233,12 @@ export default function App() {
                     <a href="#tariffs" className="btn btn-primary text-base px-8 py-4">
                       Тарифы <ArrowRight className="w-4 h-4" />
                     </a>
+                    <button 
+                      onClick={() => setView('quiz')} 
+                      className="btn btn-secondary text-base px-8 py-4 flex items-center justify-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4 text-[#123d0c]" /> Подобрать образ
+                    </button>
                   </div>
                 </div>
                 
