@@ -1496,7 +1496,7 @@ export default function App() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {(() => {
-                      const typeOrder = { 'basic': 1, 'premium': 2, 'restart': 3, '18+': 4 };
+                      const typeOrder = { 'basic': 1, 'restart': 2, 'premium': 3, '18+': 4 };
                       const list = (products && products.length > 0) ? products : defaultProducts;
                       return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
                     })().map((product) => (
@@ -1741,7 +1741,7 @@ export default function App() {
                           >
                             <option value="" className="bg-gray-900 text-white">Выберите тариф...</option>
                             {(() => {
-                              const typeOrder = { 'basic': 1, 'premium': 2, 'restart': 3, '18+': 4 };
+                              const typeOrder = { 'basic': 1, 'restart': 2, 'premium': 3, '18+': 4 };
                               const list = (products && products.length > 0) ? products : defaultProducts;
                               return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
                             })().map((prod) => (
@@ -2368,7 +2368,7 @@ export default function App() {
                         <h4 className="font-extrabold text-gray-900 text-lg">Тарифные планы</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {(() => {
-                            const typeOrder = { 'basic': 1, 'premium': 2, 'restart': 3, '18+': 4 };
+                            const typeOrder = { 'basic': 1, 'restart': 2, 'premium': 3, '18+': 4 };
                             const list = (products && products.length > 0) ? products : defaultProducts;
                             return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
                           })().map((product) => {
