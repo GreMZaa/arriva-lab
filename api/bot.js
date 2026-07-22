@@ -165,27 +165,33 @@ bot.callbackQuery("main_menu", async (ctx) => {
 // ADMIN APPROVAL ACTIONS
 bot.callbackQuery(/^(approve|reject)_(.+)$/, async (ctx) => {
   const action = ctx.match[1];
-  const appId = ctx.match[2];
+  const rawId = ctx.match[2];
   const status = action === "approve" ? "approved" : "rejected";
-  const statusText = action === "approve" ? "✅ Принята" : "❌ Отклонена";
+  const statusText = action === "approve" ? "✅ Принята / Подтверждена" : "❌ Отклонена";
 
   try {
-    const { data: app, error } = await supabase
+    const numericId = !isNaN(Number(rawId)) ? Number(rawId) : rawId;
+
+    // 1. Update in purchases table
+    await supabase
+      .from("purchases")
+      .update({ status })
+      .eq("id", numericId);
+
+    // 2. Update in agency_applications table
+    await supabase
       .from("agency_applications")
       .update({ status })
-      .eq("id", appId)
-      .select()
-      .single();
+      .eq("id", numericId);
 
-    if (error) throw error;
+    await ctx.answerCallbackQuery({ text: `Статус заявки/оплаты #${rawId} обновлен: ${statusText}` });
 
-    await ctx.answerCallbackQuery({ text: `Статус заявки #${appId} изменен.` });
-
-    const originalText = ctx.callbackQuery.message.text;
+    const originalText = ctx.callbackQuery.message?.text || "Заявка ARRIVA lab";
     const updatedText = originalText + `\n\n📌 *Статус:* ${statusText} (Модератор: @${ctx.from.username || ctx.from.first_name})`;
 
     await ctx.editMessageText(updatedText, { parse_mode: "Markdown" });
   } catch (err) {
+    console.error("Error updating status in bot:", err);
     await ctx.answerCallbackQuery({ text: "Ошибка обновления статуса: " + err.message });
   }
 });
