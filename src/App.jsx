@@ -321,20 +321,28 @@ export default function App() {
     
     if (a === b) return true;
 
+    // Check Premium
     if (product.type === 'premium' || b.includes('premium')) {
-      return a.includes('premium');
-    }
-    if (product.type === 'basic' || b.includes('базовый')) {
-      return (a.includes('базовый') || a.includes('basic')) && !a.includes('premium');
-    }
-    if (product.type === 'restart' || b.includes('рестарт')) {
-      return a.includes('рестарт') || a.includes('004');
-    }
-    if (product.type === '18+' || b.includes('003')) {
-      return a.includes('003') || a.includes('18+');
+      return a.includes('premium') || a.includes('49 900') || a.includes('49900');
     }
 
-    return a.includes(b) || b.includes(a);
+    // Check Basic
+    if (product.type === 'basic' || b.includes('базовый')) {
+      if (a.includes('premium') || a.includes('49 900') || a.includes('49900')) return false;
+      return a.includes('базовый') || a.includes('basic') || a.includes('14 900') || a.includes('14900') || a.includes('24 900') || a.includes('24900') || a === 'архив 002';
+    }
+
+    // Check Restart
+    if (product.type === 'restart' || b.includes('рестарт')) {
+      return a.includes('рестарт') || a.includes('004') || a.includes('39 900') || a.includes('39900');
+    }
+
+    // Check 18+
+    if (product.type === '18+' || b.includes('003')) {
+      return a.includes('003') || a.includes('18+') || a.includes('59 900') || a.includes('59900');
+    }
+
+    return false;
   };
 
   const handleChangeCabinetTariff = async (product) => {
