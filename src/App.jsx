@@ -2456,18 +2456,17 @@ export default function App() {
                                 </div>
 
                                 <button
-                                  disabled={cardStatus === 'approved' || isCurrent}
                                   onClick={() => handleChangeCabinetTariff(product)}
-                                  className={`w-full mt-6 py-3 rounded-2xl text-xs font-bold transition-all duration-200 ${
-                                    cardStatus === 'approved' ? 'bg-green-100 text-green-800 cursor-default' :
-                                    cardStatus === 'awaiting_verification' ? 'bg-amber-500 text-white hover:bg-amber-600' :
-                                    isCurrent ? 'bg-gray-100 text-gray-400 cursor-default' :
+                                  className={`w-full mt-6 py-3 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                                    cardStatus === 'approved' ? 'bg-[#9FE870] text-[#123d0c] hover:bg-[#8edb5f] shadow-sm' :
+                                    cardStatus === 'awaiting_verification' ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm' :
+                                    isCurrent ? 'bg-gray-900 text-white hover:bg-gray-800' :
                                     'bg-gray-900 text-white hover:bg-gray-800'
                                   }`}
                                 >
-                                  {cardStatus === 'approved' ? 'Тариф куплен ✓' : 
-                                   cardStatus === 'awaiting_verification' ? 'На проверке у админа' : 
-                                   isCurrent ? 'Выбранный тариф' : 
+                                  {cardStatus === 'approved' ? 'Открыть проект (Куплен) →' : 
+                                   cardStatus === 'awaiting_verification' ? 'Перейти к проекту (На проверке) →' : 
+                                   isCurrent ? 'Перейти к проекту →' : 
                                    'Выбрать этот тариф'}
                                 </button>
                               </div>
@@ -2529,18 +2528,17 @@ export default function App() {
                                 </div>
 
                                 <button
-                                  disabled={cardStatus === 'approved' || isCurrent}
                                   onClick={() => handleChangeCabinetTariff(addon)}
-                                  className={`w-full mt-6 py-3 rounded-2xl text-xs font-bold transition-all duration-200 ${
-                                    cardStatus === 'approved' ? 'bg-green-100 text-green-800 cursor-default' :
-                                    cardStatus === 'awaiting_verification' ? 'bg-amber-500 text-white hover:bg-amber-600' :
-                                    isCurrent ? 'bg-gray-100 text-gray-400 cursor-default' :
+                                  className={`w-full mt-6 py-3 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                                    cardStatus === 'approved' ? 'bg-[#9FE870] text-[#123d0c] hover:bg-[#8edb5f] shadow-sm' :
+                                    cardStatus === 'awaiting_verification' ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm' :
+                                    isCurrent ? 'bg-gray-900 text-white hover:bg-gray-800' :
                                     'bg-gray-900 text-white hover:bg-gray-800'
                                   }`}
                                 >
-                                  {cardStatus === 'approved' ? 'Услуга куплена ✓' : 
-                                   cardStatus === 'awaiting_verification' ? 'На проверке у админа' : 
-                                   isCurrent ? 'Текущая услуга' : 
+                                  {cardStatus === 'approved' ? 'Открыть проект (Куплено) →' : 
+                                   cardStatus === 'awaiting_verification' ? 'Перейти к проекту (На проверке) →' : 
+                                   isCurrent ? 'Перейти к проекту →' : 
                                    'Заказать услугу'}
                                 </button>
                               </div>
