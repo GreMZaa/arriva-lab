@@ -282,6 +282,52 @@ export default function App() {
     };
     loadCabinetData();
   }, [cabinetUser]);
+
+  const [paymentVerifying, setPaymentVerifying] = useState(false);
+
+  const handlePaymentConfirmed = async () => {
+    if (!activePurchase || !cabinetUser) return;
+    setPaymentVerifying(true);
+    try {
+      if (activePurchase.id) {
+        await db.updatePurchase(activePurchase.id, { status: 'awaiting_verification' });
+      }
+
+      await fetch('/api/notify-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: activePurchase.id || 999,
+          name: cabinetUser.first_name || 'Клиент',
+          telegram: cabinetUser.username || cabinetUser.email || `@id_${cabinetUser.telegram_id}`,
+          wishes: `💳 КЛИЕНТ НАЖАЛ «Я ОПЛАТИЛ»!\nТариф: ${activePurchase.program_name}\nСумма: ${Number(activePurchase.price).toLocaleString('ru-RU')} ₽\nПожалуйста, проверьте поступление в Paywall и подтвердите доступ в CRM!`
+        })
+      });
+
+      setActivePurchase(prev => prev ? { ...prev, status: 'awaiting_verification' } : null);
+      alert('Уведомление об оплате отправлено администратору на проверку!');
+    } catch (err) {
+      console.error('Failed to notify payment:', err);
+      alert('Уведомление отправлено администратору.');
+    } finally {
+      setPaymentVerifying(false);
+    }
+  };
+
+  const handleChangeCabinetTariff = async (product) => {
+    if (!cabinetUser) return;
+    try {
+      const priceVal = typeof product.price === 'number' 
+        ? product.price 
+        : (parseFloat(String(product.price).replace(/[^\d]/g, '')) || 0);
+      const newPurchase = await db.createPurchase(cabinetUser.telegram_id, product.name, priceVal);
+      setActivePurchase(newPurchase);
+      setCabinetActiveTab('project');
+      alert(`Тариф «${product.name}» выбран.`);
+    } catch (err) {
+      console.error("Error changing tariff:", err);
+    }
+  };
   // Profile settings / Link accounts state
   const [profileEmailInput, setProfileEmailInput] = useState('');
   const [profileEmailCodeInput, setProfileEmailCodeInput] = useState('');
@@ -564,49 +610,6 @@ export default function App() {
       alert('Ошибка отправки: ' + err.message);
     } finally {
       setQuizLoading(false);
-    }
-  };
-
-  const handleChangeCabinetTariff = async (product) => {
-    if (!cabinetUser) return;
-    try {
-      const pendingPurchase = cabinetPurchases.find(p => p.status === 'pending');
-      
-      if (pendingPurchase) {
-        await db.updatePurchase(pendingPurchase.id, {
-          program_name: product.name,
-          price: product.price
-        });
-      } else {
-        await db.createPurchase(cabinetUser.telegram_id, product.name, product.price);
-      }
-      
-      // Reload cabinet data
-      const allPurchases = await db.getAllPurchases();
-      const userPurchases = allPurchases.filter(p => p.telegram_id === cabinetUser.telegram_id);
-      setCabinetPurchases(userPurchases);
-      
-      const approved = userPurchases.find(p => p.status === 'approved');
-      const active = approved || userPurchases[0] || null;
-      setActivePurchase(active);
-      if (active) {
-        setClientTasks(getChecklistForProduct(active.program_name));
-      }
-      
-      if (product.type !== '18+') {
-        let link = 'https://paywall.ru';
-        if (product.type === 'basic') link = 'https://paywall.ru/arrivalab/products/1491893657';
-        else if (product.type === 'premium') link = 'https://paywall.ru/arrivalab/products/1152545118';
-        else if (product.type === 'restart') link = 'https://paywall.ru/arrivalab/products/1194159971';
-        
-        window.open(link, '_blank');
-        alert(`Тариф изменен на «${product.name}»! Открываем страницу оплаты Paywall.`);
-      } else {
-        alert(`Заявка на тариф «${product.name}» создана! Данный тариф требует подтверждения совершеннолетия. Наш менеджер свяжется с вами в Telegram.`);
-      }
-      setCabinetActiveTab('project');
-    } catch (err) {
-      alert('Ошибка смены тарифа: ' + err.message);
     }
   };
 
@@ -2188,211 +2191,269 @@ export default function App() {
                   {/* TAB 1: PROJECT TRACKER */}
                   {cabinetActiveTab === 'project' && (
                     <div className="space-y-6">
-                      {/* Paywall pending payment banner */}
-                      {activePurchase && activePurchase.status === 'pending' && (
-                        <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-lg border border-purple-500/30">
-                          <div className="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl"></div>
-                          <div className="space-y-2 max-w-xl">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 border border-purple-400/30 text-purple-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
-                              ОЖИДАЕТ ОПЛАТЫ В PAYWALL
-                            </span>
-                            <h3 className="text-xl sm:text-2xl font-black tracking-tight">Доступ к материалам ограничен</h3>
-                            <p className="text-xs text-purple-200/80 leading-relaxed">
-                              Ваш заказ «<strong>{activePurchase.program_name}</strong>» успешно оформлен. Чтобы получить полный доступ к пошаговому обучению, базе знаний и начать работу над вашим персонажем, пожалуйста, оплатите счет.
-                            </p>
-                          </div>
-                          {activePurchase.program_name.includes('003') ? (
-                            <div className="px-6 py-4 bg-white/10 text-white font-bold rounded-2xl text-xs text-center border border-white/20 w-full md:w-auto">
-                              Ожидайте проверки возраста куратором
-                            </div>
-                          ) : (
-                            <a 
-                              href={
-                                activePurchase.program_name.toLowerCase().includes('premium') ? 'https://paywall.ru/arrivalab/products/1152545118' :
-                                activePurchase.program_name.toLowerCase().includes('рестарт') || activePurchase.program_name.toLowerCase().includes('004') ? 'https://paywall.ru/arrivalab/products/1194159971' :
-                                'https://paywall.ru/arrivalab/products/1491893657'
-                              } 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              className="px-6 py-4 bg-gradient-to-r from-[#9FE870] to-[#8de05b] hover:from-[#abf37d] hover:to-[#96e964] text-gray-950 font-black rounded-2xl flex items-center gap-2 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 text-sm shadow-[0_4px_20px_rgba(159,232,112,0.4)] whitespace-nowrap self-stretch md:self-auto justify-center"
-                            >
-                              Оплатить {Number(activePurchase.price).toLocaleString('ru-RU')} ₽ <ArrowRight className="w-4 h-4" />
-                            </a>
-                          )}
-                        </div>
-                      )}
-
                       {/* Active Status Banner */}
                       <div className="bg-gray-900 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-[#9FE870]/10 rounded-full blur-2xl"></div>
                         <div className="space-y-2">
                           <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Текущий статус</span>
                           <h3 className="text-2xl font-extrabold tracking-tight">
-                            {!activePurchase ? 'Заявка на рассмотрении' : activePurchase.status === 'approved' ? 'Доступ открыт (Обучение началось)' : 'Ожидание подтверждения оплаты'}
+                            {!activePurchase 
+                              ? 'Заявка на рассмотрении' 
+                              : activePurchase.status === 'approved' 
+                                ? 'Доступ открыт (Обучение началось)' 
+                                : activePurchase.status === 'awaiting_verification' 
+                                  ? 'Оплата на проверке у администратора' 
+                                  : 'Ожидание оплаты тарифа'}
                           </h3>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-gray-400 max-w-xl">
                             {!activePurchase 
                               ? 'Мы подбираем оптимальную программу для вас. Менеджер свяжется с вами.'
                               : activePurchase.status === 'approved'
-                                ? 'Вам открыты все пошаговые материалы. Выполняйте пункты чек-листа.'
-                                : 'Для старта необходимо оплатить подписку/доступ на Paywall. После этого статус изменится на «Активен».'
+                                ? 'Вам открыты все материалы программы. Нажмите на кнопку скачивания ниже.'
+                                : activePurchase.status === 'awaiting_verification'
+                                  ? 'Вы уведомили систему об оплате. Администратор проверяет поступление средств в Paywall. Обычно проверка занимает 15–30 минут.'
+                                  : 'Оплатите тариф на Paywall и нажмите кнопку «Я оплатил» для проверки и активации доступа.'
                             }
                           </p>
                         </div>
                         <div className="px-5 py-2.5 bg-white/10 border border-white/20 rounded-2xl flex items-center gap-3">
-                          <div className={`w-3 h-3 rounded-full ${!activePurchase ? 'bg-gray-400' : activePurchase.status === 'approved' ? 'bg-[#9FE870] animate-pulse' : 'bg-purple-400 animate-pulse'}`}></div>
+                          <div className={`w-3 h-3 rounded-full ${!activePurchase ? 'bg-gray-400' : activePurchase.status === 'approved' ? 'bg-[#9FE870] animate-pulse' : activePurchase.status === 'awaiting_verification' ? 'bg-amber-400 animate-pulse' : 'bg-purple-400 animate-pulse'}`}></div>
                           <span className="text-xs font-bold uppercase">
-                            {!activePurchase ? 'НЕТ ПРОГРАММЫ' : activePurchase.status === 'approved' ? 'АКТИВЕН' : 'ОЖИДАЕТ ОПЛАТЫ'}
+                            {!activePurchase ? 'НЕТ ПРОГРАММЫ' : activePurchase.status === 'approved' ? 'АКТИВЕН' : activePurchase.status === 'awaiting_verification' ? 'НА ПРОВЕРКЕ' : 'ОЖИДАЕТ ОПЛАТЫ'}
                           </span>
                         </div>
                       </div>
 
-                      {/* Checklist & details grid */}
+                      {/* Main Cabinet Content Grid */}
                       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                         
-                        {/* Checklist Widget */}
-                        <div className="md:col-span-7 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-6">
-                          <h4 className="font-bold text-gray-900 text-lg">Чек-лист по программе</h4>
-                          <div className="space-y-3">
-                            {clientTasks.length === 0 ? (
-                              <div className="text-gray-400 text-xs py-4 text-center">Задачи по программе отсутствуют</div>
-                            ) : (
-                              clientTasks.map(task => (
-                                <button 
-                                  key={task.id}
-                                  onClick={() => toggleClientTask(task.id)}
-                                  className="w-full flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100/60 rounded-2xl border border-gray-100 text-left transition-colors"
-                                >
-                                  <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-colors ${task.completed ? 'bg-[#9FE870] border-[#9FE870] text-[#123d0c]' : 'border-gray-300'}`}>
-                                    {task.completed && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                                  </div>
-                                  <span className={`text-xs font-medium text-gray-700 ${task.completed ? 'line-through text-gray-400' : ''}`}>
-                                    {task.text}
+                        {/* Selected Program Details & Payment Actions */}
+                        <div className="md:col-span-7 bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 text-left flex flex-col justify-between">
+                          <div className="space-y-4">
+                            <div className="border-b border-gray-100 pb-4 flex justify-between items-start">
+                              <div>
+                                <span className="text-xs font-semibold text-gray-400 uppercase">Оформленная программа</span>
+                                <h4 className="text-xl font-extrabold text-gray-950 mt-1">
+                                  {activePurchase ? activePurchase.program_name : 'Программа не выбрана'}
+                                </h4>
+                              </div>
+                              {activePurchase && (
+                                <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                                  activePurchase.status === 'approved' ? 'bg-lime-100 text-lime-800' :
+                                  activePurchase.status === 'awaiting_verification' ? 'bg-amber-100 text-amber-900' :
+                                  'bg-purple-100 text-purple-900'
+                                }`}>
+                                  {activePurchase.status === 'approved' ? 'Оплачено' : activePurchase.status === 'awaiting_verification' ? 'На проверке' : 'Ожидает оплаты'}
+                                </span>
+                              )}
+                            </div>
+
+                            {activePurchase && (
+                              <div className="space-y-4">
+                                <div className="flex justify-between items-center text-sm">
+                                  <span className="text-gray-500">Стоимость услуги / тарифа:</span>
+                                  <span className="font-extrabold text-gray-950 text-lg">
+                                    {Number(activePurchase.price) > 0 ? `${Number(activePurchase.price).toLocaleString('ru-RU')} ₽` : 'Цена по запросу'}
                                   </span>
-                                </button>
-                              ))
+                                </div>
+
+                                {/* Action Buttons for Pending Status */}
+                                {activePurchase.status === 'pending' && (
+                                  <div className="space-y-3 pt-3 border-t border-gray-100">
+                                    <a 
+                                      href={
+                                        activePurchase.program_name.toLowerCase().includes('premium') ? 'https://paywall.ru/arrivalab/products/1152545118' :
+                                        activePurchase.program_name.toLowerCase().includes('рестарт') || activePurchase.program_name.toLowerCase().includes('004') ? 'https://paywall.ru/arrivalab/products/1194159971' :
+                                        'https://paywall.ru/arrivalab/products/1491893657'
+                                      } 
+                                      target="_blank" 
+                                      rel="noopener noreferrer" 
+                                      className="btn btn-primary w-full py-4 text-sm font-extrabold flex justify-center items-center gap-2 shadow-md"
+                                    >
+                                      Перейти к оплате на Paywall <ArrowRight className="w-4 h-4" />
+                                    </a>
+
+                                    <button 
+                                      onClick={handlePaymentConfirmed}
+                                      disabled={paymentVerifying}
+                                      className="w-full py-3.5 px-4 bg-gray-900 hover:bg-gray-800 text-[#9FE870] font-extrabold rounded-2xl border border-gray-800 text-sm flex justify-center items-center gap-2 transition-all shadow-sm"
+                                    >
+                                      <CheckCircle className="w-4 h-4 text-[#9FE870]" />
+                                      {paymentVerifying ? 'Отправка...' : 'Я оплатил (Уведомить администратора)'}
+                                    </button>
+                                  </div>
+                                )}
+
+                                {/* Awaiting Verification Banner */}
+                                {activePurchase.status === 'awaiting_verification' && (
+                                  <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl text-left space-y-2">
+                                    <div className="flex items-center gap-2 text-amber-900 font-bold text-sm">
+                                      <CheckCircle className="w-4 h-4 text-amber-600" /> Уведомление об оплате отправлено
+                                    </div>
+                                    <p className="text-xs text-amber-800 leading-relaxed">
+                                      Администратор сверяет платёж в Paywall. Обычно проверка занимает 15–30 минут. Как только оплата будет подтверждена, статус изменится на «АКТИВЕН» и откроется доступ.
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
                         </div>
 
-                        {/* Order info and active program */}
-                        <div className="md:col-span-5 flex flex-col gap-6">
-                          {activePurchase && (
-                            <div className="bg-gray-50 border border-gray-100 rounded-3xl p-6 space-y-2">
-                              <h5 className="text-xs font-semibold text-gray-400 uppercase">Активная программа</h5>
-                              <h4 className="font-bold text-gray-950">{activePurchase.program_name}</h4>
-                              <p className="text-[11px] text-gray-500 leading-relaxed">
-                                Цена: {Number(activePurchase.price).toLocaleString('ru-RU')} ₽ • Статус: <span className={activePurchase.status === 'approved' ? 'text-green-600 font-bold' : 'text-purple-600 font-bold'}>{activePurchase.status === 'approved' ? 'Оплачено' : 'Ожидает оплаты'}</span>
-                              </p>
+                        {/* Program Downloads & Materials Access Card */}
+                        <div className="md:col-span-5 flex flex-col justify-between bg-gray-50 border border-gray-100 rounded-3xl p-6 sm:p-8 text-left space-y-6">
+                          <div className="space-y-3">
+                            <div className="w-12 h-12 bg-white rounded-2xl border border-gray-200/80 flex items-center justify-center text-[#123d0c]">
+                              <Layers className="w-6 h-6" />
                             </div>
-                          )}
+                            <h4 className="font-bold text-gray-950 text-lg">Материалы и файлы</h4>
+                            <p className="text-xs text-gray-500 leading-relaxed">
+                              {activePurchase && activePurchase.status === 'approved' 
+                                ? 'Ваша оплата подтверждена. Скачайте пошаговые материалы, шаблоны и инструкции программы.' 
+                                : 'После подтверждения оплаты администратором здесь откроется ссылка для скачивания учебных материалов.'
+                              }
+                            </p>
+                          </div>
 
-                          {activePurchase && activePurchase.status === 'approved' && (
-                            <div className="bg-gradient-to-r from-lime-500/10 to-[#9FE870]/20 border border-[#9FE870]/40 rounded-3xl p-6 space-y-4">
-                              <div className="flex items-start gap-3 text-left">
-                                <div className="p-2.5 bg-[#9FE870]/20 rounded-xl text-[#123d0c] shrink-0">
-                                  <Layers className="w-5 h-5" />
-                                </div>
-                                <div className="space-y-1">
-                                  <h4 className="font-bold text-gray-950 text-sm">Материалы архива</h4>
-                                  <p className="text-[11px] text-gray-500 leading-normal">
-                                    Оплата подтверждена. Вы можете скачать файлы обучения и дополнительные материалы.
-                                  </p>
-                                </div>
-                              </div>
-                              <a 
-                                href={
-                                  activePurchase.program_name.toLowerCase().includes('premium') ? 'https://drive.google.com/drive/folders/arriva_premium_archive' :
-                                  activePurchase.program_name.toLowerCase().includes('рестарт') || activePurchase.program_name.toLowerCase().includes('004') ? 'https://drive.google.com/drive/folders/arriva_restart_archive' :
-                                  activePurchase.program_name.toLowerCase().includes('003') ? 'https://drive.google.com/drive/folders/arriva_18_archive' :
-                                  'https://drive.google.com/drive/folders/arriva_basic_archive'
-                                }
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-full btn btn-primary py-3 text-xs font-bold text-center inline-block"
-                              >
-                                Скачать архив программ
-                              </a>
+                          {activePurchase && activePurchase.status === 'approved' ? (
+                            <a 
+                              href={
+                                activePurchase.program_name.toLowerCase().includes('premium') ? 'https://drive.google.com/drive/folders/arriva_premium_archive' :
+                                activePurchase.program_name.toLowerCase().includes('рестарт') || activePurchase.program_name.toLowerCase().includes('004') ? 'https://drive.google.com/drive/folders/arriva_restart_archive' :
+                                activePurchase.program_name.toLowerCase().includes('003') ? 'https://drive.google.com/drive/folders/arriva_18_archive' :
+                                'https://drive.google.com/drive/folders/arriva_basic_archive'
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn btn-primary w-full py-4 text-xs font-bold text-center flex justify-center items-center gap-2 shadow-md"
+                            >
+                              Скачать архив программы <ArrowRight className="w-4 h-4" />
+                            </a>
+                          ) : (
+                            <div className="p-4 bg-white/80 border border-gray-200/80 rounded-2xl text-center text-xs font-semibold text-gray-400">
+                              🔒 Доступ заблокирован до подтверждения оплаты
                             </div>
                           )}
                         </div>
+
                       </div>
                     </div>
                   )}
 
                   {/* TAB 2: TARIFF SELECTOR */}
                   {cabinetActiveTab === 'tariffs' && (
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                       <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-2 text-left">
-                        <h3 className="text-xl font-bold text-gray-900">Выбор и изменение тарифа</h3>
+                        <h3 className="text-xl font-bold text-gray-900">Выбор тарифа и дополнительных услуг</h3>
                         <p className="text-xs text-gray-500">
-                          Вы можете сменить программу в любой момент. Если у вас уже есть выставленный счет в Paywall, он автоматически обновится.
+                          Вы можете сменить программу или заказать дополнительные услуги в любой момент.
                         </p>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {(() => {
-                          const typeOrder = { 'basic': 1, 'premium': 2, 'restart': 3, '18+': 4 };
-                          const list = (products && products.length > 0) ? products : defaultProducts;
-                          return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
-                        })().map((product) => {
-                          const isCurrent = activePurchase && activePurchase.program_name === product.name;
-                          return (
-                            <div 
-                              key={product.id || product.name} 
-                              className={`bg-white border rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 ${isCurrent ? 'border-[#9FE870] ring-2 ring-[#9FE870]/25 shadow-md scale-[1.01]' : 'border-gray-100 hover:border-gray-200 shadow-sm'}`}
-                            >
-                              <div className="space-y-4">
-                                <div className="flex justify-between items-start">
-                                  <span className="text-[9px] font-extrabold uppercase bg-lime-100 text-[#123d0c] px-2 py-0.5 rounded">
-                                    {product.type}
-                                  </span>
-                                  {isCurrent && (
-                                    <span className="text-[9px] font-bold uppercase bg-gray-900 text-white px-2 py-0.5 rounded">
-                                      Активный
-                                    </span>
-                                  )}
-                                </div>
-                                <div>
-                                  <h4 className="font-extrabold text-gray-900 text-base leading-tight">{product.name}</h4>
-                                  <p className="text-xs text-gray-400 mt-1 leading-relaxed">{product.description}</p>
-                                </div>
-                                <div className="text-lg font-black text-gray-950">
-                                  {Number(product.price).toLocaleString('ru-RU')} ₽
-                                </div>
-                                <ul className="text-[11px] text-gray-500 space-y-2 border-t border-gray-50 pt-3">
-                                  {product.features && product.features.slice(0, 5).map((feat, idx) => {
-                                    const isExcluded = feat.startsWith('Без') || feat.startsWith('без');
-                                    return (
-                                      <li key={idx} className="flex items-start gap-1.5 leading-snug">
-                                        {isExcluded ? (
-                                          <X className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
-                                        ) : (
-                                          <Check className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
-                                        )}
-                                        <span className={isExcluded ? 'text-gray-400 line-through decoration-red-200/40' : 'text-gray-600'}>
-                                          {feat}
-                                        </span>
-                                      </li>
-                                    );
-                                  })}
-                                  {product.features && product.features.length > 5 && (
-                                    <li className="text-[10px] text-gray-400 italic">И еще {product.features.length - 5} пунктов в архиве...</li>
-                                  )}
-                                </ul>
-                              </div>
-
-                              <button
-                                disabled={isCurrent}
-                                onClick={() => handleChangeCabinetTariff(product)}
-                                className={`w-full mt-6 py-3 rounded-2xl text-xs font-bold transition-all duration-200 ${isCurrent ? 'bg-gray-100 text-gray-400 cursor-default' : 'bg-gray-900 text-white hover:bg-gray-800'}`}
+                      {/* Main Tariffs Grid */}
+                      <div className="space-y-4 text-left">
+                        <h4 className="font-extrabold text-gray-900 text-lg">Тарифные планы</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {(() => {
+                            const typeOrder = { 'basic': 1, 'premium': 2, 'restart': 3, '18+': 4 };
+                            const list = (products && products.length > 0) ? products : defaultProducts;
+                            return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
+                          })().map((product) => {
+                            const isCurrent = activePurchase && activePurchase.program_name === product.name;
+                            return (
+                              <div 
+                                key={product.id || product.name} 
+                                className={`bg-white border rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 ${isCurrent ? 'border-[#9FE870] ring-2 ring-[#9FE870]/25 shadow-md scale-[1.01]' : 'border-gray-100 hover:border-gray-200 shadow-sm'}`}
                               >
-                                {isCurrent ? 'Текущий тариф' : 'Выбрать этот тариф'}
-                              </button>
-                            </div>
-                          );
-                        })}
+                                <div className="space-y-4">
+                                  <div className="flex justify-between items-start">
+                                    <span className="text-[9px] font-extrabold uppercase bg-lime-100 text-[#123d0c] px-2 py-0.5 rounded">
+                                      {product.type}
+                                    </span>
+                                    {isCurrent && (
+                                      <span className="text-[9px] font-bold uppercase bg-gray-900 text-white px-2 py-0.5 rounded">
+                                        Текущий
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <h4 className="font-extrabold text-gray-900 text-base leading-tight">{product.name}</h4>
+                                    <p className="text-xs text-gray-400 mt-1 leading-relaxed">{product.description}</p>
+                                  </div>
+                                  <div className="text-lg font-black text-gray-950">
+                                    {Number(product.price).toLocaleString('ru-RU')} ₽
+                                  </div>
+                                  <ul className="text-[11px] text-gray-500 space-y-2 border-t border-gray-50 pt-3">
+                                    {product.features && product.features.slice(0, 5).map((feat, idx) => {
+                                      const isExcluded = feat.startsWith('Без') || feat.startsWith('без');
+                                      return (
+                                        <li key={idx} className="flex items-start gap-1.5 leading-snug">
+                                          {isExcluded ? (
+                                            <X className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+                                          ) : (
+                                            <Check className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
+                                          )}
+                                          <span className={isExcluded ? 'text-gray-400 line-through decoration-red-200/40' : 'text-gray-600'}>
+                                            {feat}
+                                          </span>
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                </div>
+
+                                <button
+                                  disabled={isCurrent}
+                                  onClick={() => handleChangeCabinetTariff(product)}
+                                  className={`w-full mt-6 py-3 rounded-2xl text-xs font-bold transition-all duration-200 ${isCurrent ? 'bg-gray-100 text-gray-400 cursor-default' : 'bg-gray-900 text-white hover:bg-gray-800'}`}
+                                >
+                                  {isCurrent ? 'Выбранный тариф' : 'Выбрать этот тариф'}
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Additional Services Grid */}
+                      <div className="space-y-4 text-left pt-4">
+                        <h4 className="font-extrabold text-gray-900 text-lg">Дополнительные услуги</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {[
+                            { name: 'Создание 2D модели', type: '2D-модель', price: 'Цена по запросу', description: 'Полный цикл создания уникального 2D персонажа для Live2D.' },
+                            { name: 'Создание 3D модели', type: '3D-модель', price: 'Цена по запросу', description: 'Высокодетализированная 3D модель персонажа для VSeeFace/VRoid.' },
+                            { name: 'Аудио переводчик', type: 'Инструмент', price: 'Цена по запросу', description: 'AI-переводчик голоса в реальном времени для мультиязычных стримов.' }
+                          ].map((addon) => {
+                            const isCurrent = activePurchase && activePurchase.program_name === addon.name;
+                            return (
+                              <div 
+                                key={addon.name}
+                                className={`bg-white border rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 ${isCurrent ? 'border-[#9FE870] ring-2 ring-[#9FE870]/25 shadow-md' : 'border-gray-100 hover:border-gray-200 shadow-sm'}`}
+                              >
+                                <div className="space-y-4">
+                                  <span className="text-[9px] font-extrabold uppercase bg-purple-100 text-purple-800 px-2 py-0.5 rounded">
+                                    {addon.type}
+                                  </span>
+                                  <div>
+                                    <h4 className="font-extrabold text-gray-900 text-base">{addon.name}</h4>
+                                    <p className="text-xs text-gray-400 mt-1 leading-relaxed">{addon.description}</p>
+                                  </div>
+                                  <div className="text-sm font-extrabold text-purple-700 bg-purple-50 p-2.5 rounded-xl">
+                                    {addon.price}
+                                  </div>
+                                </div>
+
+                                <button
+                                  disabled={isCurrent}
+                                  onClick={() => handleChangeCabinetTariff(addon)}
+                                  className={`w-full mt-6 py-3 rounded-2xl text-xs font-bold transition-all duration-200 ${isCurrent ? 'bg-gray-100 text-gray-400 cursor-default' : 'bg-gray-900 text-white hover:bg-gray-800'}`}
+                                >
+                                  {isCurrent ? 'Текущая услуга' : 'Заказать услугу'}
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -2760,6 +2821,7 @@ export default function App() {
                           >
                             <option value="all">Все статусы</option>
                             <option value="pending">Ожидающие</option>
+                            <option value="awaiting_verification">Проверка оплаты</option>
                             <option value="approved">Одобренные</option>
                             <option value="rejected">Отклоненные</option>
                           </select>
@@ -2802,8 +2864,13 @@ export default function App() {
                                       {app.birth_date || app.submitted_at?.split('T')[0]}
                                     </td>
                                     <td className="px-5 py-4">
-                                      <span className={`badge uppercase text-[9px] font-bold ${app.status === 'approved' ? 'badge-approved' : app.status === 'rejected' ? 'badge-error' : 'badge-pending'}`}>
-                                        {app.status === 'approved' ? 'Одобрено' : app.status === 'rejected' ? 'Отклонено' : 'В обработке'}
+                                      <span className={`badge uppercase text-[9px] font-bold ${
+                                        app.status === 'approved' ? 'badge-approved' : 
+                                        app.status === 'rejected' ? 'badge-error' : 
+                                        app.status === 'awaiting_verification' ? 'bg-amber-100 text-amber-900 border border-amber-300' :
+                                        'badge-pending'
+                                      }`}>
+                                        {app.status === 'approved' ? 'Одобрено' : app.status === 'rejected' ? 'Отклонено' : app.status === 'awaiting_verification' ? 'Проверка оплаты' : 'В обработке'}
                                       </span>
                                     </td>
                                   </tr>
