@@ -25,7 +25,9 @@ import {
   Sliders,
   Bell,
   Settings,
-  Trash
+  Trash,
+  Box,
+  Volume2
 } from 'lucide-react';
 import { db, getTelegramIdHash, defaultProducts } from './supabase';
 import confetti from 'canvas-confetti';
@@ -1521,6 +1523,97 @@ export default function App() {
                       </div>
                     ))}
                   </div>
+
+                  {/* ADDITIONAL SERVICES SECTION */}
+                  <div className="mt-20 pt-16 border-t border-gray-100">
+                    <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-lime-50 text-[#123d0c] font-bold text-xs rounded-full uppercase tracking-wider border border-[#9FE870]/40">
+                        <Sparkles className="w-3.5 h-3.5" /> Кастомные решения
+                      </span>
+                      <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Дополнительные услуги</h3>
+                      <p className="text-gray-500 text-base">Индивидуальная разработка и сервисы под ваши задачи</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      {/* 2D Model */}
+                      <div className="bg-gray-50 border border-gray-100 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#9FE870] transition-all duration-300 group text-left">
+                        <div className="space-y-6">
+                          <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center text-[#123d0c] shadow-sm group-hover:bg-[#9FE870]/20 transition-colors">
+                            <Layers className="w-7 h-7 text-gray-800 group-hover:text-[#123d0c]" />
+                          </div>
+                          <div>
+                            <h4 className="font-extrabold text-gray-900 text-xl group-hover:text-black transition-colors">Создание 2D модели</h4>
+                            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                              Разработка концепт-арта персонажа, арт по слоям и профессиональный Live2D риггинг.
+                            </p>
+                          </div>
+                          <div className="pt-4 border-t border-gray-200">
+                            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Стоимость</div>
+                            <div className="text-2xl font-black text-gray-950 mt-1">Цена по запросу</div>
+                          </div>
+                        </div>
+                        <a 
+                          href="#contacts"
+                          onClick={() => setContactAbout('Создание 2D модели (Цена по запросу)')}
+                          className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
+                        >
+                          Узнать стоимость
+                        </a>
+                      </div>
+
+                      {/* 3D Model */}
+                      <div className="bg-gray-50 border border-gray-100 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#9FE870] transition-all duration-300 group text-left">
+                        <div className="space-y-6">
+                          <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center text-[#123d0c] shadow-sm group-hover:bg-[#9FE870]/20 transition-colors">
+                            <Box className="w-7 h-7 text-gray-800 group-hover:text-[#123d0c]" />
+                          </div>
+                          <div>
+                            <h4 className="font-extrabold text-gray-900 text-xl group-hover:text-black transition-colors">Создание 3D модели</h4>
+                            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                              Трехмерное моделирование персонажа, текстурирование, настройка шейдеров и физики под VRM/Unity.
+                            </p>
+                          </div>
+                          <div className="pt-4 border-t border-gray-200">
+                            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Стоимость</div>
+                            <div className="text-2xl font-black text-gray-950 mt-1">Цена по запросу</div>
+                          </div>
+                        </div>
+                        <a 
+                          href="#contacts"
+                          onClick={() => setContactAbout('Создание 3D модели (Цена по запросу)')}
+                          className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
+                        >
+                          Узнать стоимость
+                        </a>
+                      </div>
+
+                      {/* Audio Translator */}
+                      <div className="bg-gray-50 border border-gray-100 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#9FE870] transition-all duration-300 group text-left">
+                        <div className="space-y-6">
+                          <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center text-[#123d0c] shadow-sm group-hover:bg-[#9FE870]/20 transition-colors">
+                            <Volume2 className="w-7 h-7 text-gray-800 group-hover:text-[#123d0c]" />
+                          </div>
+                          <div>
+                            <h4 className="font-extrabold text-gray-900 text-xl group-hover:text-black transition-colors">Аудио переводчик</h4>
+                            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                              Синхронный AI-перевод речи стримера в реальном времени для выхода на зарубежную аудиторию.
+                            </p>
+                          </div>
+                          <div className="pt-4 border-t border-gray-200">
+                            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Стоимость</div>
+                            <div className="text-2xl font-black text-gray-950 mt-1">Цена по запросу</div>
+                          </div>
+                        </div>
+                        <a 
+                          href="#contacts"
+                          onClick={() => setContactAbout('Аудио переводчик (Цена по запросу)')}
+                          className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
+                        >
+                          Узнать стоимость
+                        </a>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </section>
 
@@ -1632,6 +1725,9 @@ export default function App() {
                                 {prod.name} ({Number(prod.price).toLocaleString('ru-RU')} ₽)
                               </option>
                             ))}
+                            <option value="Создание 2D модели (Цена по запросу)" className="bg-gray-900 text-white">Создание 2D модели (Цена по запросу)</option>
+                            <option value="Создание 3D модели (Цена по запросу)" className="bg-gray-900 text-white">Создание 3D модели (Цена по запросу)</option>
+                            <option value="Аудио переводчик (Цена по запросу)" className="bg-gray-900 text-white">Аудио переводчик (Цена по запросу)</option>
                           </select>
                         </div>
                       </div>
