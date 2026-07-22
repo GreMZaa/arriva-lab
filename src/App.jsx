@@ -1520,49 +1520,13 @@ export default function App() {
                           </ul>
                         </div>
 
-                        {(() => {
-                          const paywallLink = product.type === 'basic' 
-                            ? 'https://paywall.ru/arrivalab/products/1491893657' 
-                            : product.type === 'premium' 
-                            ? 'https://paywall.ru/arrivalab/products/1152545118' 
-                            : product.type === 'restart' 
-                            ? 'https://paywall.ru/arrivalab/products/1194159971' 
-                            : null;
-
-                          if (paywallLink) {
-                            return (
-                              <div className="flex flex-col gap-2.5 mt-8">
-                                <a
-                                  href={paywallLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="btn btn-primary w-full py-3.5 text-sm font-extrabold text-center flex items-center justify-center gap-2 shadow-sm"
-                                >
-                                  Оплатить онлайн <ArrowRight className="w-4 h-4" />
-                                </a>
-                                <a
-                                  href="#contacts"
-                                  onClick={() => setContactAbout(`${product.name} (${Number(product.price).toLocaleString('ru-RU')} ₽)`)}
-                                  className="btn btn-secondary w-full py-2.5 text-xs font-bold text-center border-gray-200 text-gray-700 hover:bg-gray-100"
-                                >
-                                  Оставить заявку / Консультация
-                                </a>
-                              </div>
-                            );
-                          } else {
-                            return (
-                              <div className="flex flex-col gap-2.5 mt-8">
-                                <a
-                                  href="#contacts"
-                                  onClick={() => setContactAbout(`${product.name} (${Number(product.price).toLocaleString('ru-RU')} ₽)`)}
-                                  className="btn btn-primary w-full py-3.5 text-sm font-extrabold text-center flex items-center justify-center gap-2"
-                                >
-                                  Запросить доступ (18+) <ArrowRight className="w-4 h-4" />
-                                </a>
-                              </div>
-                            );
-                          }
-                        })()}
+                        <a
+                          href="#contacts"
+                          onClick={() => setContactAbout(`${product.name} (${Number(product.price).toLocaleString('ru-RU')} ₽)`)}
+                          className="btn btn-primary w-full mt-8 py-3.5 text-sm font-extrabold text-center flex items-center justify-center gap-2 shadow-sm"
+                        >
+                          Выбрать и оформить <ArrowRight className="w-4 h-4" />
+                        </a>
                       </div>
                     ))}
                   </div>
@@ -1705,10 +1669,10 @@ export default function App() {
                   {!contactSubmitted ? (
                     <form onSubmit={handleContactSubmit} className="space-y-6 relative">
                       <div className="space-y-2">
-                        <span className="text-[#9FE870] font-bold text-xs uppercase tracking-widest">Бесплатная консультация</span>
-                        <h2 className="text-white text-3xl font-extrabold tracking-tight">Запустить VTuber-карьеру под ключ</h2>
+                        <span className="text-[#9FE870] font-bold text-xs uppercase tracking-widest">Шаг 1: Регистрация и оформление</span>
+                        <h2 className="text-white text-3xl font-extrabold tracking-tight">Регистрация и переход к оплате</h2>
                         <p className="text-gray-400 text-sm max-w-md mx-auto">
-                          Оставьте свои контакты, и наш специалист свяжется с вами для подбора концепта и обсуждения деталей проекта.
+                          Заполните ваши данные для создания Личного кабинета и доступа к безопасной оплате тарифа.
                         </p>
                       </div>
 
@@ -1751,14 +1715,14 @@ export default function App() {
                           />
                         </div>
                         <div className="form-group text-left">
-                           <label className="text-gray-300 text-xs font-semibold uppercase">Какой продукт интересует?</label>
+                           <label className="text-gray-300 text-xs font-semibold uppercase">Какой тариф вас интересует?</label>
                           <select 
                             required
                             value={contactAbout}
                             onChange={(e) => setContactAbout(e.target.value)}
                             className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870]"
                           >
-                            <option value="" className="bg-gray-900 text-white">Выберите вариант...</option>
+                            <option value="" className="bg-gray-900 text-white">Выберите тариф...</option>
                             {(() => {
                               const typeOrder = { 'basic': 1, 'premium': 2, 'restart': 3, '18+': 4 };
                               const list = (products && products.length > 0) ? products : defaultProducts;
@@ -1789,25 +1753,25 @@ export default function App() {
                       <button 
                         type="submit" 
                         disabled={contactLoading}
-                        className="btn btn-primary w-full py-4 text-base flex justify-center gap-2"
+                        className="btn btn-primary w-full py-4 text-base font-extrabold flex justify-center items-center gap-2"
                       >
-                        {contactLoading ? 'Отправка...' : 'Отправить заявку'} <Send className="w-4 h-4" />
+                        {contactLoading ? 'Регистрация...' : 'Зарегистрироваться и перейти к оплате'} <ArrowRight className="w-5 h-5" />
                       </button>
                     </form>
                   ) : (
-                    <div className="space-y-6 py-12 relative flex flex-col items-center">
-                      <div className="w-16 h-16 bg-[#9FE870]/20 rounded-full flex items-center justify-center text-[#9FE870] border border-[#9FE870]/40 pulse-badge mb-4">
+                    <div className="space-y-6 py-10 relative flex flex-col items-center">
+                      <div className="w-16 h-16 bg-[#9FE870]/20 rounded-full flex items-center justify-center text-[#9FE870] border border-[#9FE870]/40 pulse-badge mb-2">
                         <CheckCircle className="w-10 h-10" />
                       </div>
-                      <h2 className="text-white text-3xl font-extrabold tracking-tight">Заявка принята!</h2>
+                      <h2 className="text-white text-3xl font-extrabold tracking-tight">Регистрация успешна!</h2>
                       <p className="text-gray-400 text-base max-w-md mx-auto">
-                        Мы получили вашу информацию. Наш менеджер также свяжется с вами в Telegram.
+                        Ваш профиль создан и вы авторизованы в Личном кабинете. Наш менеджер также свяжется с вами в Telegram.
                       </p>
 
                       {submittedPaywallLink && (
-                        <div className="w-full max-w-md my-4 p-5 bg-[#9FE870]/10 border border-[#9FE870]/30 rounded-2xl flex flex-col items-center gap-3">
+                        <div className="w-full max-w-md my-4 p-6 bg-[#9FE870]/10 border border-[#9FE870]/30 rounded-2xl flex flex-col items-center gap-3 shadow-glow">
                           <p className="text-[#9FE870] text-sm font-bold text-center">
-                            Вы можете сразу перейти к безопасной оплате на Paywall:
+                            Нажмите кнопку ниже для перехода к оплате на Paywall:
                           </p>
                           <a 
                             href={submittedPaywallLink}
@@ -1820,12 +1784,20 @@ export default function App() {
                         </div>
                       )}
 
-                      <button 
-                        onClick={() => { setContactSubmitted(false); setContactName(''); setContactTelegram(''); setContactComment(''); setSubmittedPaywallLink(''); }}
-                        className="btn btn-secondary border-white/20 text-white hover:bg-white/10 hover:border-white/40 text-xs py-2.5 px-5 mt-2"
-                      >
-                        Отправить еще одну заявку
-                      </button>
+                      <div className="flex flex-col sm:flex-row gap-3 mt-2">
+                        <button 
+                          onClick={() => setView('cabinet')}
+                          className="btn btn-secondary border-white/20 text-white hover:bg-white/10 text-xs py-3 px-6 font-bold"
+                        >
+                          Перейти в Личный кабинет
+                        </button>
+                        <button 
+                          onClick={() => { setContactSubmitted(false); setContactName(''); setContactTelegram(''); setContactComment(''); setSubmittedPaywallLink(''); }}
+                          className="btn btn-secondary border-white/10 text-gray-400 hover:bg-white/5 text-xs py-3 px-5"
+                        >
+                          Оформить еще одну заявку
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
