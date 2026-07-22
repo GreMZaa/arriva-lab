@@ -314,6 +314,29 @@ export default function App() {
     }
   };
 
+  const isProductMatch = (programName, product) => {
+    if (!programName || !product) return false;
+    const a = programName.trim().toLowerCase();
+    const b = product.name.trim().toLowerCase();
+    
+    if (a === b) return true;
+
+    if (product.type === 'premium' || b.includes('premium')) {
+      return a.includes('premium');
+    }
+    if (product.type === 'basic' || b.includes('базовый')) {
+      return (a.includes('базовый') || a.includes('basic')) && !a.includes('premium');
+    }
+    if (product.type === 'restart' || b.includes('рестарт')) {
+      return a.includes('рестарт') || a.includes('004');
+    }
+    if (product.type === '18+' || b.includes('003')) {
+      return a.includes('003') || a.includes('18+');
+    }
+
+    return a.includes(b) || b.includes(a);
+  };
+
   const handleChangeCabinetTariff = async (product) => {
     if (!cabinetUser) return;
     try {
@@ -321,7 +344,7 @@ export default function App() {
         ? product.price 
         : (parseFloat(String(product.price).replace(/[^\d]/g, '')) || 0);
       
-      const existing = cabinetPurchases ? cabinetPurchases.find(p => p.program_name === product.name) : null;
+      const existing = cabinetPurchases ? cabinetPurchases.find(p => isProductMatch(p.program_name, product)) : null;
       let targetPurchase = null;
 
       if (existing) {
@@ -334,7 +357,7 @@ export default function App() {
       const userPurchases = allPurchases.filter(p => p.telegram_id === cabinetUser.telegram_id);
       setCabinetPurchases(userPurchases);
 
-      const latest = userPurchases.find(p => p.program_name === product.name) || targetPurchase || userPurchases[0];
+      const latest = userPurchases.find(p => isProductMatch(p.program_name, product)) || targetPurchase || userPurchases[0];
       setActivePurchase(latest);
       setCabinetActiveTab('project');
     } catch (err) {
@@ -2372,8 +2395,8 @@ export default function App() {
                             const list = (products && products.length > 0) ? products : defaultProducts;
                             return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
                           })().map((product) => {
-                            const matched = cabinetPurchases ? cabinetPurchases.find(p => p.program_name === product.name || p.program_name.includes(product.name) || product.name.includes(p.program_name)) : null;
-                            const isCurrent = activePurchase && (activePurchase.program_name === product.name || activePurchase.program_name.includes(product.name));
+                            const matched = cabinetPurchases ? cabinetPurchases.find(p => isProductMatch(p.program_name, product)) : null;
+                            const isCurrent = activePurchase && isProductMatch(activePurchase.program_name, product);
 
                             let cardStatus = matched ? matched.status : (isCurrent ? activePurchase?.status : null);
                             
@@ -2383,7 +2406,7 @@ export default function App() {
                                 className={`bg-white border rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 ${
                                   cardStatus === 'approved' ? 'border-green-400 ring-2 ring-green-400/20 shadow-md' :
                                   cardStatus === 'awaiting_verification' ? 'border-amber-400 ring-2 ring-amber-400/20 shadow-md' :
-                                  cardStatus === 'pending' ? 'border-purple-300 ring-2 ring-purple-300/20 shadow-md' :
+                                  isCurrent ? 'border-[#9FE870] ring-2 ring-[#9FE870]/25 shadow-md scale-[1.01]' :
                                   'border-gray-100 hover:border-gray-200 shadow-sm'
                                 }`}
                               >
@@ -2399,10 +2422,6 @@ export default function App() {
                                     ) : cardStatus === 'awaiting_verification' ? (
                                       <span className="text-[9px] font-bold uppercase bg-amber-500 text-white px-2 py-0.5 rounded">
                                         На проверке
-                                      </span>
-                                    ) : cardStatus === 'pending' ? (
-                                      <span className="text-[9px] font-bold uppercase bg-purple-600 text-white px-2 py-0.5 rounded">
-                                        Ожидает оплаты
                                       </span>
                                     ) : isCurrent ? (
                                       <span className="text-[9px] font-bold uppercase bg-gray-900 text-white px-2 py-0.5 rounded">
@@ -2437,18 +2456,18 @@ export default function App() {
                                 </div>
 
                                 <button
-                                  disabled={cardStatus === 'approved'}
+                                  disabled={cardStatus === 'approved' || isCurrent}
                                   onClick={() => handleChangeCabinetTariff(product)}
                                   className={`w-full mt-6 py-3 rounded-2xl text-xs font-bold transition-all duration-200 ${
                                     cardStatus === 'approved' ? 'bg-green-100 text-green-800 cursor-default' :
                                     cardStatus === 'awaiting_verification' ? 'bg-amber-500 text-white hover:bg-amber-600' :
-                                    cardStatus === 'pending' ? 'bg-purple-600 text-white hover:bg-purple-700' :
+                                    isCurrent ? 'bg-gray-100 text-gray-400 cursor-default' :
                                     'bg-gray-900 text-white hover:bg-gray-800'
                                   }`}
                                 >
                                   {cardStatus === 'approved' ? 'Тариф куплен ✓' : 
                                    cardStatus === 'awaiting_verification' ? 'На проверке у админа' : 
-                                   cardStatus === 'pending' ? 'Перейти к оплате' : 
+                                   isCurrent ? 'Выбранный тариф' : 
                                    'Выбрать этот тариф'}
                                 </button>
                               </div>
@@ -2466,8 +2485,8 @@ export default function App() {
                             { name: 'Создание 3D модели', type: '3D-модель', price: 'Цена по запросу', description: 'Высокодетализированная 3D модель персонажа для VSeeFace/VRoid.' },
                             { name: 'Аудио переводчик', type: 'Инструмент', price: 'Цена по запросу', description: 'AI-переводчик голоса в реальном времени для мультиязычных стримов.' }
                           ].map((addon) => {
-                            const matched = cabinetPurchases ? cabinetPurchases.find(p => p.program_name === addon.name || p.program_name.includes(addon.name) || addon.name.includes(p.program_name)) : null;
-                            const isCurrent = activePurchase && (activePurchase.program_name === addon.name || activePurchase.program_name.includes(addon.name));
+                            const matched = cabinetPurchases ? cabinetPurchases.find(p => isProductMatch(p.program_name, addon)) : null;
+                            const isCurrent = activePurchase && isProductMatch(activePurchase.program_name, addon);
 
                             let cardStatus = matched ? matched.status : (isCurrent ? activePurchase?.status : null);
 
@@ -2477,7 +2496,7 @@ export default function App() {
                                 className={`bg-white border rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 ${
                                   cardStatus === 'approved' ? 'border-green-400 ring-2 ring-green-400/20 shadow-md' :
                                   cardStatus === 'awaiting_verification' ? 'border-amber-400 ring-2 ring-amber-400/20 shadow-md' :
-                                  cardStatus === 'pending' ? 'border-purple-300 ring-2 ring-purple-300/20 shadow-md' :
+                                  isCurrent ? 'border-[#9FE870] ring-2 ring-[#9FE870]/25 shadow-md' :
                                   'border-gray-100 hover:border-gray-200 shadow-sm'
                                 }`}
                               >
@@ -2494,9 +2513,9 @@ export default function App() {
                                       <span className="text-[9px] font-bold uppercase bg-amber-500 text-white px-2 py-0.5 rounded">
                                         На проверке
                                       </span>
-                                    ) : cardStatus === 'pending' ? (
-                                      <span className="text-[9px] font-bold uppercase bg-purple-600 text-white px-2 py-0.5 rounded">
-                                        Оформлено
+                                    ) : isCurrent ? (
+                                      <span className="text-[9px] font-bold uppercase bg-gray-900 text-white px-2 py-0.5 rounded">
+                                        Текущая
                                       </span>
                                     ) : null}
                                   </div>
@@ -2510,18 +2529,18 @@ export default function App() {
                                 </div>
 
                                 <button
-                                  disabled={cardStatus === 'approved'}
+                                  disabled={cardStatus === 'approved' || isCurrent}
                                   onClick={() => handleChangeCabinetTariff(addon)}
                                   className={`w-full mt-6 py-3 rounded-2xl text-xs font-bold transition-all duration-200 ${
                                     cardStatus === 'approved' ? 'bg-green-100 text-green-800 cursor-default' :
                                     cardStatus === 'awaiting_verification' ? 'bg-amber-500 text-white hover:bg-amber-600' :
-                                    cardStatus === 'pending' ? 'bg-purple-600 text-white hover:bg-purple-700' :
+                                    isCurrent ? 'bg-gray-100 text-gray-400 cursor-default' :
                                     'bg-gray-900 text-white hover:bg-gray-800'
                                   }`}
                                 >
                                   {cardStatus === 'approved' ? 'Услуга куплена ✓' : 
                                    cardStatus === 'awaiting_verification' ? 'На проверке у админа' : 
-                                   cardStatus === 'pending' ? 'Оформить заявку' : 
+                                   isCurrent ? 'Текущая услуга' : 
                                    'Заказать услугу'}
                                 </button>
                               </div>
