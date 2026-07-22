@@ -33,27 +33,102 @@ export const getTelegramIdHash = (usernameOrId) => {
 
 // Database interface layer with LocalStorage fallback
 export const db = {
-  // Create user
+  // Create or update user safely without violating unique constraints
   async createUser(telegramId, firstName, username = '', email = null) {
     if (isSupabaseConfigured) {
+      let existingUser = null;
+
+      // 1. Search existing user by telegram_id
+      if (telegramId) {
+        const { data } = await supabase
+          .from('users')
+          .select('*')
+          .eq('telegram_id', telegramId)
+          .maybeSingle();
+        if (data) existingUser = data;
+      }
+
+      // 2. Search existing user by email if not found by telegram_id
+      if (!existingUser && email) {
+        const { data } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', email)
+          .maybeSingle();
+        if (data) existingUser = data;
+      }
+
+      // 3. If existing user found, update any new info and return
+      if (existingUser) {
+        const updates = {};
+        if (firstName && (!existingUser.first_name || existingUser.first_name !== firstName)) {
+          updates.first_name = firstName;
+        }
+        if (username && (!existingUser.username || existingUser.username !== username)) {
+          updates.username = username;
+        }
+        if (email && (!existingUser.email || existingUser.email !== email)) {
+          updates.email = email;
+        }
+        if (telegramId && (!existingUser.telegram_id || existingUser.telegram_id !== telegramId)) {
+          updates.telegram_id = telegramId;
+        }
+
+        if (Object.keys(updates).length > 0) {
+          const { data, error } = await supabase
+            .from('users')
+            .update(updates)
+            .eq('id', existingUser.id)
+            .select()
+            .single();
+          if (!error && data) return data;
+        }
+        return existingUser;
+      }
+
+      // 4. Insert new user
       const payload = { first_name: firstName };
       if (telegramId) payload.telegram_id = telegramId;
       if (username) payload.username = username;
       if (email) payload.email = email;
 
-      const conflictCol = email ? 'email' : 'telegram_id';
-
       const { data, error } = await supabase
         .from('users')
-        .upsert(payload, { onConflict: conflictCol })
+        .insert(payload)
         .select()
         .single();
-      if (error) throw error;
+
+      if (error) {
+        // Safe fallback if race condition occurred
+        if (telegramId) {
+          const { data: fallbackUser } = await supabase
+            .from('users')
+            .select('*')
+            .eq('telegram_id', telegramId)
+            .maybeSingle();
+          if (fallbackUser) return fallbackUser;
+        }
+        if (email) {
+          const { data: fallbackEmailUser } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .maybeSingle();
+          if (fallbackEmailUser) return fallbackEmailUser;
+        }
+        throw error;
+      }
       return data;
     } else {
       const users = JSON.parse(localStorage.getItem('arriva_users') || '[]');
       const existingUser = users.find(u => (telegramId && u.telegram_id === telegramId) || (email && u.email === email));
-      if (existingUser) return existingUser;
+      if (existingUser) {
+        if (email && !existingUser.email) existingUser.email = email;
+        if (firstName) existingUser.first_name = firstName;
+        if (username) existingUser.username = username;
+        localStorage.setItem('arriva_users', JSON.stringify(users));
+        return existingUser;
+      }
       
       const newUser = {
         id: users.length + 1,
