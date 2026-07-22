@@ -262,8 +262,8 @@ export default function App() {
           const userPurchases = allPurchases.filter(p => p.telegram_id === cabinetUser.telegram_id);
           setCabinetPurchases(userPurchases);
           
-          const approved = userPurchases.find(p => p.status === 'approved');
-          const active = approved || userPurchases[0] || null;
+          // Select the most recent purchase for the current user
+          const active = userPurchases.length > 0 ? userPurchases[0] : null;
           setActivePurchase(active);
           
           if (active) {
