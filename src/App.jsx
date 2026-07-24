@@ -1683,7 +1683,7 @@ export default function App() {
                           onClick={() => setContactAbout('Аудио переводчик (10 000 ₽ на один язык)')}
                           className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
                         >
-                          Узнать стоимость
+                          Заказать
                         </a>
                       </div>
                     </div>
