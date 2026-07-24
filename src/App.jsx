@@ -441,13 +441,16 @@ export default function App() {
       }
       try {
         const ps = await db.getAllProducts();
-        const sanitized = ps.map(p => ({
-          ...p,
-          features: p.features ? p.features.map(f =>
+        const sanitized = ps.map(p => {
+          let feats = p.features ? p.features.map(f =>
             f.replace(/Без скидки на готовую модель/gi, "Скидка 50% на готовую модель")
              .replace(/❌ Скидка на готовую модель/gi, "Скидка 50% на готовую модель")
-          ) : []
-        }));
+          ) : [];
+          if (!feats.some(f => f.includes('аудио переводчик') || f.includes('аудиопереводчик'))) {
+            feats.push("Скидка 5% на аудио переводчик");
+          }
+          return { ...p, features: feats };
+        });
         const hasAgency = sanitized.some(p => p.type === 'agency' || p.name.includes('Работать с нами'));
         if (!hasAgency) {
           const agencyProd = defaultProducts.find(p => p.type === 'agency');
@@ -1665,17 +1668,19 @@ export default function App() {
                           <div>
                             <h4 className="font-extrabold text-gray-900 text-xl group-hover:text-black transition-colors">Аудио переводчик</h4>
                             <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                              Синхронный AI-перевод речи стримера в реальном времени для выхода на зарубежную аудиторию.
+                              Ваш голос в переводчике
                             </p>
                           </div>
                           <div className="pt-4 border-t border-gray-200">
                             <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Стоимость</div>
-                            <div className="text-2xl font-black text-gray-950 mt-1">Цена по запросу</div>
+                            <div className="text-2xl font-black text-gray-950 mt-1">
+                              10 000 ₽ <span className="text-sm font-normal text-gray-500">на один язык</span>
+                            </div>
                           </div>
                         </div>
                         <a 
                           href="#contacts"
-                          onClick={() => setContactAbout('Аудио переводчик (Цена по запросу)')}
+                          onClick={() => setContactAbout('Аудио переводчик (10 000 ₽ на один язык)')}
                           className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
                         >
                           Узнать стоимость
