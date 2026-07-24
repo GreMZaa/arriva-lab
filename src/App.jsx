@@ -1667,8 +1667,8 @@ export default function App() {
                           </div>
                           <div>
                             <h4 className="font-extrabold text-gray-900 text-xl group-hover:text-black transition-colors">Аудио переводчик</h4>
-                            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                              Ваш голос в переводчике
+                            <p className="text-sm text-gray-500 mt-2 leading-relaxed font-medium">
+                              Выкуп своего голоса, настройка на один язык
                             </p>
                           </div>
                           <div className="pt-4 border-t border-gray-200">
