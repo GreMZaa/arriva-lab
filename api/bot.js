@@ -10,10 +10,10 @@ const supabase = createClient(
 // Main menu helper
 const sendMainMenu = async (ctx, text = "Выберите интересующий вас раздел:") => {
   const keyboard = new InlineKeyboard()
-    .text("📋 Пройти Квиз на образ", "quiz_start").row()
-    .text("💰 Цены и услуги", "prices").row()
-    .text("🔑 Показать мой Telegram ID", "my_id").row()
-    .text("📞 Связаться с нами", "support");
+    .text("✨ Подобрать образ", "quiz_start").row()
+    .text("💎 Тарифы и цены", "prices").row()
+    .text("👤 Личный кабинет", "my_id").row()
+    .text("💬 Техподдержка", "support");
 
   await ctx.reply(text, { reply_markup: keyboard });
 };
@@ -24,7 +24,6 @@ bot.command("start", async (ctx) => {
   const username = ctx.from.username || "";
   const firstName = ctx.from.first_name || "";
 
-  // Upsert user into database to map username -> chat_id
   try {
     await supabase.from("users").upsert({
       telegram_id: userId,
@@ -35,131 +34,183 @@ bot.command("start", async (ctx) => {
     console.error("Error saving user:", err);
   }
 
-  const welcomeText = `👋 Привет, ${firstName}! Добро пожаловать в ARRIVA lab.\n\n` +
-    `Мы создаем виртуалных персонажей (VTuber) под ключ: от концепта до настройки отслеживания лица для стримов.\n\n` +
-    `Я твой интерактивный помощник. Помогу подобрать образ, узнать цены или войти в личный кабинет на сайте.`;
+  const welcomeText = `👋 <b>Добро пожаловать в Oriva Lab!</b>\n\n` +
+    `Я — Oriva, цифровой консультант лаборатории цифровых моделей.\n\n` +
+    `Я помогу подобрать образ под вашу цель или ознакомиться с нашими тарифами.`;
 
   await sendMainMenu(ctx, welcomeText);
 });
 
 // CALLBACKS
 bot.callbackQuery("quiz_start", async (ctx) => {
-  const userId = ctx.from.id;
+  const keyboard = new InlineKeyboard()
+    .text("🆕 Я только начинаю (запуск с нуля)", "quiz_exp_new").row()
+    .text("📹 Уже стримлю с веб-камерой (переход на VTuber)", "quiz_exp_cam");
 
-  // Initialize quiz state
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText("✨ <b>Подобрать образ — Шаг 1 из 4</b>\n\nКаков ваш текущий статус в стриминге?", {
+    parse_mode: "HTML",
+    reply_markup: keyboard
+  });
+});
+
+bot.callbackQuery(/^quiz_exp_(.+)$/, async (ctx) => {
+  const exp = ctx.match[1];
+  const userId = ctx.from.id;
   await supabase.from("user_states").upsert({
     telegram_id: userId,
-    state: "step_avatar",
-    data: {},
+    state: "step_goal",
+    data: { exp },
     updated_at: new Date()
   }, { onConflict: "telegram_id" });
 
   const keyboard = new InlineKeyboard()
-    .text("🖼️ PNG-Аватар (V-Tube старт)", "png_avatar").row()
-    .text("👾 2D-Аватар (Live2D классика)", "2d_avatar").row()
-    .text("🌐 3D-Аватар (Полный захват)", "3d_avatar");
+    .text("🌐 Популярные (YouTube, Twitch, Kick, VK)", "quiz_goal_public").row()
+    .text("🔞 Специализированные (18+ / Анонимно)", "quiz_goal_anonymous");
 
   await ctx.answerCallbackQuery();
-  await ctx.editMessageText("🔮 Шаг 1: Какой тип аватара вы хотите запустить?", {
+  await ctx.editMessageText("✨ <b>Подобрать образ — Шаг 2 из 4</b>\n\nНа каких платформах вы планируете стримить?", {
+    parse_mode: "HTML",
     reply_markup: keyboard
   });
 });
 
-bot.callbackQuery(/^(png|2d|3d)_avatar$/, async (ctx) => {
+bot.callbackQuery(/^quiz_goal_(.+)$/, async (ctx) => {
+  const goal = ctx.match[1];
   const userId = ctx.from.id;
-  const avatarType = ctx.match[1] === "png" ? "PNG-Аватар" : ctx.match[1] === "2d" ? "2D-Аватар" : "3D-Аватар";
+  const { data: stateData } = await supabase.from("user_states").select("*").eq("telegram_id", userId).single();
+  const currentData = stateData ? stateData.data : {};
 
   await supabase.from("user_states").update({
-    state: "step_usage",
-    data: { avatarType },
+    state: "step_budget",
+    data: { ...currentData, goal },
     updated_at: new Date()
   }).eq("telegram_id", userId);
 
   const keyboard = new InlineKeyboard()
-    .text("🎮 Стриминг игр / Twitch", "usage_streaming").row()
-    .text("🎥 Разговорный блог / YouTube", "usage_vlogs").row()
-    .text("✨ Просто для себя", "usage_personal");
+    .text("📄 Без модели (только инструкции)", "quiz_budget_none").row()
+    .text("🎨 2D Live2D модель (со скидкой 50%)", "quiz_budget_2d").row()
+    .text("🧊 3D VRM модель (со скидкой 50%)", "quiz_budget_3d");
 
   await ctx.answerCallbackQuery();
-  await ctx.editMessageText("🎯 Шаг 2: Для чего планируете использовать аватар?", {
+  await ctx.editMessageText("✨ <b>Подобрать образ — Шаг 3 из 4</b>\n\nКакая модель персонажа вас интересует?", {
+    parse_mode: "HTML",
     reply_markup: keyboard
   });
 });
 
-bot.callbackQuery(/^usage_(.+)$/, async (ctx) => {
+bot.callbackQuery(/^quiz_budget_(.+)$/, async (ctx) => {
+  const budget = ctx.match[1];
   const userId = ctx.from.id;
-  const usageMap = {
-    streaming: "Стриминг игр",
-    vlogs: "Видеоблоги",
-    personal: "Для себя"
+  const { data: stateData } = await supabase.from("user_states").select("*").eq("telegram_id", userId).single();
+  const currentData = stateData ? stateData.data : {};
+
+  await supabase.from("user_states").update({
+    state: "step_hardware",
+    data: { ...currentData, budget },
+    updated_at: new Date()
+  }).eq("telegram_id", userId);
+
+  const keyboard = new InlineKeyboard()
+    .text("📖 Настрою всё сам по инструкциям", "quiz_hw_self").row()
+    .text("👑 Хочу полное сопровождение под ключ", "quiz_hw_premium");
+
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText("✨ <b>Подобрать образ — Шаг 4 из 4</b>\n\nНужна ли вам личная помощь в настройке?", {
+    parse_mode: "HTML",
+    reply_markup: keyboard
+  });
+});
+
+bot.callbackQuery(/^quiz_hw_(.+)$/, async (ctx) => {
+  const hardware = ctx.match[1];
+  const userId = ctx.from.id;
+  const { data: stateData } = await supabase.from("user_states").select("*").eq("telegram_id", userId).single();
+  const currentData = stateData ? stateData.data : {};
+
+  const exp = currentData.exp || "new";
+  const goal = currentData.goal || "public";
+  const budget = currentData.budget || "none";
+
+  let rec = "archive_002_basic";
+  if (exp === "cam") rec = "archive_004";
+  else if (goal === "anonymous") rec = "archive_003";
+  else if (hardware === "premium") rec = "archive_002_premium";
+  else if (budget === "2d") rec = "archive_002_2d";
+  else if (budget === "3d") rec = "archive_002_3d";
+
+  const recNames = {
+    archive_002_basic: "🟢 АРХИВ 002 — базовый (14 900 ₽)",
+    archive_002_2d: "🔵 АРХИВ 002 + 2D (29 900 ₽)",
+    archive_002_3d: "🔵 АРХИВ 002 + 3D (34 900 ₽)",
+    archive_002_premium: "🟣 АРХИВ 002 PREMIUM (49 900 ₽)",
+    archive_003: "🔞 АРХИВ 003 (от 59 900 ₽)",
+    archive_004: "🔄 АРХИВ 004 — РЕСТАРТ (39 900 ₽)"
   };
-  const usage = usageMap[ctx.match[1]] || "Стримы";
 
-  const { data: stateData } = await supabase
-    .from("user_states")
-    .select("*")
-    .eq("telegram_id", userId)
-    .single();
+  const keyboard = new InlineKeyboard()
+    .text("💳 Оформить программу", `buy_${rec}`).row()
+    .text("✨ Подобрать образ заново", "quiz_start").row()
+    .text("🏠 Главное меню", "main_menu");
 
-  if (stateData) {
-    const nextData = { ...stateData.data, usage };
-    await supabase.from("user_states").update({
-      state: "step_name",
-      data: nextData,
-      updated_at: new Date()
-    }).eq("telegram_id", userId);
-
-    await ctx.answerCallbackQuery();
-    await ctx.editMessageText("📝 Шаг 3: Напишите ваше имя или игровой никнейм для связи (отправьте текстовым сообщением):");
-  }
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText(`🎉 <b>Результат подбора:</b>\n\nНа основе ваших ответов рекомендуем программу:\n<b>${recNames[rec] || rec}</b>`, {
+    parse_mode: "HTML",
+    reply_markup: keyboard
+  });
 });
 
 bot.callbackQuery("prices", async (ctx) => {
-  const priceText = `💰 *Наши тарифы и услуги:*\n\n` +
-    `🖼️ *PNG-Аватар* — от 10 000 ₽\n` +
-    `Быстрый старт. Статичные изображения с анимацией рта при разговоре.\n\n` +
-    `👾 *2D-Аватар (Live2D)* — от 45 000 ₽\n` +
-    `Классический витубер-формат. Нарезка слоев и плавная настройка мимики.\n\n` +
-    `🌐 *3D-Аватар (VRoid/FBX)* — от 70 000 ₽\n` +
-    `Полная трехмерная свобода движения головы, рук и тела.\n\n` +
-    `Все тарифы включают базовый аудит вашего оборудования и помощь в настройке OBS.`;
+  const priceText = `💎 <b>Наши тарифы и услуги Oriva Lab:</b>\n\n` +
+    `🟢 <b>АРХИВ 002 — базовый</b> — <code>14 900 ₽</code>\n` +
+    `Пошаговое руководство по самостоятельному запуску VTuber-аватара с нуля.\n\n` +
+    `🔵 <b>АРХИВ 002 + 2D</b> — <code>29 900 ₽</code>\n` +
+    `Базовый архив + разработка персонального 2D-аватара со скидкой 50%.\n\n` +
+    `🔵 <b>АРХИВ 002 + 3D</b> — <code>34 900 ₽</code>\n` +
+    `Базовый архив + создание 3D/VRM модели персонажа со скидкой 50%.\n\n` +
+    `🟣 <b>АРХИВ 002 PREMIUM</b> — <code>49 900 ₽</code>\n` +
+    `Личное сопровождение до первого эфира + 2D или 3D модель в подарок.\n\n` +
+    `🔄 <b>АРХИВ 004 — РЕСТАРТ</b> — <code>39 900 ₽</code>\n` +
+    `Пошаговый переход с веб-камеры на виртуальный формат без потери аудитории.\n\n` +
+    `🔞 <b>АРХИВ 003</b> — <code>от 59 900 ₽</code>\n` +
+    `Специализированный запуск на анонимных и 18+ площадках с защитой приватности.\n\n` +
+    `🤝 <b>Работать с нами</b> — <code>15% от дохода</code>\n` +
+    `Агентская программа: даём программу, подбираем модель и ведем ваш канал.`;
 
   const keyboard = new InlineKeyboard().text("🔙 Назад", "main_menu");
   await ctx.answerCallbackQuery();
-  await ctx.editMessageText(priceText, { parse_mode: "Markdown", reply_markup: keyboard });
+  await ctx.editMessageText(priceText, { parse_mode: "HTML", reply_markup: keyboard });
 });
 
 bot.callbackQuery("my_id", async (ctx) => {
-  const idText = `🔑 Ваш цифровой Telegram ID: \`${ctx.from.id}\`\n\n` +
-    `Используйте его на сайте в поле «Личный Кабинет», чтобы зайти и отслеживать прогресс выполнения вашей модели!`;
+  const idText = `🔑 Ваш цифровой Telegram ID: <code>${ctx.from.id}</code>\n\n` +
+    `Используйте его на сайте в личной кабинете для входа.`;
 
   const keyboard = new InlineKeyboard().text("🔙 Назад", "main_menu");
   await ctx.answerCallbackQuery();
-  await ctx.editMessageText(idText, { parse_mode: "Markdown", reply_markup: keyboard });
+  await ctx.editMessageText(idText, { parse_mode: "HTML", reply_markup: keyboard });
 });
 
 bot.callbackQuery("support", async (ctx) => {
-  const supportText = `📞 *Связь с командой ARRIVA lab:*\n\n` +
-    `• Наш менеджер: @arriva_lab\n` +
-    `• Почта: contact@arriva.lab\n\n` +
-    `Вы можете написать менеджеру напрямую для обсуждения индивидуальных проектов.`;
+  const supportText = `💬 <b>Служба заботы Oriva Lab</b>\n\n` +
+    `Наш специалист поддержки на связи в Telegram:\n👉 <b>@success_vstream</b>`;
 
   const keyboard = new InlineKeyboard().text("🔙 Назад", "main_menu");
   await ctx.answerCallbackQuery();
-  await ctx.editMessageText(supportText, { parse_mode: "Markdown", reply_markup: keyboard });
+  await ctx.editMessageText(supportText, { parse_mode: "HTML", reply_markup: keyboard });
 });
 
 bot.callbackQuery("main_menu", async (ctx) => {
-  const welcomeText = `Я твой интерактивный помощник. Помогу подобрать образ, узнать цены или войти в личный кабинет на сайте.`;
+  const welcomeText = `Выберите интересующий вас раздел:`;
   
   const keyboard = new InlineKeyboard()
-    .text("📋 Пройти Квиз на образ", "quiz_start").row()
-    .text("💰 Цены и услуги", "prices").row()
-    .text("🔑 Показать мой Telegram ID", "my_id").row()
-    .text("📞 Связаться с нами", "support");
+    .text("✨ Подобрать образ", "quiz_start").row()
+    .text("💎 Тарифы и цены", "prices").row()
+    .text("👤 Личный кабинет", "my_id").row()
+    .text("💬 Техподдержка", "support");
 
   await ctx.answerCallbackQuery();
-  await ctx.editMessageText(welcomeText, { reply_markup: keyboard });
+  await ctx.editMessageText(welcomeText, { parse_mode: "HTML", reply_markup: keyboard });
 });
 
 // ADMIN APPROVAL ACTIONS
