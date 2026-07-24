@@ -255,6 +255,16 @@ bot.callbackQuery(/^quiz_hw_(.+)$/, async (ctx) => {
   });
 });
 
+const PAYWALL_LINKS = {
+  archive_002_basic: "https://paywall.ru/arrivalab/products/1491893657",
+  archive_002_2d: "https://paywall.ru/arrivalab/products/1491893657",
+  archive_002_3d: "https://paywall.ru/arrivalab/products/1491893657",
+  archive_002_premium: "https://paywall.ru/arrivalab/products/1152545118",
+  archive_004: "https://paywall.ru/arrivalab/products/1194159971",
+  archive_003: "https://t.me/success_vstream",
+  agency: "https://t.me/success_vstream"
+};
+
 bot.callbackQuery(/^(buy|info)_(.+)$/, async (ctx) => {
   const key = ctx.match[2];
   
@@ -263,7 +273,7 @@ bot.callbackQuery(/^(buy|info)_(.+)$/, async (ctx) => {
       `Мы даем вам полную программу, подбираем модель, прописываем характеристики персонажа и берем 15% от вашего дохода.\n\n` +
       `Напишите нашему менеджеру в Telegram для подачи заявки:\n👉 <b>@success_vstream</b>`;
     const keyboard = new InlineKeyboard()
-      .url("💬 Написать менеджеру", "https://t.me/success_vstream").row()
+      .url("💬 Подать заявку", "https://t.me/success_vstream").row()
       .text("🏠 Главное меню", "main_menu");
     await ctx.answerCallbackQuery();
     await ctx.reply(text, { parse_mode: "HTML", reply_markup: keyboard });
@@ -277,17 +287,26 @@ bot.callbackQuery(/^(buy|info)_(.+)$/, async (ctx) => {
   };
 
   const formattedItems = (p.items || []).map(i => `• ${i}`).join("\n");
+  const payUrl = PAYWALL_LINKS[key] || "https://paywall.ru/arrivalab/products/1491893657";
+  const isDirectPay = payUrl.includes("paywall.ru");
 
   const text = `💳 <b>Оформление программы</b>\n\n` +
     `<b>${p.title}</b>\n` +
     `💰 Стоимость: <b>${p.price}</b>\n\n` +
     `<b>Что входит в программу:</b>\n${formattedItems}\n\n` +
-    `Для оплаты и доступа к материалам напишите нашему менеджеру поддержки:\n👉 <b>@success_vstream</b>`;
+    (isDirectPay 
+      ? `Нажмите кнопку ниже для перехода к мгновенной оплате на Paywall:`
+      : `Для согласования свяжитесь с нашим менеджером:`);
 
-  const keyboard = new InlineKeyboard()
-    .url("💬 Связаться для оплаты", "https://t.me/success_vstream").row()
-    .text("✨ Подобрать образ заново", "quiz_start").row()
-    .text("🏠 Главное меню", "main_menu");
+  const keyboard = new InlineKeyboard();
+  if (isDirectPay) {
+    keyboard.url("💳 Перейти к оплате на Paywall", payUrl).row();
+  } else {
+    keyboard.url("💬 Связаться для оплаты", payUrl).row();
+  }
+  keyboard.url("💬 Вопрос по оплате", "https://t.me/success_vstream").row();
+  keyboard.text("✨ Подобрать образ заново", "quiz_start").row();
+  keyboard.text("🏠 Главное меню", "main_menu");
 
   await ctx.answerCallbackQuery();
   await ctx.reply(text, { parse_mode: "HTML", reply_markup: keyboard });
