@@ -448,6 +448,11 @@ export default function App() {
              .replace(/❌ Скидка на готовую модель/gi, "Скидка 50% на готовую модель")
           ) : []
         }));
+        const hasAgency = sanitized.some(p => p.type === 'agency' || p.name.includes('Работать с нами'));
+        if (!hasAgency) {
+          const agencyProd = defaultProducts.find(p => p.type === 'agency');
+          if (agencyProd) sanitized.push(agencyProd);
+        }
         setProducts(sanitized);
       } catch (err) {
         console.error('Failed to load products:', err);
@@ -1534,7 +1539,7 @@ export default function App() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {(() => {
-                      const typeOrder = { 'basic': 1, 'restart': 2, 'premium': 3, '18+': 4 };
+                      const typeOrder = { 'basic': 1, 'restart': 2, 'premium': 3, '18+': 4, 'agency': 5 };
                       const list = (products && products.length > 0) ? products : defaultProducts;
                       return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
                     })().map((product) => (
@@ -1553,7 +1558,7 @@ export default function App() {
                             <p className="text-sm text-gray-400 mt-2 leading-relaxed">{product.description}</p>
                           </div>
                           <div className="text-3xl font-black text-gray-950 text-center">
-                            {Number(product.price).toLocaleString('ru-RU')} ₽
+                            {product.priceLabel ? product.priceLabel : (product.price === 0 ? '15% от дохода' : `${Number(product.price).toLocaleString('ru-RU')} ₽`)}
                           </div>
                           <ul className="text-sm text-gray-500 space-y-3 border-t border-gray-200 pt-6 text-left">
                             {product.features && product.features.map((rawFeat, idx) => {
@@ -1579,10 +1584,10 @@ export default function App() {
 
                         <a
                           href="#contacts"
-                          onClick={() => setContactAbout(`${product.name} (${Number(product.price).toLocaleString('ru-RU')} ₽)`)}
+                          onClick={() => setContactAbout(product.priceLabel ? `${product.name} (${product.priceLabel})` : (product.price === 0 ? `${product.name} (15% от дохода)` : `${product.name} (${Number(product.price).toLocaleString('ru-RU')} ₽)`))}
                           className="btn btn-primary w-full mt-8 py-3.5 text-sm font-extrabold text-center flex items-center justify-center gap-2 shadow-sm"
                         >
-                          Выбрать и оформить <ArrowRight className="w-4 h-4" />
+                          {product.type === 'agency' ? 'Подать заявку' : 'Выбрать и оформить'} <ArrowRight className="w-4 h-4" />
                         </a>
                       </div>
                     ))}
