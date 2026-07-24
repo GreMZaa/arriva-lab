@@ -441,7 +441,14 @@ export default function App() {
       }
       try {
         const ps = await db.getAllProducts();
-        setProducts(ps);
+        const sanitized = ps.map(p => ({
+          ...p,
+          features: p.features ? p.features.map(f =>
+            f.replace(/Без скидки на готовую модель/gi, "Скидка 50% на готовую модель")
+             .replace(/❌ Скидка на готовую модель/gi, "Скидка 50% на готовую модель")
+          ) : []
+        }));
+        setProducts(sanitized);
       } catch (err) {
         console.error('Failed to load products:', err);
       }
@@ -1549,7 +1556,10 @@ export default function App() {
                             {Number(product.price).toLocaleString('ru-RU')} ₽
                           </div>
                           <ul className="text-sm text-gray-500 space-y-3 border-t border-gray-200 pt-6 text-left">
-                            {product.features && product.features.map((feat, idx) => {
+                            {product.features && product.features.map((rawFeat, idx) => {
+                              const feat = rawFeat
+                                .replace(/Без скидки на готовую модель/gi, "Скидка 50% на готовую модель")
+                                .replace(/❌ Скидка на готовую модель/gi, "Скидка 50% на готовую модель");
                               const isExcluded = feat.startsWith('Без') || feat.startsWith('без');
                               return (
                                 <li key={idx} className="flex items-start gap-2.5 leading-snug">
