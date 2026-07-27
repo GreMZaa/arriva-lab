@@ -1114,17 +1114,10 @@ export default function App() {
         setCrmError(data.error || 'Неверный логин или пароль администратора');
       }
     } catch (err) {
-      // Fallback for local preview if server endpoint unavailable
-      const adminUser = import.meta.env.VITE_ADMIN_USERNAME || 'ssharonovv';
-      const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'ArrivaAdmin26!#';
-      if (crmUsername === adminUser && crmPassword === adminPass) {
-        setCrmLoggedIn(true);
-        setCrmError('');
-      } else {
-        setCrmError('Неверный логин или пароль администратора');
-      }
+      setCrmError('Ошибка сети или сервера при авторизации в CRM');
     }
   };
+
 
 
   const handleUpdateStatus = async (id, status) => {
