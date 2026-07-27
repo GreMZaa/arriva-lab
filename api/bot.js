@@ -21,6 +21,49 @@ const sendMainMenu = async (ctx, text = "Выберите интересующи
   await ctx.reply(text, { parse_mode: "HTML", reply_markup: keyboard });
 };
 
+// CALENDAR KEYBOARD HELPERS
+const getDecadesKeyboard = () => {
+  return new InlineKeyboard()
+    .text("1980 - 1989", "cal_dec_1980").text("1990 - 1999", "cal_dec_1990").row()
+    .text("2000 - 2009", "cal_dec_2000").text("2010 - 2018", "cal_dec_2010").row();
+};
+
+const getYearsKeyboard = (startYear) => {
+  const kb = new InlineKeyboard();
+  for (let i = 0; i < 10; i++) {
+    const yr = startYear + i;
+    if (yr > 2018) break;
+    kb.text(String(yr), `cal_yr_${yr}`);
+    if (i % 3 === 2) kb.row();
+  }
+  kb.row().text("⬅️ К десятилетиям", "cal_dec_back");
+  return kb;
+};
+
+const getMonthsKeyboard = (year) => {
+  const months = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"];
+  const kb = new InlineKeyboard();
+  months.forEach((m, idx) => {
+    kb.text(m, `cal_mo_${year}_${idx + 1}`);
+    if ((idx + 1) % 3 === 0) kb.row();
+  });
+  kb.row().text("⬅️ К выбору года", `cal_dec_${Math.floor(year / 10) * 10}`);
+  return kb;
+};
+
+const getDaysKeyboard = (year, month) => {
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const kb = new InlineKeyboard();
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dayStr = d < 10 ? `0${d}` : `${d}`;
+    const moStr = month < 10 ? `0${month}` : `${month}`;
+    kb.text(String(d), `cal_day_${dayStr}.${moStr}.${year}`);
+    if (d % 7 === 0) kb.row();
+  }
+  kb.row().text("⬅️ К выбору месяца", `cal_yr_${year}`);
+  return kb;
+};
+
 // COMMANDS
 bot.command("start", async (ctx) => {
   const userId = ctx.chat.id;
@@ -40,6 +83,20 @@ bot.command("start", async (ctx) => {
     console.error("Error setting menu button:", e);
   }
 
+  // Fetch existing user profile
+  let userRow = null;
+  try {
+    const { data } = await supabase
+      .from("users")
+      .select("*")
+      .eq("telegram_id", userId)
+      .maybeSingle();
+    userRow = data;
+  } catch (err) {
+    console.error("Error fetching user:", err);
+  }
+
+  // Upsert basic user details
   try {
     await supabase.from("users").upsert({
       telegram_id: userId,
@@ -50,11 +107,29 @@ bot.command("start", async (ctx) => {
     console.error("Error saving user:", err);
   }
 
-  const welcomeText = `👋 <b>Добро пожаловать в Oriva Lab!</b>\n\n` +
-    `Я — Oriva, цифровой консультант лаборатории цифровых моделей.\n\n` +
-    `Я помогу подобрать образ под вашу цель или ознакомиться с нашими тарифами.`;
+  // Check if fully registered
+  if (userRow && userRow.full_name && userRow.phone && userRow.birth_date) {
+    const welcomeText = `👋 <b>Добро пожаловать в Oriva Lab, ${userRow.full_name}!</b>\n\n` +
+      `Я — Oriva, цифровой консультант лаборатории цифровых моделей.\n\n` +
+      `Я помогу подобрать образ под вашу цель или ознакомиться с нашими тарифами.`;
+    await sendMainMenu(ctx, welcomeText);
+    return;
+  }
 
-  await sendMainMenu(ctx, welcomeText);
+  // Start mandatory registration flow
+  await supabase.from("user_states").upsert({
+    telegram_id: userId,
+    state: "reg_fio",
+    data: {},
+    updated_at: new Date()
+  }, { onConflict: "telegram_id" });
+
+  const regText = `👋 <b>Добро пожаловать в Oriva Lab!</b>\n\n` +
+    `Для работы с платформой пройдите обязательную регистрацию.\n\n` +
+    `📝 <b>Шаг 1 из 3: Введите ваше ФИО</b>\n` +
+    `<i>(Например: Иванов Иван Иванович)</i>`;
+
+  await ctx.reply(regText, { parse_mode: "HTML" });
 });
 
 // CALLBACKS
@@ -504,6 +579,98 @@ bot.callbackQuery(/^(approve|reject)_(.+)$/, async (ctx) => {
   }
 });
 
+// CONTACT HANDLER (Step 2: Native Phone sharing)
+bot.on("message:contact", async (ctx) => {
+  const userId = ctx.from.id;
+  const phone = ctx.message.contact.phone_number;
+
+  // Save phone number
+  await supabase.from("users").update({ phone }).eq("telegram_id", userId);
+
+  // Update state to birthdate
+  await supabase.from("user_states").upsert({
+    telegram_id: userId,
+    state: "reg_birthdate",
+    data: {},
+    updated_at: new Date()
+  }, { onConflict: "telegram_id" });
+
+  const birthdateMsg = `📱 <b>Номер телефона получен:</b> <code>${phone}</code>\n\n` +
+    `📅 <b>Шаг 3 из 3: Дата рождения</b>\n\n` +
+    `Выберите ваш <b>десятилетие рождения</b> из интерактивного календаря ниже:`;
+
+  await ctx.reply(birthdateMsg, {
+    parse_mode: "HTML",
+    reply_markup: { remove_keyboard: true }
+  });
+
+  await ctx.reply("👇 <b>Интерактивный календарь:</b>", {
+    parse_mode: "HTML",
+    reply_markup: getDecadesKeyboard()
+  });
+});
+
+// CALENDAR CALLBACKS
+bot.callbackQuery(/^cal_dec_(.+)$/, async (ctx) => {
+  const arg = ctx.match[1];
+  await ctx.answerCallbackQuery();
+  if (arg === "back") {
+    await ctx.editMessageText("📅 <b>Шаг 3 из 3: Дата рождения</b>\n\nВыберите ваш <b>десятилетие рождения</b>:", {
+      parse_mode: "HTML",
+      reply_markup: getDecadesKeyboard()
+    });
+  } else {
+    const startYr = parseInt(arg, 10);
+    await ctx.editMessageText(`📅 <b>Шаг 3 из 3: Дата рождения</b>\n\nВыберите ваш <b>год рождения</b> (${startYr}-${startYr + 9}):`, {
+      parse_mode: "HTML",
+      reply_markup: getYearsKeyboard(startYr)
+    });
+  }
+});
+
+bot.callbackQuery(/^cal_yr_(\d+)$/, async (ctx) => {
+  const year = parseInt(ctx.match[1], 10);
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText(`📅 <b>Шаг 3 из 3: Дата рождения</b>\n\nГод: <b>${year}</b>\nВыберите ваш <b>месяц рождения</b>:`, {
+    parse_mode: "HTML",
+    reply_markup: getMonthsKeyboard(year)
+  });
+});
+
+bot.callbackQuery(/^cal_mo_(\d+)_(\d+)$/, async (ctx) => {
+  const year = parseInt(ctx.match[1], 10);
+  const month = parseInt(ctx.match[2], 10);
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText(`📅 <b>Шаг 3 из 3: Дата рождения</b>\n\nГод: <b>${year}</b>, Месяц: <b>${month}</b>\nВыберите ваш <b>день рождения</b>:`, {
+    parse_mode: "HTML",
+    reply_markup: getDaysKeyboard(year, month)
+  });
+});
+
+bot.callbackQuery(/^cal_day_(.+)$/, async (ctx) => {
+  const birthDate = ctx.match[1];
+  const userId = ctx.from.id;
+  const username = ctx.from.username || "";
+
+  await ctx.answerCallbackQuery({ text: `Дата рождения выбрана: ${birthDate}` });
+
+  // Update user in Supabase
+  await supabase.from("users").update({ birth_date: birthDate }).eq("telegram_id", userId);
+  await supabase.from("user_states").delete().eq("telegram_id", userId);
+
+  // Fetch updated user profile
+  const { data: user } = await supabase.from("users").select("*").eq("telegram_id", userId).maybeSingle();
+
+  const successText = `🎉 <b>Регистрация успешно завершена!</b>\n\n` +
+    `👤 <b>ФИО:</b> ${user?.full_name || 'Не указано'}\n` +
+    `📱 <b>Телефон:</b> ${user?.phone || 'Не указан'}\n` +
+    `📅 <b>Дата рождения:</b> ${birthDate}\n` +
+    `👤 <b>Telegram:</b> @${username || 'нет'}\n\n` +
+    `Теперь вам доступна лаборатория VTubing Oriva Lab!`;
+
+  await sendMainMenu(ctx, successText);
+});
+
 // TEXT INPUTS (for Quiz steps & Support tickets)
 bot.on("message:text", async (ctx) => {
   const userId = ctx.from.id;
@@ -536,6 +703,48 @@ bot.on("message:text", async (ctx) => {
 
   if (stateData) {
     const { state, data } = stateData;
+
+    if (state === "reg_fio") {
+      const fio = ctx.message.text.trim();
+      await supabase.from("users").update({ full_name: fio }).eq("telegram_id", userId);
+      await supabase.from("user_states").update({
+        state: "reg_phone",
+        data: { fio },
+        updated_at: new Date()
+      }).eq("telegram_id", userId);
+
+      const contactReplyKeyboard = {
+        keyboard: [[{ text: "📱 Поделиться номером телефона", request_contact: true }]],
+        resize_keyboard: true,
+        one_time_keyboard: true
+      };
+
+      const phoneText = `📝 <b>ФИО сохранено:</b> ${fio}\n\n` +
+        `📱 <b>Шаг 2 из 3: Номер телефона</b>\n\n` +
+        `Нажмите кнопку ниже <b>«📱 Поделиться номером телефона»</b>, чтобы передать свой контакт в один клик:`;
+
+      await ctx.reply(phoneText, { parse_mode: "HTML", reply_markup: contactReplyKeyboard });
+      return;
+    } else if (state === "reg_phone") {
+      const phoneText = ctx.message.text.trim();
+      await supabase.from("users").update({ phone: phoneText }).eq("telegram_id", userId);
+      await supabase.from("user_states").update({
+        state: "reg_birthdate",
+        data: { phone: phoneText },
+        updated_at: new Date()
+      }).eq("telegram_id", userId);
+
+      await ctx.reply("📱 <b>Номер телефона сохранен!</b>", { reply_markup: { remove_keyboard: true } });
+
+      const birthdateMsg = `📅 <b>Шаг 3 из 3: Дата рождения</b>\n\n` +
+        `Выберите ваш <b>десятилетие рождения</b> из календаря ниже:`;
+
+      await ctx.reply(birthdateMsg, {
+        parse_mode: "HTML",
+        reply_markup: getDecadesKeyboard()
+      });
+      return;
+    }
 
     if (state === "step_name") {
       const nextData = { ...data, name: ctx.message.text };
