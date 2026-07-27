@@ -613,19 +613,28 @@ export default function App() {
     const hardware = quizAnswers.hardware || 'self';
     
     let result = 'basic';
+    let styleTitle = 'Тебе подходит базовый запуск (быстрый старт)';
     if (exp === 'cam') {
       result = 'restart';
+      styleTitle = 'Тебе подходит рестарт-аватар для перехода с веб-камеры';
     } else if (goal === 'anonymous') {
       result = '18+';
+      styleTitle = 'Тебе подходит анонимный образ для спец-платформ';
     } else if (hardware === 'premium') {
       result = 'premium';
-    } else if (budget === '2d' || budget === '3d') {
+      styleTitle = 'Тебе подходит персональный VTuber-образ под ключ';
+    } else if (budget === '3d') {
       result = 'premium';
+      styleTitle = 'Тебе подходит 3D-аватар в стиле киберпанк';
+    } else if (budget === '2d') {
+      result = 'premium';
+      styleTitle = 'Тебе подходит 2D-аватар в аниме-стиле';
     } else {
       result = 'basic';
+      styleTitle = 'Тебе подходит базовый запуск с нуля (быстрый старт)';
     }
     
-    setQuizResult(result);
+    setQuizResult({ type: result, styleTitle });
     setQuizStep(quizQuestions.length);
     setQuizLoading(false);
     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
@@ -647,15 +656,16 @@ export default function App() {
       const tgId = getTelegramIdHash(telegram);
       await db.createUser(tgId, fullName, telegram);
       
-      const details = `Подобрана модель: ${quizResult.toUpperCase()}. Статус: ${quizAnswers.exp}, Платформы: ${quizAnswers.goal}, Модель: ${quizAnswers.budget}, Сопровождение: ${quizAnswers.hardware}`;
+      const resType = (typeof quizResult === 'object' && quizResult?.type) ? quizResult.type : (quizResult || 'basic');
+      const details = `Подобрана модель: ${resType.toUpperCase()}. Статус: ${quizAnswers.exp}, Платформы: ${quizAnswers.goal}, Модель: ${quizAnswers.budget}, Сопровождение: ${quizAnswers.hardware}`;
       await db.submitApplication(tgId, fullName, new Date().toISOString().split('T')[0], details);
       
       // Auto register a purchase suggestion
-      let productName = 'АРХИВ 002 — базовый';
+      let productName = 'АРХИВ 002';
       let price = 14900;
-      if (quizResult === 'premium') { productName = 'АРХИВ 002 PREMIUM'; price = 49900; }
-      else if (quizResult === '18+') { productName = 'АРХИВ 003'; price = 59900; }
-      else if (quizResult === 'restart') { productName = 'АРХИВ 004 — РЕСТАРТ'; price = 39900; }
+      if (resType === 'premium') { productName = 'АРХИВ 002 PREMIUM'; price = 39900; }
+      else if (resType === '18+') { productName = 'АРХИВ 003'; price = 35900; }
+      else if (resType === 'restart') { productName = 'АРХИВ 004 — РЕСТАРТ'; price = 29900; }
       
       await db.createPurchase(tgId, productName, price);
       
@@ -1535,9 +1545,47 @@ export default function App() {
               {/* TARIFFS SECTION */}
               <section id="tariffs" className="py-24 bg-white border-t border-gray-100">
                 <div className="max-w-7xl mx-auto px-6">
+                  {/* Banner Slogan */}
+                  <div className="mb-16 bg-gradient-to-r from-gray-900 via-gray-950 to-gray-900 rounded-3xl p-8 sm:p-10 text-white text-center shadow-xl border border-gray-800 space-y-4">
+                    <span className="inline-flex items-center gap-2 px-3 py-1 bg-[#9FE870]/20 text-[#9FE870] font-bold text-xs rounded-full uppercase tracking-wider border border-[#9FE870]/30">
+                      <Sparkles className="w-3.5 h-3.5" /> Главная экосистема VTubing в СНГ
+                    </span>
+                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold max-w-4xl mx-auto leading-relaxed">
+                      Первая в СНГ система запуска VTuber-моделей для международных платформ с сохранением полной анонимности.
+                    </h3>
+                    <p className="text-gray-400 text-sm sm:text-base font-medium">
+                      Всё можно получить внутри одной системы — от идеи персонажа до поддержки и выплат.
+                    </p>
+                    
+                    {/* Value Points */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-gray-800 text-left">
+                      <div className="flex items-start gap-3">
+                        <span className="text-xl">📋</span>
+                        <div>
+                          <h4 className="font-bold text-white text-sm">Чек-листы</h4>
+                          <p className="text-xs text-gray-400">Вы ничего не забудете на запуске</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <span className="text-xl">📚</span>
+                        <div>
+                          <h4 className="font-bold text-white text-sm">Глоссарий</h4>
+                          <p className="text-xs text-gray-400">Не будете теряться в профессиональных терминах</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <span className="text-xl">🎧</span>
+                        <div>
+                          <h4 className="font-bold text-white text-sm">Поддержка 24/7</h4>
+                          <p className="text-xs text-gray-400">Не останетесь один на один с техническими проблемами</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
                     <h2 className="text-gray-900 font-extrabold tracking-tight">Тарифы и Программы</h2>
-                    <p className="text-gray-500 text-lg">Выберите подходящий формат для быстрого и уверенного старта</p>
+                    <p className="text-gray-500 text-lg">Выберите подходящий формат или пройдите <button onClick={() => setView('quiz')} className="text-[#123d0c] font-bold underline hover:text-black">подбор образа</button></p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -1545,55 +1593,72 @@ export default function App() {
                       const typeOrder = { 'basic': 1, 'restart': 2, 'premium': 3, '18+': 4, 'agency': 5 };
                       const list = (products && products.length > 0) ? products : defaultProducts;
                       return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
-                    })().map((product) => (
-                      <div 
-                        key={product.id || product.name} 
-                        className="bg-gray-50 border border-gray-100 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#9FE870] transition-all duration-300 group"
-                      >
-                        <div className="space-y-6 text-left">
-                          <div className="flex justify-center mb-2">
-                            <span className="text-3xl font-black uppercase bg-[#9FE870]/20 text-[#123d0c] px-6 py-2.5 rounded-2xl border border-[#9FE870]/40 tracking-widest">
-                              {product.type}
-                            </span>
-                          </div>
-                          <div className="text-center">
-                            <h3 className="font-extrabold text-gray-900 text-xl leading-tight group-hover:text-black transition-colors">{product.name}</h3>
-                            <p className="text-sm text-gray-400 mt-2 leading-relaxed">{product.description}</p>
-                          </div>
-                          <div className="text-3xl font-black text-gray-950 text-center">
-                            {product.priceLabel ? product.priceLabel : (product.price === 0 ? '15% от дохода' : `${Number(product.price).toLocaleString('ru-RU')} ₽`)}
-                          </div>
-                          <ul className="text-sm text-gray-500 space-y-3 border-t border-gray-200 pt-6 text-left">
-                            {product.features && product.features.map((rawFeat, idx) => {
-                              const feat = rawFeat
-                                .replace(/Без скидки на готовую модель/gi, "Скидка 50% на готовую модель")
-                                .replace(/❌ Скидка на готовую модель/gi, "Скидка 50% на готовую модель");
-                              const isExcluded = feat.startsWith('Без') || feat.startsWith('без');
-                              return (
-                                <li key={idx} className="flex items-start gap-2.5 leading-snug">
-                                  {isExcluded ? (
-                                    <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                                  ) : (
-                                    <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
-                                  )}
-                                  <span className={isExcluded ? 'text-gray-400 font-medium line-through decoration-red-200/50 decoration-1' : 'text-gray-700 font-medium'}>
-                                    {feat}
-                                  </span>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
+                    })().map((product) => {
+                      // Subtitles lookup helper
+                      const subtitleMap = {
+                        'basic': 'Быстрый старт (Сами)',
+                        'restart': 'Переход с веб-камеры (Рестарт)',
+                        'premium': 'Полное сопровождение под ключ',
+                        '18+': 'Всё включено (С нами)',
+                        'agency': 'Агентская программа'
+                      };
+                      const cardSubtitle = product.subtitle || subtitleMap[product.type] || '';
 
-                        <a
-                          href="#contacts"
-                          onClick={() => setContactAbout(product.priceLabel ? `${product.name} (${product.priceLabel})` : (product.price === 0 ? `${product.name} (15% от дохода)` : `${product.name} (${Number(product.price).toLocaleString('ru-RU')} ₽)`))}
-                          className="btn btn-primary w-full mt-8 py-3.5 text-sm font-extrabold text-center flex items-center justify-center gap-2 shadow-sm"
+                      return (
+                        <div 
+                          key={product.id || product.name} 
+                          className="bg-gray-50 border border-gray-100 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#9FE870] transition-all duration-300 group"
                         >
-                          {product.type === 'agency' ? 'Подать заявку' : 'Выбрать и оформить'} <ArrowRight className="w-4 h-4" />
-                        </a>
-                      </div>
-                    ))}
+                          <div className="space-y-6 text-left">
+                            <div className="flex justify-center mb-2">
+                              <span className="text-3xl font-black uppercase bg-[#9FE870]/20 text-[#123d0c] px-6 py-2.5 rounded-2xl border border-[#9FE870]/40 tracking-widest">
+                                {product.type}
+                              </span>
+                            </div>
+                            <div className="text-center">
+                              <h3 className="font-extrabold text-gray-900 text-xl leading-tight group-hover:text-black transition-colors">{product.name}</h3>
+                              {cardSubtitle && (
+                                <span className="inline-block mt-1 text-xs font-extrabold text-[#123d0c] bg-lime-100/60 px-2.5 py-0.5 rounded-full">
+                                  {cardSubtitle}
+                                </span>
+                              )}
+                              <p className="text-sm text-gray-400 mt-2 leading-relaxed">{product.description}</p>
+                            </div>
+                            <div className="text-3xl font-black text-gray-950 text-center">
+                              {product.priceLabel ? product.priceLabel : (product.price === 0 ? '15% от дохода' : `${Number(product.price).toLocaleString('ru-RU')} ₽`)}
+                            </div>
+                            <ul className="text-sm text-gray-500 space-y-3 border-t border-gray-200 pt-6 text-left">
+                              {product.features && product.features.map((rawFeat, idx) => {
+                                const feat = rawFeat
+                                  .replace(/Без скидки на готовую модель/gi, "Скидка 50% на готовую модель")
+                                  .replace(/❌ Скидка на готовую модель/gi, "Скидка 50% на готовую модель");
+                                const isExcluded = feat.startsWith('Без') || feat.startsWith('без');
+                                return (
+                                  <li key={idx} className="flex items-start gap-2.5 leading-snug">
+                                    {isExcluded ? (
+                                      <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                                    ) : (
+                                      <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                                    )}
+                                    <span className={isExcluded ? 'text-gray-400 font-medium line-through decoration-red-200/50 decoration-1' : 'text-gray-700 font-medium'}>
+                                      {feat}
+                                    </span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+
+                          <a
+                            href="#contacts"
+                            onClick={() => setContactAbout(product.priceLabel ? `${product.name} (${product.priceLabel})` : (product.price === 0 ? `${product.name} (15% от дохода)` : `${product.name} (${Number(product.price).toLocaleString('ru-RU')} ₽)`))}
+                            className="btn btn-primary w-full mt-8 py-3.5 text-sm font-extrabold text-center flex items-center justify-center gap-2 shadow-sm"
+                          >
+                            {product.type === 'agency' ? 'Подать заявку' : 'Выбрать и оформить'} <ArrowRight className="w-4 h-4" />
+                          </a>
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {/* ADDITIONAL SERVICES SECTION */}
@@ -1920,56 +1985,59 @@ export default function App() {
               )}
 
               {quizStep === quizQuestions.length && quizResult && (() => {
-                const matchedProduct = products.find(p => p.type === quizResult) || (() => {
-                  if (quizResult === '2d') return { name: 'АРХИВ 002 + 2D (скидка 50%)', price: 29900, description: 'Архив + 2D-аватар', features: ["Всё из базового архива", "Скидка 50% на создание 2D-аватара", "Помощь с полной сборкой"] };
-                  if (quizResult === '3d') return { name: 'АРХИВ 002 + 3D (скидка 50%)', price: 34900, description: 'Архив + 3D-аватар', features: ["Всё из базового архива", "Скидка 50% на создание 3D/VRM-модели", "Помощь с полной сборкой"] };
-                  if (quizResult === 'premium') return { name: 'АРХИВ 002 PREMIUM', price: 49900, description: 'Полное сопровождение', features: ["Всё из базового архива", "Личное сопровождение", "2D или 3D модель — в подарок"] };
-                  if (quizResult === '18+') return { name: 'АРХИВ 003', price: 59900, description: 'Специализированный доступ', features: ["Полный архив: 19 разделов", "Паспорт профессии", "Скидка 50% на создание 3D/VRM-модели"] };
-                  if (quizResult === 'restart') return { name: 'АРХИВ 004 — РЕСТАРТ', price: 39900, description: 'Переход на виртуальный формат', features: ["Полный архив: 24 страницы", "Финансовый план перехода", "Готовая VRM-модель"] };
-                  return { name: 'АРХИВ 002 — базовый', price: 14900, description: 'Базовый запуск с нуля', features: ["Полный архив: 8 этапов + доп. раздел", "Пошаговый запуск", "Поддержка 24/7"] };
+                const resType = (typeof quizResult === 'object' && quizResult?.type) ? quizResult.type : (quizResult || 'basic');
+                const styleTitle = (typeof quizResult === 'object' && quizResult?.styleTitle) ? quizResult.styleTitle : 'Вам идеально подходит рекомендованный тариф';
+                
+                const matchedProduct = products.find(p => p.type === resType) || (() => {
+                  if (resType === '2d' || resType === 'premium') return { name: 'АРХИВ 002 PREMIUM', subtitle: 'Полное сопровождение под ключ', price: 39900, description: 'Полное сопровождение под ключ (С нами)', features: ["Всё из базового архива", "Личное сопровождение", "2D или 3D модель — в подарок", "📋 Чек-листы — Вы ничего не забудете на запуске", "📚 Глоссарий — Не будете теряться в терминах", "🎧 Поддержка 24/7 — Не останетесь 1 на 1 с проблемами"] };
+                  if (resType === '3d') return { name: 'АРХИВ 002 PREMIUM', subtitle: 'Полное сопровождение под ключ', price: 39900, description: '3D-аватар в стиле киберпанк (под ключ)', features: ["Всё из базового архива", "3D-модель под Unity/VRM в подарок", "Личное сопровождение", "📋 Чек-листы — Вы ничего не забудете на запуске", "📚 Глоссарий — Не будете теряться в терминах", "🎧 Поддержка 24/7 — Не останетесь 1 на 1 с проблемами"] };
+                  if (resType === '18+') return { name: 'АРХИВ 003', subtitle: 'Всё включено (С нами)', price: 35900, description: 'Специализированный доступ (18+ & Анонимность)', features: ["Полный архив: 19 разделов", "Паспорт профессии", "Скидка 50% на создание 3D/VRM-модели", "📋 Чек-листы — Вы ничего не забудете на запуске", "📚 Глоссарий — Не будете теряться в терминах", "🎧 Поддержка 24/7"] };
+                  if (resType === 'restart') return { name: 'АРХИВ 004 — РЕСТАРТ', subtitle: 'Переход с веб-камеры (Рестарт)', price: 29900, description: 'Переход на виртуальный формат', features: ["Полный архив: 24 страницы", "Финансовый план перехода", "Готовая VRM-модель", "📋 Чек-листы — Вы ничего не забудете на запуске", "📚 Глоссарий — Не будете теряться в терминах", "🎧 Поддержка 24/7"] };
+                  return { name: 'АРХИВ 002', subtitle: 'Быстрый старт (Сами)', price: 14900, description: 'Быстрый запуск с нуля', features: ["Полный архив: 8 этапов + доп. раздел", "Пошаговый запуск", "📋 Чек-листы — Вы ничего не забудете на запуске", "📚 Глоссарий — Не будете теряться в терминах", "🎧 Поддержка 24/7"] };
                 })();
 
                 return (
                   <div className="space-y-6 animate-fade-in text-center py-6">
                     <div className="w-20 h-20 bg-lime-50 rounded-full flex items-center justify-center text-[#123d0c] font-bold text-2xl mx-auto pulse-badge">
-                      🎉
+                      🎯
                     </div>
                     
                     <div className="space-y-2">
-                      <span className="text-xs font-semibold text-gray-400 uppercase">Рекомендуемый образ</span>
-                      <h3 className="text-3xl font-extrabold text-gray-900">
-                        {matchedProduct.name}
+                      <span className="text-xs font-bold text-[#123d0c] bg-[#9FE870]/30 px-3 py-1 rounded-full uppercase tracking-wider">Ваш результат подбора</span>
+                      <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight">
+                        {styleTitle}
                       </h3>
-                      <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
-                        {matchedProduct.description || 'На основе ваших ответов мы подобрали идеальную конфигурацию для быстрого и эффективного старта.'}
+                      <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed pt-1">
+                        Для вашей задачи мы подобрали <b>ровно один оптимальный тариф</b>. Вам не нужно выбирать из сложных сеток:
                       </p>
                     </div>
 
-                    <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6 text-left space-y-4">
-                      <div className="flex items-center gap-4">
-                        <img 
-                          src={quizResult === '3d' ? '/avatar_3d.png' : (quizResult === '2d' || quizResult === 'premium') ? '/avatar_2d.png' : '/avatar_png.png'} 
-                          alt="Result Preview" 
-                          className="w-16 h-16 rounded-xl object-cover border border-gray-200"
-                        />
+                    <div className="bg-gray-50 border-2 border-[#9FE870] rounded-3xl p-6 sm:p-8 text-left space-y-5 shadow-lg">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-200 pb-5">
                         <div>
-                          <span className="text-xs font-bold text-[#123d0c] bg-[#9FE870]/20 px-2 py-0.5 rounded uppercase">Рекомендация</span>
-                          <h4 className="font-bold text-gray-900 mt-1">Пакет «Запуск под ключ»</h4>
-                          <p className="text-xs text-gray-500 font-bold mt-0.5">
-                            {Number(matchedProduct.price).toLocaleString('ru-RU')} руб.
-                          </p>
+                          <span className="text-xs font-bold text-[#123d0c] bg-[#9FE870]/20 px-2.5 py-1 rounded uppercase">Рекомендованный тариф</span>
+                          <h4 className="font-extrabold text-gray-900 text-2xl mt-1">{matchedProduct.name}</h4>
+                          {matchedProduct.subtitle && <p className="text-xs font-bold text-gray-500">{matchedProduct.subtitle}</p>}
+                        </div>
+                        <div className="text-left sm:text-right">
+                          <span className="text-xs text-gray-400 font-semibold block">Стоимость:</span>
+                          <span className="text-3xl font-black text-gray-950">{Number(matchedProduct.price).toLocaleString('ru-RU')} ₽</span>
                         </div>
                       </div>
-                      <ul className="text-xs text-gray-500 space-y-2 border-t border-gray-200 pt-4">
+
+                      <ul className="text-xs sm:text-sm text-gray-600 space-y-3">
                         {matchedProduct.features && Array.isArray(matchedProduct.features) && matchedProduct.features.map((feat, idx) => (
-                          <li key={idx} className="flex items-center gap-2">✓ {feat}</li>
+                          <li key={idx} className="flex items-start gap-2.5">
+                            <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                            <span className="font-medium text-gray-800">{feat}</span>
+                          </li>
                         ))}
                       </ul>
                     </div>
 
                     {/* Submit result section & redirect to dashboard */}
                     <div className="space-y-4 pt-4 border-t border-gray-100 text-left">
-                      <h4 className="font-bold text-gray-900 text-base">Сохранить результат и войти в кабинет:</h4>
+                      <h4 className="font-bold text-gray-900 text-base">Зафиксировать тариф и забронировать место:</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="form-group">
                           <label className="text-xs font-bold uppercase text-gray-500">Ваше Имя</label>
@@ -2001,15 +2069,15 @@ export default function App() {
                             alert('Пожалуйста, заполните форму для входа в кабинет');
                           }
                         }}
-                        className="btn btn-primary w-full py-4 text-base flex justify-center items-center gap-2"
+                        className="btn btn-primary w-full py-4 text-base flex justify-center items-center gap-2 font-extrabold shadow-md"
                       >
-                        Сохранить и войти в кабинет <ArrowRight className="w-4 h-4" />
+                        Оформить рекомендованный тариф <ArrowRight className="w-5 h-5" />
                       </button>
                       <button 
                         onClick={() => { setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }} 
                         className="btn btn-secondary w-full py-3 text-sm"
                       >
-                        Пройти квиз заново
+                        Пройти подбор заново
                       </button>
                     </div>
                   </div>
