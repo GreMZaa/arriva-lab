@@ -1600,43 +1600,6 @@ export default function App() {
               {/* TARIFFS SECTION */}
               <section id="tariffs" className="py-24 bg-white border-t border-gray-100">
                 <div className="max-w-7xl mx-auto px-6">
-                  {/* Banner Slogan */}
-                  <div className="mb-16 bg-gradient-to-r from-gray-900 via-gray-950 to-gray-900 rounded-3xl p-8 sm:p-10 text-white text-center shadow-xl border border-gray-800 space-y-4">
-                    <span className="inline-flex items-center gap-2 px-3 py-1 bg-[#9FE870]/20 text-[#9FE870] font-bold text-xs rounded-full uppercase tracking-wider border border-[#9FE870]/30">
-                      <Sparkles className="w-3.5 h-3.5" /> Главная экосистема VTubing в СНГ
-                    </span>
-                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold max-w-4xl mx-auto leading-relaxed">
-                      Первая в СНГ система запуска VTuber-моделей для международных платформ с сохранением полной анонимности.
-                    </h3>
-                    <p className="text-gray-400 text-sm sm:text-base font-medium">
-                      Всё можно получить внутри одной системы — от идеи персонажа до поддержки и выплат.
-                    </p>
-                    
-                    {/* Value Points */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-gray-800 text-left">
-                      <div className="flex items-start gap-3">
-                        <span className="text-xl">📋</span>
-                        <div>
-                          <h4 className="font-bold text-white text-sm">Чек-листы</h4>
-                          <p className="text-xs text-gray-400">Вы ничего не забудете на запуске</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <span className="text-xl">📚</span>
-                        <div>
-                          <h4 className="font-bold text-white text-sm">Глоссарий</h4>
-                          <p className="text-xs text-gray-400">Не будете теряться в профессиональных терминах</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <span className="text-xl">🎧</span>
-                        <div>
-                          <h4 className="font-bold text-white text-sm">Поддержка 24/7</h4>
-                          <p className="text-xs text-gray-400">Не останетесь один на один с техническими проблемами</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
                   <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
                     <h2 className="text-gray-900 font-extrabold tracking-tight">Тарифы и Программы</h2>
