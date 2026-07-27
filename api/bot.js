@@ -79,8 +79,19 @@ bot.command("start", async (ctx) => {
         web_app: { url: "https://arriva-lab.vercel.app/" }
       }
     });
+    await ctx.api.setMyShortDescription({
+      description: "🚀 Arriva Lab — Лаборатория VTuber-моделей и аватаров под ключ."
+    });
+    await ctx.api.setMyDescription({
+      description: "👋 Добро пожаловать в Arriva Lab!\n\nПервая в СНГ система запуска VTuber-моделей для любых платформ с сохранением полной анонимности.\n\n✨ Подбор образа и персонажа\n💎 Тарифы и виртуальные модели\n🌐 Интерактивный Mini App\n🎧 Поддержка 24/7\n\nНажмите «СТАРТ», чтобы начать!"
+    });
+    await ctx.api.setMyCommands([
+      { command: "start", description: "Запустить бота и открыть главное меню" },
+      { command: "menu", description: "Главное меню Arriva Lab" },
+      { command: "help", description: "Служба заботы и поддержка" }
+    ]);
   } catch (e) {
-    console.error("Error setting menu button:", e);
+    console.error("Error setting menu button/info:", e);
   }
 
   // Fetch existing user profile
@@ -130,6 +141,17 @@ bot.command("start", async (ctx) => {
     `<i>(Например: Иванов Иван Иванович)</i>`;
 
   await ctx.reply(regText, { parse_mode: "HTML" });
+});
+
+bot.command("menu", async (ctx) => {
+  await sendMainMenu(ctx, "Выберите интересующий вас раздел:");
+});
+
+bot.command("help", async (ctx) => {
+  const supportText = `💬 <b>Служба заботы Arriva Lab</b>\n\n` +
+    `Наш специалист поддержки на связи в Telegram:\n👉 <b>@success_vstream</b>`;
+  const keyboard = new InlineKeyboard().text("🔙 Назад", "main_menu");
+  await ctx.reply(supportText, { parse_mode: "HTML", reply_markup: keyboard });
 });
 
 // CALLBACKS
