@@ -12,10 +12,12 @@ const sendMainMenu = async (ctx, text = "Выберите интересующи
   const keyboard = new InlineKeyboard()
     .text("✨ Подобрать образ", "quiz_start").row()
     .text("💎 Тарифы и цены", "prices").row()
+    .text("🛠 Услуги и Доп. опции", "services_info").row()
+    .text("❓ FAQ / Вопросы", "faq_info").row()
     .text("👤 Личный кабинет", "my_id").row()
     .text("💬 Техподдержка", "support");
 
-  await ctx.reply(text, { reply_markup: keyboard });
+  await ctx.reply(text, { parse_mode: "HTML", reply_markup: keyboard });
 };
 
 // COMMANDS
