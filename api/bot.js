@@ -504,15 +504,35 @@ bot.callbackQuery(/^(approve|reject)_(.+)$/, async (ctx) => {
   }
 });
 
-// TEXT INPUTS (for Quiz steps)
+// TEXT INPUTS (for Quiz steps & Support tickets)
 bot.on("message:text", async (ctx) => {
   const userId = ctx.from.id;
+  const username = ctx.from.username || "";
+  const firstName = ctx.from.first_name || "";
 
-  const { data: stateData } = await supabase
-    .from("user_states")
-    .select("*")
-    .eq("telegram_id", userId)
-    .single();
+  // 1. Ensure user is registered in users table
+  try {
+    await supabase.from("users").upsert({
+      telegram_id: userId,
+      username: username,
+      first_name: firstName
+    }, { onConflict: "telegram_id" });
+  } catch (err) {
+    console.error("Error upserting user:", err);
+  }
+
+  // 2. Fetch user state safely using maybeSingle() (does not throw PGRST116 when 0 rows)
+  let stateData = null;
+  try {
+    const { data } = await supabase
+      .from("user_states")
+      .select("*")
+      .eq("telegram_id", userId)
+      .maybeSingle();
+    stateData = data;
+  } catch (err) {
+    console.error("Error fetching stateData:", err);
+  }
 
   if (stateData) {
     const { state, data } = stateData;
