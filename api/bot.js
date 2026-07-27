@@ -109,8 +109,8 @@ bot.command("start", async (ctx) => {
 
   // Check if fully registered
   if (userRow && userRow.full_name && userRow.phone && userRow.birth_date) {
-    const welcomeText = `👋 <b>Добро пожаловать в Oriva Lab, ${userRow.full_name}!</b>\n\n` +
-      `Я — Oriva, цифровой консультант лаборатории цифровых моделей.\n\n` +
+    const welcomeText = `👋 <b>Добро пожаловать в Arriva Lab, ${userRow.full_name}!</b>\n\n` +
+      `Я — Arriva, цифровой консультант лаборатории цифровых моделей.\n\n` +
       `Я помогу подобрать образ под вашу цель или ознакомиться с нашими тарифами.`;
     await sendMainMenu(ctx, welcomeText);
     return;
@@ -124,7 +124,7 @@ bot.command("start", async (ctx) => {
     updated_at: new Date()
   }, { onConflict: "telegram_id" });
 
-  const regText = `👋 <b>Добро пожаловать в Oriva Lab!</b>\n\n` +
+  const regText = `👋 <b>Добро пожаловать в Arriva Lab!</b>\n\n` +
     `Для работы с платформой пройдите обязательную регистрацию.\n\n` +
     `📝 <b>Шаг 1 из 3: Введите ваше ФИО</b>\n` +
     `<i>(Например: Иванов Иван Иванович)</i>`;
@@ -388,7 +388,7 @@ bot.callbackQuery(/^(buy|info)_(.+)$/, async (ctx) => {
   const key = ctx.match[2];
   
   if (key === 'agency') {
-    const text = `🤝 <b>Заявка в агентство Oriva Lab</b>\n\n` +
+    const text = `🤝 <b>Заявка в агентство Arriva Lab</b>\n\n` +
       `15% комиссии нашему агентству. Полный подбор персонажа под вас, фишки, помогаем с регистрацией на любых платформах.\n\n` +
       `Напишите нашему менеджеру в Telegram для подачи заявки:\n👉 <b>@success_vstream</b>`;
     const keyboard = new InlineKeyboard()
@@ -432,7 +432,7 @@ bot.callbackQuery(/^(buy|info)_(.+)$/, async (ctx) => {
 });
 
 bot.callbackQuery("prices", async (ctx) => {
-  const priceText = `💎 <b>Наши Тарифы и Экосистема Oriva Lab</b>\n\n` +
+  const priceText = `💎 <b>Наши Тарифы и Экосистема Arriva Lab</b>\n\n` +
     `<blockquote>Первая в СНГ система запуска VTuber-моделей для международных платформ с сохранением полной анонимности.</blockquote>\n\n` +
     `🟢 <b>АРХИВ 002 — Быстрый старт (Сами)</b> — <code>14 900 ₽</code>\n` +
     `<i>Пошаговый запуск VTuber-аватара с нуля.</i>\n\n` +
@@ -467,7 +467,7 @@ bot.callbackQuery("prices", async (ctx) => {
 });
 
 bot.callbackQuery("services_info", async (ctx) => {
-  const servicesText = `🛠 <b>Дополнительные Услуги & Опции Oriva Lab</b>\n\n` +
+  const servicesText = `🛠 <b>Дополнительные Услуги & Опции Arriva Lab</b>\n\n` +
     `🎙 <b>Аудио переводчик (Голосовой дубляж)</b>\n` +
     `• Перевод стрима в реальном времени на 10+ языков\n` +
     `• Сохранение эмоций и интонаций вашего голоса\n` +
@@ -522,7 +522,7 @@ bot.callbackQuery("my_id", async (ctx) => {
 });
 
 bot.callbackQuery("support", async (ctx) => {
-  const supportText = `💬 <b>Служба заботы Oriva Lab</b>\n\n` +
+  const supportText = `💬 <b>Служба заботы Arriva Lab</b>\n\n` +
     `Наш специалист поддержки на связи в Telegram:\n👉 <b>@success_vstream</b>`;
 
   const keyboard = new InlineKeyboard().text("🔙 Назад", "main_menu");
@@ -678,7 +678,7 @@ bot.callbackQuery(/^cal_day_(.+)$/, async (ctx) => {
     `📱 <b>Телефон:</b> ${user?.phone || savedPhone || 'Не указан'}\n` +
     `📅 <b>Дата рождения:</b> ${birthDate}\n` +
     `👤 <b>Telegram:</b> @${username || 'нет'}\n\n` +
-    `Теперь вам доступна лаборатория VTubing Oriva Lab!`;
+    `Теперь вам доступна лаборатория VTubing Arriva Lab!`;
 
   await sendMainMenu(ctx, successText);
 });
