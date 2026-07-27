@@ -1641,9 +1641,11 @@ export default function App() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {(() => {
                       const typeOrder = { 'basic': 1, 'restart': 2, 'premium': 3, '18+': 4, 'agency': 5 };
-                      const list = (products && products.length > 0) ? products : defaultProducts;
+                      const rawList = (products && products.length > 0) ? products : defaultProducts;
+                      const list = rawList.filter(p => ['basic', 'restart', 'premium', '18+', 'agency'].includes(p.type));
                       return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
                     })().map((product) => {
+
                       // Subtitles lookup helper
                       const subtitleMap = {
                         'basic': 'Быстрый старт (Сами)',
