@@ -342,7 +342,7 @@ bot.callbackQuery(/^(buy|info)_(.+)$/, async (ctx) => {
 
 bot.callbackQuery("prices", async (ctx) => {
   const priceText = `💎 <b>Наши тарифы и экосистема Oriva Lab</b>\n\n` +
-    `<i>«Первая в СНГ система запуска VTuber-моделей для международных платформ с сохранением полной анонимности.»</i>\n\n` +
+    `<blockquote>Первая в СНГ система запуска VTuber-моделей для международных платформ с сохранением полной анонимности.</blockquote>\n\n` +
     `🟢 <b>АРХИВ 002 — Быстрый старт (Сами)</b> — <code>14 900 ₽</code>\n` +
     `<i>Пошаговый запуск VTuber-аватара с нуля.</i>\n\n` +
     `🔵 <b>АРХИВ 002 + 2D</b> — <code>29 900 ₽</code>\n` +
@@ -359,9 +359,57 @@ bot.callbackQuery("prices", async (ctx) => {
     `<i>Полный подбор персонажа под вас, фишки и помощь с регистрацией.</i>\n\n` +
     `💡 <i>Каждая программа включает: 📋 Чек-листы, 📚 Глоссарий, 🎧 Поддержку 24/7.</i>`;
 
-  const keyboard = new InlineKeyboard().text("🔙 Назад", "main_menu");
+  const keyboard = new InlineKeyboard()
+    .text("✨ Подобрать образ", "quiz_start").row()
+    .text("🔙 Главное меню", "main_menu");
   await ctx.answerCallbackQuery();
   await ctx.editMessageText(priceText, { parse_mode: "HTML", reply_markup: keyboard });
+});
+
+bot.callbackQuery("services_info", async (ctx) => {
+  const servicesText = `🛠 <b>Дополнительные Услуги & Опции Oriva Lab</b>\n\n` +
+    `🎙 <b>Аудио переводчик (Голосовой дубляж)</b>\n` +
+    `• Перевод стрима в реальном времени на 10+ языков\n` +
+    `• Сохранение эмоций и интонаций вашего голоса\n` +
+    `• <i>Скидка 5% при покупке любой программы</i>\n\n` +
+    `🎨 <b>Разработка 2D Live2D Модели</b>\n` +
+    `• Индивидуальный дизайн аниме-персонажа\n` +
+    `• Настройка физики волос, одежды и мимики\n` +
+    `• <i>Скидка 50% при заказе архива</i>\n\n` +
+    `🧊 <b>Создание 3D VRM Модели</b>\n` +
+    `• Поддержка 3D-трекинга (VSeeFace, Unity, Unreal Engine)\n` +
+    `• Высокая детализация текстур и аксессуаров\n` +
+    `• <i>Скидка 50% при заказе архива</i>\n\n` +
+    `👑 <b>Продюсирование & Агентство</b>\n` +
+    `• Работа за 15% комиссии от вашего дохода\n` +
+    `• Помощь с регистрацией и выводом средств`;
+
+  const keyboard = new InlineKeyboard()
+    .text("💳 Выбрать тариф", "prices").row()
+    .text("🔙 Главное меню", "main_menu");
+
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText(servicesText, { parse_mode: "HTML", reply_markup: keyboard });
+});
+
+bot.callbackQuery("faq_info", async (ctx) => {
+  const faqText = `❓ <b>Часто задаваемые вопросы (FAQ)</b>\n\n` +
+    `<b>1. Нужна ли мощная видеокарта?</b>\n` +
+    `<blockquote>Для 2D-VTuber достаточно базовой или встроенной видеокарты. Для 3D рекомендована видеокарта от GTX 1660 и выше.</blockquote>\n\n` +
+    `<b>2. Можно ли оставаться 100% анонимным?</b>\n` +
+    `<blockquote>Да! Виртуальный аватар полностью скрывает ваше реальное лицо, а софт позволяет изменять голос.</blockquote>\n\n` +
+    `<b>3. Сколько времени занимает запуск?</b>\n` +
+    `<blockquote>От 3 до 14 дней в зависимости от программы и сложности персонажа.</blockquote>\n\n` +
+    `<b>4. Как выводить доход с международных платформ?</b>\n` +
+    `<blockquote>Мы предоставляем подробные инструкции и помогаем настроить платежные решения для СНГ.</blockquote>`;
+
+  const keyboard = new InlineKeyboard()
+    .text("✨ Подобрать образ", "quiz_start").row()
+    .text("💬 Задать вопрос поддержке", "support").row()
+    .text("🔙 Главное меню", "main_menu");
+
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText(faqText, { parse_mode: "HTML", reply_markup: keyboard });
 });
 
 bot.callbackQuery("my_id", async (ctx) => {
@@ -388,6 +436,8 @@ bot.callbackQuery("main_menu", async (ctx) => {
   const keyboard = new InlineKeyboard()
     .text("✨ Подобрать образ", "quiz_start").row()
     .text("💎 Тарифы и цены", "prices").row()
+    .text("🛠 Услуги и Доп. опции", "services_info").row()
+    .text("❓ FAQ / Вопросы", "faq_info").row()
     .text("👤 Личный кабинет", "my_id").row()
     .text("💬 Техподдержка", "support");
 
