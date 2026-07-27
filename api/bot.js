@@ -576,8 +576,48 @@ bot.on("message:text", async (ctx) => {
       await ctx.reply("🎉 Ваша заявка успешно принята! Наш менеджер скоро свяжется с вами.");
     }
   } else {
-    // Show standard menu if no state exists
-    await sendMainMenu(ctx, "Используйте меню ниже для работы с ботом:");
+    // Free text input -> create support ticket & notify admin
+    const textMsg = ctx.message?.text || "";
+    try {
+      const { data: ticket } = await supabase
+        .from("agency_applications")
+        .insert({
+          telegram_id: userId,
+          full_name: ctx.from.first_name || "Пользователь",
+          about: `Обращение в техподдержку: ${textMsg}`,
+          status: "pending"
+        })
+        .select()
+        .single();
+
+      const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID || "-5546587040";
+      if (adminChatId) {
+        const adminText = `🆘 <b>НОВАЯ ЗАЯВКА В ТЕХПОДДЕРЖКУ!</b>\n\n` +
+          `👤 <b>Пользователь:</b> ${ctx.from.first_name || "Пользователь"} (@${ctx.from.username || "нет_юзернейма"})\n` +
+          `🆔 <b>Telegram ID:</b> <code>${userId}</code>\n` +
+          `💬 <b>Сообщение:</b> <i>«${textMsg}»</i>`;
+
+        const keyboard = new InlineKeyboard()
+          .url("💬 Написать пользователю", `tg://user?id=${userId}`).row()
+          .text("✅ Принять", `approve_${ticket?.id || userId}`)
+          .text("❌ Отклонить", `reject_${ticket?.id || userId}`);
+
+        await bot.api.sendMessage(adminChatId, adminText, {
+          parse_mode: "HTML",
+          reply_markup: keyboard
+        }).catch(err => console.error("Admin notify error:", err));
+      }
+    } catch (err) {
+      console.error("Support ticket error:", err);
+    }
+
+    const replyMsg = `📩 <b>Ваше обращение принято в техподдержку!</b>\n\n` +
+      `Мы получили ваше сообщение:\n` +
+      `<blockquote>«${textMsg}»</blockquote>\n\n` +
+      `Наш специалист поддержки свяжется с вами в ближайшее время.\n\n` +
+      `👉 Прямой контакт поддержки: <b>@success_vstream</b>`;
+
+    await sendMainMenu(ctx, replyMsg);
   }
 });
 
