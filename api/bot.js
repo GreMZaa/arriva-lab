@@ -156,7 +156,7 @@ bot.command("menu", async (ctx) => {
 
 bot.command("help", async (ctx) => {
   const supportText = `💬 <b>Служба заботы Arriva Lab</b>\n\n` +
-    `Наш специалист поддержки на связи в Telegram:\n👉 <b>@success_vstream</b>`;
+    `Просто напишите ваш вопрос или обращение прямо в этот чат, и наша поддержка ответит вам в ближайшее время.`;
   const keyboard = new InlineKeyboard().text("🔙 Назад", "main_menu");
   await ctx.reply(supportText, { parse_mode: "HTML", reply_markup: keyboard });
 });
@@ -408,9 +408,9 @@ const PAYWALL_LINKS = {
   archive_002_2d: "https://paywall.ru/arrivalab/products/1491893657",
   archive_002_3d: "https://paywall.ru/arrivalab/products/1491893657",
   archive_002_premium: "https://paywall.ru/arrivalab/products/1152545118",
-  archive_003: "https://t.me/success_vstream",
+  archive_003: "https://paywall.ru/arrivalab/products/1491893657",
   archive_004: "https://paywall.ru/arrivalab/products/1194159971",
-  agency: "https://t.me/success_vstream"
+  agency: ""
 };
 
 bot.callbackQuery(/^(buy|info)_(.+)$/, async (ctx) => {
@@ -419,9 +419,8 @@ bot.callbackQuery(/^(buy|info)_(.+)$/, async (ctx) => {
   if (key === 'agency') {
     const text = `🤝 <b>Заявка в агентство Arriva Lab</b>\n\n` +
       `15% комиссии нашему агентству. Полный подбор персонажа под вас, фишки, помогаем с регистрацией на любых платформах.\n\n` +
-      `Напишите нашему менеджеру в Telegram для подачи заявки:\n👉 <b>@success_vstream</b>`;
+      `Напишите ваши пожелания или данные прямо сообщением в этот чат для подачи заявки.`;
     const keyboard = new InlineKeyboard()
-      .url("💬 Подать заявку", "https://t.me/success_vstream").row()
       .text("🏠 Главное меню", "main_menu");
     await ctx.answerCallbackQuery();
     await ctx.reply(text, { parse_mode: "HTML", reply_markup: keyboard });
@@ -450,9 +449,9 @@ bot.callbackQuery(/^(buy|info)_(.+)$/, async (ctx) => {
   if (isDirectPay) {
     keyboard.url("💳 Перейти к оплате на Paywall", payUrl).row();
   } else {
-    keyboard.url("💬 Связаться для оплаты", payUrl).row();
+    keyboard.text("💬 Задать вопрос поддержке", "support").row();
   }
-  keyboard.url("💬 Вопрос по оплате", "https://t.me/success_vstream").row();
+  keyboard.text("💬 Вопрос по оплате", "support").row();
   keyboard.text("✨ Подобрать образ заново", "quiz_start").row();
   keyboard.text("🏠 Главное меню", "main_menu");
 
@@ -723,22 +722,35 @@ bot.callbackQuery(/^cal_mo_(\d+)_(\d+)$/, async (ctx) => {
 });
 
 bot.callbackQuery(/^cal_day_(.+)$/, async (ctx) => {
-  const birthDate = ctx.match[1];
+  const rawBirthDate = ctx.match[1]; // "DD.MM.YYYY"
   const userId = ctx.from.id;
   const username = ctx.from.username || "";
 
-  await ctx.answerCallbackQuery({ text: `Дата рождения выбрана: ${birthDate}` });
+  // Convert DD.MM.YYYY to ISO YYYY-MM-DD for PostgreSQL date column
+  let isoBirthDate = null;
+  if (rawBirthDate && rawBirthDate.includes(".")) {
+    const parts = rawBirthDate.split(".");
+    if (parts.length === 3) {
+      isoBirthDate = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+    }
+  }
+
+  await ctx.answerCallbackQuery({ text: `Дата рождения выбрана: ${rawBirthDate}` });
 
   // Get state data to guarantee fio and phone aren't lost
   const { data: stData } = await supabase.from("user_states").select("*").eq("telegram_id", userId).maybeSingle();
   const savedFio = stData?.data?.fio;
   const savedPhone = stData?.data?.phone;
 
-  const updatePayload = { birth_date: birthDate };
+  const updatePayload = { birth_date: isoBirthDate || rawBirthDate };
   if (savedFio) updatePayload.full_name = savedFio;
   if (savedPhone) updatePayload.phone = savedPhone;
 
-  await supabase.from("users").update(updatePayload).eq("telegram_id", userId);
+  const { error: updateErr } = await supabase.from("users").update(updatePayload).eq("telegram_id", userId);
+  if (updateErr) {
+    console.error("Error saving birth_date to users table:", updateErr);
+  }
+
   await supabase.from("user_states").delete().eq("telegram_id", userId);
 
   // Fetch updated user profile
@@ -934,8 +946,7 @@ bot.on("message:text", async (ctx) => {
     const replyMsg = `📩 <b>Ваше обращение принято в техподдержку!</b>\n\n` +
       `Мы получили ваше сообщение:\n` +
       `<blockquote>«${textMsg}»</blockquote>\n\n` +
-      `Наш специалист поддержки свяжется с вами в ближайшее время.\n\n` +
-      `👉 Прямой контакт поддержки: <b>@success_vstream</b>`;
+      `Наш специалист поддержки свяжется с вами в ближайшее время.`;
 
     await sendMainMenu(ctx, replyMsg);
   }
