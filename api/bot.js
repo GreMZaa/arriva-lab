@@ -584,6 +584,10 @@ bot.on("message:contact", async (ctx) => {
   const userId = ctx.from.id;
   const phone = ctx.message.contact.phone_number;
 
+  // Preserve state data
+  const { data: stData } = await supabase.from("user_states").select("*").eq("telegram_id", userId).maybeSingle();
+  const prevData = stData ? stData.data : {};
+
   // Save phone number
   await supabase.from("users").update({ phone }).eq("telegram_id", userId);
 
@@ -591,7 +595,7 @@ bot.on("message:contact", async (ctx) => {
   await supabase.from("user_states").upsert({
     telegram_id: userId,
     state: "reg_birthdate",
-    data: {},
+    data: { ...prevData, phone },
     updated_at: new Date()
   }, { onConflict: "telegram_id" });
 
@@ -654,16 +658,24 @@ bot.callbackQuery(/^cal_day_(.+)$/, async (ctx) => {
 
   await ctx.answerCallbackQuery({ text: `Дата рождения выбрана: ${birthDate}` });
 
-  // Update user in Supabase
-  await supabase.from("users").update({ birth_date: birthDate }).eq("telegram_id", userId);
+  // Get state data to guarantee fio and phone aren't lost
+  const { data: stData } = await supabase.from("user_states").select("*").eq("telegram_id", userId).maybeSingle();
+  const savedFio = stData?.data?.fio;
+  const savedPhone = stData?.data?.phone;
+
+  const updatePayload = { birth_date: birthDate };
+  if (savedFio) updatePayload.full_name = savedFio;
+  if (savedPhone) updatePayload.phone = savedPhone;
+
+  await supabase.from("users").update(updatePayload).eq("telegram_id", userId);
   await supabase.from("user_states").delete().eq("telegram_id", userId);
 
   // Fetch updated user profile
   const { data: user } = await supabase.from("users").select("*").eq("telegram_id", userId).maybeSingle();
 
   const successText = `🎉 <b>Регистрация успешно завершена!</b>\n\n` +
-    `👤 <b>ФИО:</b> ${user?.full_name || 'Не указано'}\n` +
-    `📱 <b>Телефон:</b> ${user?.phone || 'Не указан'}\n` +
+    `👤 <b>ФИО:</b> ${user?.full_name || savedFio || 'Не указано'}\n` +
+    `📱 <b>Телефон:</b> ${user?.phone || savedPhone || 'Не указан'}\n` +
     `📅 <b>Дата рождения:</b> ${birthDate}\n` +
     `👤 <b>Telegram:</b> @${username || 'нет'}\n\n` +
     `Теперь вам доступна лаборатория VTubing Oriva Lab!`;
@@ -677,15 +689,23 @@ bot.on("message:text", async (ctx) => {
   const username = ctx.from.username || "";
   const firstName = ctx.from.first_name || "";
 
-  // 1. Ensure user is registered in users table
+  // 1. Ensure user is registered in users table without overwriting full_name/phone
   try {
-    await supabase.from("users").upsert({
-      telegram_id: userId,
-      username: username,
-      first_name: firstName
-    }, { onConflict: "telegram_id" });
+    const { data: existingUser } = await supabase.from("users").select("id").eq("telegram_id", userId).maybeSingle();
+    if (!existingUser) {
+      await supabase.from("users").insert({
+        telegram_id: userId,
+        username: username,
+        first_name: firstName
+      });
+    } else {
+      await supabase.from("users").update({
+        username: username,
+        first_name: firstName
+      }).eq("telegram_id", userId);
+    }
   } catch (err) {
-    console.error("Error upserting user:", err);
+    console.error("Error updating user:", err);
   }
 
   // 2. Fetch user state safely using maybeSingle() (does not throw PGRST116 when 0 rows)
@@ -709,7 +729,7 @@ bot.on("message:text", async (ctx) => {
       await supabase.from("users").update({ full_name: fio }).eq("telegram_id", userId);
       await supabase.from("user_states").update({
         state: "reg_phone",
-        data: { fio },
+        data: { ...(data || {}), fio },
         updated_at: new Date()
       }).eq("telegram_id", userId);
 
@@ -730,7 +750,7 @@ bot.on("message:text", async (ctx) => {
       await supabase.from("users").update({ phone: phoneText }).eq("telegram_id", userId);
       await supabase.from("user_states").update({
         state: "reg_birthdate",
-        data: { phone: phoneText },
+        data: { ...(data || {}), phone: phoneText },
         updated_at: new Date()
       }).eq("telegram_id", userId);
 
