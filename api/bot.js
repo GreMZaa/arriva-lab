@@ -89,12 +89,9 @@ bot.command("start", async (ctx) => {
         web_app: { url: "https://arriva-lab.vercel.app/" }
       }
     });
-    await ctx.api.setMyShortDescription({
-      description: "🚀 Arriva Lab — Лаборатория VTuber-моделей и аватаров под ключ."
-    });
-    await ctx.api.setMyDescription({
-      description: "👋 Добро пожаловать в Arriva Lab!\n\nПервая в СНГ система запуска VTuber-моделей для любых платформ с сохранением полной анонимности.\n\n✨ Подбор образа и персонажа\n💎 Тарифы и виртуальные модели\n🌐 Интерактивный Mini App\n🎧 Поддержка 24/7\n\nНажмите «СТАРТ», чтобы начать!"
-    });
+    await ctx.api.setMyShortDescription("🚀 Arriva Lab — Лаборатория VTuber-моделей и аватаров под ключ.");
+    await ctx.api.setMyDescription("👋 Добро пожаловать в Arriva Lab!\n\nПервая в СНГ система запуска VTuber-моделей для любых платформ с сохранением полной анонимности.\n\n✨ Подбор образа и персонажа\n💎 Тарифы и виртуальные модели\n🌐 Интерактивный Mini App\n🎧 Поддержка 24/7\n\nНажмите «СТАРТ», чтобы начать!");
+
     await ctx.api.setMyCommands([
       { command: "start", description: "Запустить бота и открыть главное меню" },
       { command: "menu", description: "Главное меню Arriva Lab" },
