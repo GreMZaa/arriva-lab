@@ -430,8 +430,16 @@ export default function App() {
     }
   }, [view, crmLoggedIn]);
 
-  // Load quiz questions and products on mount
+  // Load quiz questions and products on mount + Telegram WebApp Auto Expand
   useEffect(() => {
+    if (window.Telegram?.WebApp) {
+      try {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+      } catch (e) {
+        console.log("Telegram WebApp error:", e);
+      }
+    }
     const loadInitialData = async () => {
       try {
         const qs = await db.getAllQuestions();

@@ -64,8 +64,15 @@
 
 ---
 
-## ✅ Выполненные этапы IV (Telegram Mini App)
+## ✅ Выполненные этапы IV (Telegram Mini App & Fullscreen UX)
 
 - [x] **9. Внедрение Telegram Mini App (Web App)**
   - [x] Добавлена главная кнопка `🌐 Oriva Lab Mini App` / `🌐 Открыть сайт (Mini App)`, запускающая веб-версию https://arriva-lab.vercel.app/ прямо внутри интерфейса Telegram.
   - [x] Интеграция кнопки во все системные меню, стартовые диалоги и клавиатуры бота.
+
+- [x] **10. Полноэкранный режим открывания Mini App (`expand()`)**
+  - [x] Подключен Telegram WebApp SDK (`telegram-web-app.js`) в `index.html`.
+  - [x] Реализован вызов `window.Telegram.WebApp.expand()` в `App.jsx` для разворачивания сайта на весь экран смартфона при клике.
+
+- [x] **11. Кнопка «Открыть сайт» слева снизу чата (Menu Button)**
+  - [x] Реализован вызов `setChatMenuButton` в Telegram Bot API. Слева снизу возле поля ввода текста в чате постоянно отображается фиолетовая кнопка **«Открыть сайт»**.

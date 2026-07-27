@@ -28,6 +28,19 @@ bot.command("start", async (ctx) => {
   const firstName = ctx.from.first_name || "";
 
   try {
+    await ctx.api.setChatMenuButton({
+      chat_id: userId,
+      menu_button: {
+        type: "web_app",
+        text: "Открыть сайт",
+        web_app: { url: "https://arriva-lab.vercel.app/" }
+      }
+    });
+  } catch (e) {
+    console.error("Error setting menu button:", e);
+  }
+
+  try {
     await supabase.from("users").upsert({
       telegram_id: userId,
       username: username,
