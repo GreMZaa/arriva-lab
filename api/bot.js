@@ -10,6 +10,7 @@ const supabase = createClient(
 // Main menu helper
 const sendMainMenu = async (ctx, text = "Выберите интересующий вас раздел:") => {
   const keyboard = new InlineKeyboard()
+    .webApp("🌐 Открыть сайт (Mini App)", "https://arriva-lab.vercel.app/").row()
     .text("✨ Подобрать образ", "quiz_start").row()
     .text("💎 Тарифы и цены", "prices").row()
     .text("🛠 Услуги и Доп. опции", "services_info").row()
