@@ -777,7 +777,11 @@ export default function App() {
         const code = await db.generateLoginCode(tgId);
         
         try {
-          const res = await fetch(`/api/send-code?input=${encodeURIComponent(cabinetTelegramInput)}&code=${code}`);
+          const res = await fetch('/api/send-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ input: cabinetTelegramInput, code })
+          });
           const resData = await res.json();
           if (!res.ok) {
             throw new Error(resData.error || 'Ошибка отправки');
@@ -796,7 +800,11 @@ export default function App() {
         const code = await db.generateLoginCode(null, cabinetEmailInput);
         
         try {
-          const res = await fetch(`/api/send-email-code?email=${encodeURIComponent(cabinetEmailInput)}&code=${code}`);
+          const res = await fetch('/api/send-email-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: cabinetEmailInput, code })
+          });
           const resData = await res.json();
           if (!res.ok) {
             throw new Error(resData.error || 'Ошибка отправки');
@@ -808,6 +816,7 @@ export default function App() {
             setCabinetSuccessMessage(`Код отправлен! (Для теста введите: ${code})`);
             setCabinetCodeSent(true);
           } else {
+
             setCabinetError(mailErr.message || 'Не удалось отправить код по почте. Проверьте правильность адреса.');
           }
         }
@@ -960,7 +969,11 @@ export default function App() {
     setProfileEmailLoading(true);
     try {
       const code = await db.generateLoginCode(null, profileEmailInput);
-      const res = await fetch(`/api/send-email-code?email=${encodeURIComponent(profileEmailInput)}&code=${code}`);
+      const res = await fetch('/api/send-email-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: profileEmailInput, code })
+      });
       const resData = await res.json();
       if (!res.ok) {
         throw new Error(resData.error || 'Ошибка отправки');
@@ -1022,13 +1035,18 @@ export default function App() {
     try {
       const tgId = getTelegramIdHash(profileTelegramInput);
       const code = await db.generateLoginCode(tgId);
-      const res = await fetch(`/api/send-code?input=${encodeURIComponent(profileTelegramInput)}&code=${code}`);
+      const res = await fetch('/api/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: profileTelegramInput, code })
+      });
       const resData = await res.json();
       if (!res.ok) {
         throw new Error(resData.error || 'Ошибка отправки');
       }
       setProfileSuccess('Код отправлен в Telegram-бот!');
       setProfileTelegramCodeSent(true);
+
     } catch (err) {
       setProfileError('Ошибка отправки кода: ' + err.message);
     } finally {
@@ -1076,17 +1094,38 @@ export default function App() {
   };
 
   // CRM Auth & Actions
-  const handleCrmLogin = () => {
-    const adminUser = import.meta.env.VITE_ADMIN_USERNAME || 'ssharonovv';
-    const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'ArrivaAdmin26!#';
-
-    if (crmUsername === adminUser && crmPassword === adminPass) {
-      setCrmLoggedIn(true);
-      setCrmError('');
-    } else {
-      setCrmError('Неверный логин или пароль администратора');
+  const handleCrmLogin = async () => {
+    if (!crmUsername || !crmPassword) {
+      setCrmError('Введите логин и пароль администратора');
+      return;
+    }
+    setCrmError('');
+    try {
+      const res = await fetch('/api/crm-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: crmUsername, password: crmPassword })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setCrmLoggedIn(true);
+        setCrmError('');
+      } else {
+        setCrmError(data.error || 'Неверный логин или пароль администратора');
+      }
+    } catch (err) {
+      // Fallback for local preview if server endpoint unavailable
+      const adminUser = import.meta.env.VITE_ADMIN_USERNAME || 'ssharonovv';
+      const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'ArrivaAdmin26!#';
+      if (crmUsername === adminUser && crmPassword === adminPass) {
+        setCrmLoggedIn(true);
+        setCrmError('');
+      } else {
+        setCrmError('Неверный логин или пароль администратора');
+      }
     }
   };
+
 
   const handleUpdateStatus = async (id, status) => {
     try {

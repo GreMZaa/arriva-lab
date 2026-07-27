@@ -7,8 +7,18 @@ const supabase = createClient(
   process.env.VITE_SUPABASE_ANON_KEY
 );
 
+// HTML Escaping Helper for Telegram HTML mode
+const escapeHtml = (text) => {
+  if (!text) return "";
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+};
+
 // Main menu helper
 const sendMainMenu = async (ctx, text = "Выберите интересующий вас раздел:") => {
+
   const keyboard = new InlineKeyboard()
     .webApp("🌐 Открыть сайт (Mini App)", "https://arriva-lab.vercel.app/").row()
     .text("✨ Подобрать образ", "quiz_start").row()

@@ -1,36 +1,45 @@
+// Helper to escape Markdown special characters for safe Telegram rendering
+function escapeMarkdown(text) {
+  if (!text) return "";
+  return String(text).replace(/[_*`\[\]]/g, "\\$&");
+}
+
 export default async function handler(req, res) {
-  if (req.method !== "POST" && req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Разрешен только метод POST" });
   }
 
-  const params = req.method === "POST" ? req.body : req.query;
-  const { id, name, telegram, wishes } = params;
+  const { id, name, telegram, wishes } = req.body || {};
 
   if (!name || !telegram) {
-    return res.status(400).json({ error: "Missing required fields (name, telegram)" });
+    return res.status(400).json({ error: "Отсутствуют обязательные поля (name, telegram)" });
   }
 
   const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
   const token = process.env.TELEGRAM_BOT_TOKEN;
 
   if (!adminChatId || !token) {
-    return res.status(500).json({ error: "Server missing Telegram configuration environment variables" });
+    return res.status(500).json({ error: "На сервере не настроены переменные окружения Telegram" });
   }
+
+  const cleanName = escapeMarkdown(name.trim());
+  const cleanTelegram = escapeMarkdown(telegram.trim().startsWith("@") ? telegram.trim() : "@" + telegram.trim());
+  const cleanWishes = escapeMarkdown(wishes ? wishes.trim() : "Не указаны");
+  const cleanId = escapeMarkdown(id ? String(id) : "N/A");
 
   const telegramUrl = `https://api.telegram.org/bot${token}/sendMessage`;
 
   const messageText = `🔥 *Новая заявка с веб-сайта ARRIVA lab!*\n\n` +
-    `👤 *Имя:* ${name}\n` +
-    `💬 *Telegram:* ${telegram.startsWith("@") ? telegram : "@" + telegram}\n` +
-    `🎨 *Детали заявки:* ${wishes || "Не указаны"}\n` +
-    `🆔 *ID Заявки:* ${id || "N/A"}`;
+    `👤 *Имя:* ${cleanName}\n` +
+    `💬 *Telegram:* ${cleanTelegram}\n` +
+    `🎨 *Детали заявки:* ${cleanWishes}\n` +
+    `🆔 *ID Заявки:* ${cleanId}`;
 
-  // Build inline keyboard for moderator approval
   const inlineKeyboard = {
     inline_keyboard: [
       [
-        { text: "✅ Принять", callback_data: `approve_${id}` },
-        { text: "❌ Отклонить", callback_data: `reject_${id}` }
+        { text: "✅ Принять", callback_data: `approve_${id || 0}` },
+        { text: "❌ Отклонить", callback_data: `reject_${id || 0}` }
       ]
     ]
   };
@@ -49,12 +58,12 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     if (!data.ok) {
-      throw new Error(data.description || "Telegram API error");
+      throw new Error(data.description || "ошибка Telegram API");
     }
 
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error("Error notifying admin:", err);
-    return res.status(500).json({ error: "Failed to send notification to admin chat: " + err.message });
+    return res.status(500).json({ error: "Не удалось отправить уведомление в админ-чат: " + err.message });
   }
 }

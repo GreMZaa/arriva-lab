@@ -1,15 +1,25 @@
 import nodemailer from "nodemailer";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST" && req.method !== "GET") {
-    return res.status(405).json({ error: "Метод не поддерживается" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Разрешен только метод POST" });
   }
 
-  const params = req.method === "POST" ? req.body : req.query;
-  const { email, code } = params;
+  const { email, code } = req.body || {};
 
   if (!email || !code) {
     return res.status(400).json({ error: "Отсутствуют параметры почты или кода подтверждения" });
+  }
+
+  // Basic email syntax validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(String(email).trim())) {
+    return res.status(400).json({ error: "Некорректный формат Email адреса" });
+  }
+
+  // Validate 6-digit code format
+  if (!/^\d{6}$/.test(String(code).trim())) {
+    return res.status(400).json({ error: "Некорректный формат кода подтверждения (должно быть 6 цифр)" });
   }
 
   const smtpHost = process.env.SMTP_HOST;
@@ -29,8 +39,8 @@ export default async function handler(req, res) {
       debug: isLocal, 
       code: isLocal ? code : undefined,
       message: isLocal 
-        ? "SMTP is not configured in environment variables. Code displayed for local testing." 
-        : "SMTP is not configured in environment variables." 
+        ? "SMTP не настроен в окружении. Код выведен для локального тестирования." 
+        : "SMTP не настроен в окружении." 
     });
   }
 
@@ -47,7 +57,7 @@ export default async function handler(req, res) {
 
   const mailOptions = {
     from: smtpFrom,
-    to: email,
+    to: String(email).trim(),
     subject: "🔑 Код подтверждения входа — ARRIVA lab",
     text: `Здравствуйте!\n\nВаш временный код для входа в Личный Кабинет ARRIVA lab: ${code}\n\nЕсли вы не запрашивали этот код, просто проигнорируйте это письмо.`,
     html: `

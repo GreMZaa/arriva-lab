@@ -6,26 +6,30 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  if (req.method !== "POST" && req.method !== "GET") {
-    return res.status(405).json({ error: "Метод не поддерживается" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Разрешен только метод POST" });
   }
 
-  // Support both GET and POST for simplicity
-  const params = req.method === "POST" ? req.body : req.query;
-  const { input, code } = params;
+  const { input, code } = req.body || {};
 
   if (!input || !code) {
     return res.status(400).json({ error: "Отсутствуют параметры ввода или кода подтверждения" });
   }
 
+  // Validate 6-digit code format
+  if (!/^\d{6}$/.test(String(code).trim())) {
+    return res.status(400).json({ error: "Некорректный формат кода подтверждения (должно быть 6 цифр)" });
+  }
+
   let chatId = null;
+  const strInput = String(input).trim();
 
   // 1. Check if input is a numeric Telegram ID
-  if (/^\d+$/.test(input.trim())) {
-    chatId = parseInt(input.trim(), 10);
+  if (/^\d+$/.test(strInput)) {
+    chatId = parseInt(strInput, 10);
   } else {
     // 2. Clean username and search in DB
-    const cleanUsername = input.replace("@", "").trim();
+    const cleanUsername = strInput.replace("@", "").trim();
     
     try {
       const { data: user, error } = await supabase
