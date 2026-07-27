@@ -544,10 +544,52 @@ bot.callbackQuery("my_id", async (ctx) => {
 });
 
 bot.callbackQuery("support", async (ctx) => {
-  const supportText = `💬 <b>Служба заботы Arriva Lab</b>\n\n` +
-    `Наш специалист поддержки на связи в Telegram:\n👉 <b>@success_vstream</b>`;
+  const userId = ctx.from.id;
 
-  const keyboard = new InlineKeyboard().text("🔙 Назад", "main_menu");
+  // Query user tickets from Supabase
+  let tickets = [];
+  try {
+    const { data } = await supabase
+      .from("agency_applications")
+      .select("*")
+      .eq("telegram_id", userId)
+      .order("id", { ascending: false })
+      .limit(5);
+    tickets = data || [];
+  } catch (err) {
+    console.error("Error fetching support tickets:", err);
+  }
+
+  let supportText = `💬 <b>Служба заботы Arriva Lab — Ваши обращения</b>\n\n`;
+
+  if (!tickets || tickets.length === 0) {
+    supportText += `У вас пока нет активных обращений в техподдержку.\n\n` +
+      `💡 <b>Как написать в техподдержку:</b>\n` +
+      `Просто отправьте ваше сообщение или вопрос <b>прямо в этот чат</b> — бот автоматически зафиксирует новую заявку и уведомит специалистов!`;
+  } else {
+    supportText += `📋 <b>Ваши обращения и их статусы:</b>\n\n`;
+    tickets.forEach((t) => {
+      const statusBadge = t.status === "approved"
+        ? "✅ Принято / Отвечено"
+        : t.status === "rejected"
+        ? "❌ Закрыто"
+        : "🟡 В обработке";
+      const dateStr = t.created_at ? t.created_at.substring(0, 10) : "Недавно";
+      const textSnippet = t.about ? (t.about.length > 60 ? t.about.substring(0, 60) + "..." : t.about) : "Заявка в техподдержку";
+
+      supportText += `📌 <b>Заявка #${t.id}</b> (${dateStr})\n` +
+        `Статус: <b>${statusBadge}</b>\n` +
+        `<blockquote>${textSnippet}</blockquote>\n\n`;
+    });
+
+    supportText += `💡 <b>Для создания нового обращения:</b>\n` +
+      `Просто напишите новый вопрос или сообщение прямо в этот чат!`;
+  }
+
+  const keyboard = new InlineKeyboard()
+    .text("✨ Подобрать образ", "quiz_start").row()
+    .text("🏠 Главное меню", "main_menu");
+
   await ctx.answerCallbackQuery();
   await ctx.editMessageText(supportText, { parse_mode: "HTML", reply_markup: keyboard });
 });
