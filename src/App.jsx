@@ -27,7 +27,10 @@ import {
   Settings,
   Trash,
   Box,
-  Volume2
+  Volume2,
+  RefreshCw,
+  Users,
+  MessageSquare
 } from 'lucide-react';
 import { db, getTelegramIdHash, defaultProducts } from './supabase';
 import confetti from 'canvas-confetti';
@@ -397,9 +400,11 @@ export default function App() {
   const [crmError, setCrmError] = useState('');
   const [crmApplications, setCrmApplications] = useState([]);
   const [crmPurchases, setCrmPurchases] = useState([]);
+  const [crmUsers, setCrmUsers] = useState([]);
+  const [crmTickets, setCrmTickets] = useState([]);
   const [crmSearch, setCrmSearch] = useState('');
   const [crmFilterStatus, setCrmFilterStatus] = useState('all');
-  const [crmActiveTab, setCrmActiveTab] = useState('applications'); // 'applications', 'products', 'quiz'
+  const [crmActiveTab, setCrmActiveTab] = useState('applications'); // 'applications', 'products', 'quiz', 'users', 'tickets'
   const [products, setProducts] = useState([]);
   const [crmQuestions, setCrmQuestions] = useState([]);
   const [crmSelectedProduct, setCrmSelectedProduct] = useState(null);
@@ -423,10 +428,14 @@ export default function App() {
   const [crmSelectedLead, setCrmSelectedLead] = useState(null); // Right drawer details
   const [crmLoading, setCrmLoading] = useState(false);
 
-  // Initialize CRM data
+  // Initialize CRM data + auto-refresh every 30 seconds
   useEffect(() => {
     if (view === 'crm' && crmLoggedIn) {
       loadCrmData();
+      const interval = setInterval(() => {
+        loadCrmData();
+      }, 30000);
+      return () => clearInterval(interval);
     }
   }, [view, crmLoggedIn]);
 
@@ -507,14 +516,20 @@ export default function App() {
   const loadCrmData = async () => {
     setCrmLoading(true);
     try {
-      const apps = await db.getAllApplications();
-      const purchases = await db.getAllPurchases();
-      const products = await db.getAllProducts();
-      const questions = await db.getAllQuestions();
+      const [apps, purchases, products, questions, users, tickets] = await Promise.all([
+        db.getAllApplications(),
+        db.getAllPurchases(),
+        db.getAllProducts(),
+        db.getAllQuestions(),
+        db.getAllUsers().catch(() => []),
+        db.getAllSupportTickets().catch(() => []),
+      ]);
       setCrmApplications(apps);
       setCrmPurchases(purchases);
       setProducts(products);
       setCrmQuestions(questions);
+      setCrmUsers(users);
+      setCrmTickets(tickets);
     } catch (err) {
       console.error(err);
     } finally {
@@ -3001,6 +3016,36 @@ export default function App() {
                       >
                         <HelpCircle className="w-4 h-4" /> Квиз (Вопросы)
                       </button>
+                      <button
+                        onClick={() => { setCrmActiveTab('users'); setCrmSelectedLead(null); }}
+                        className={`w-full text-left text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-3 transition-all ${
+                          crmActiveTab === 'users' 
+                            ? 'bg-[#9FE870] text-black shadow-sm' 
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <Users className="w-4 h-4" /> Пользователи ({crmUsers.length})
+                      </button>
+                      <button
+                        onClick={() => { setCrmActiveTab('tickets'); setCrmSelectedLead(null); }}
+                        className={`w-full text-left text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-3 transition-all ${
+                          crmActiveTab === 'tickets' 
+                            ? 'bg-[#9FE870] text-black shadow-sm' 
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <MessageSquare className="w-4 h-4" /> Техподдержка ({crmTickets.length})
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase block tracking-wider">Управление</span>
+                      <button 
+                        onClick={() => loadCrmData()}
+                        className="w-full text-left text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${crmLoading ? 'animate-spin' : ''}`} /> Обновить данные
+                      </button>
                     </div>
 
                     <div className="space-y-2">
@@ -3206,6 +3251,164 @@ export default function App() {
                                   </td>
                                 </tr>
                               ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Users Tab */}
+                  {crmActiveTab === 'users' && (
+                    <div className="space-y-6 flex-grow flex flex-col">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h3 className="text-2xl font-black text-gray-950">Пользователи Бота</h3>
+                        <div className="flex items-center gap-3">
+                          <div className="relative flex-grow sm:flex-grow-0">
+                            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
+                            <input 
+                              type="text" 
+                              placeholder="Поиск..." 
+                              value={crmSearch}
+                              onChange={(e) => setCrmSearch(e.target.value)}
+                              className="form-control pl-10 py-2.5 text-xs rounded-xl"
+                            />
+                          </div>
+                          <span className="text-xs font-bold text-gray-400">Всего: {crmUsers.length}</span>
+                        </div>
+                      </div>
+
+                      {crmLoading ? (
+                        <div className="py-20 text-center text-gray-400 font-medium">Загрузка пользователей...</div>
+                      ) : crmUsers.length === 0 ? (
+                        <div className="py-20 text-center text-gray-400 font-medium">Нет зарегистрированных пользователей</div>
+                      ) : (
+                        <div className="border border-gray-100 rounded-2xl overflow-x-auto shadow-sm bg-white">
+                          <table className="crm-table">
+                            <thead className="bg-gray-50 border-b border-gray-100">
+                              <tr>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">ID</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">ФИО</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Username</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Телефон</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Дата рождения</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Дата регистрации</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {crmUsers
+                                .filter(u => {
+                                  if (!crmSearch) return true;
+                                  const q = crmSearch.toLowerCase();
+                                  return (u.full_name || u.first_name || '').toLowerCase().includes(q) || 
+                                         (u.username || '').toLowerCase().includes(q) ||
+                                         (u.phone || '').includes(q) ||
+                                         String(u.telegram_id).includes(q);
+                                })
+                                .map((u) => (
+                                  <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-5 py-4 text-xs font-mono text-gray-500">{u.telegram_id}</td>
+                                    <td className="px-5 py-4 font-bold text-gray-900 text-sm">{u.full_name || u.first_name || '—'}</td>
+                                    <td className="px-5 py-4 text-xs font-semibold text-blue-600">{u.username ? `@${u.username}` : '—'}</td>
+                                    <td className="px-5 py-4 text-xs text-gray-600">{u.phone || '—'}</td>
+                                    <td className="px-5 py-4 text-xs text-gray-500">{u.birth_date || '—'}</td>
+                                    <td className="px-5 py-4 text-xs text-gray-400">{u.registered_at ? new Date(u.registered_at).toLocaleDateString('ru-RU') : '—'}</td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Support Tickets Tab */}
+                  {crmActiveTab === 'tickets' && (
+                    <div className="space-y-6 flex-grow flex flex-col">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h3 className="text-2xl font-black text-gray-950">Обращения в техподдержку</h3>
+                        <div className="flex items-center gap-3">
+                          <select 
+                            value={crmFilterStatus}
+                            onChange={(e) => setCrmFilterStatus(e.target.value)}
+                            className="form-control py-2.5 text-xs rounded-xl w-36"
+                          >
+                            <option value="all">Все статусы</option>
+                            <option value="pending">Ожидающие</option>
+                            <option value="approved">Решённые</option>
+                            <option value="rejected">Отклонённые</option>
+                          </select>
+                          <span className="text-xs font-bold text-gray-400">Всего: {crmTickets.length}</span>
+                        </div>
+                      </div>
+
+                      {crmLoading ? (
+                        <div className="py-20 text-center text-gray-400 font-medium">Загрузка обращений...</div>
+                      ) : crmTickets.length === 0 ? (
+                        <div className="py-20 text-center text-gray-400 font-medium">Нет обращений в техподдержку</div>
+                      ) : (
+                        <div className="border border-gray-100 rounded-2xl overflow-x-auto shadow-sm bg-white">
+                          <table className="crm-table">
+                            <thead className="bg-gray-50 border-b border-gray-100">
+                              <tr>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">#</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Пользователь</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Сообщение</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Дата</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Статус</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Действия</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {crmTickets
+                                .filter(t => crmFilterStatus === 'all' || t.status === crmFilterStatus)
+                                .map((t) => (
+                                  <tr key={t.id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-5 py-4 text-xs font-mono text-gray-400">#{t.id}</td>
+                                    <td className="px-5 py-4 font-bold text-gray-900 text-sm">{t.full_name || '—'}</td>
+                                    <td className="px-5 py-4 text-xs text-gray-600 max-w-xs truncate">
+                                      {(t.about || '').replace('Обращение в техподдержку: ', '')}
+                                    </td>
+                                    <td className="px-5 py-4 text-xs text-gray-400">
+                                      {t.submitted_at ? new Date(t.submitted_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}
+                                    </td>
+                                    <td className="px-5 py-4">
+                                      <span className={`badge uppercase text-[9px] font-bold ${
+                                        t.status === 'approved' ? 'badge-approved' : 
+                                        t.status === 'rejected' ? 'badge-error' : 
+                                        'badge-pending'
+                                      }`}>
+                                        {t.status === 'approved' ? 'Решено' : t.status === 'rejected' ? 'Отклонено' : 'Открыто'}
+                                      </span>
+                                    </td>
+                                    <td className="px-5 py-4 flex gap-2">
+                                      {t.status === 'pending' && (
+                                        <>
+                                          <button 
+                                            onClick={() => handleApplicationStatusChange(t.id, 'approved')}
+                                            className="text-[10px] font-bold text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 px-2 py-1 rounded-lg transition-colors"
+                                          >
+                                            ✅ Решено
+                                          </button>
+                                          <button 
+                                            onClick={() => handleApplicationStatusChange(t.id, 'rejected')}
+                                            className="text-[10px] font-bold text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-lg transition-colors"
+                                          >
+                                            ❌ Отклонить
+                                          </button>
+                                        </>
+                                      )}
+                                      <a 
+                                        href={`tg://user?id=${t.telegram_id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg transition-colors"
+                                      >
+                                        💬 Написать
+                                      </a>
+                                    </td>
+                                  </tr>
+                                ))}
                             </tbody>
                           </table>
                         </div>

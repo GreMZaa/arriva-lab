@@ -464,6 +464,36 @@ export const db = {
     }
   },
 
+  // Get all registered users (CRM view)
+  async getAllUsers() {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('registered_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } else {
+      return JSON.parse(localStorage.getItem('arriva_users') || '[]');
+    }
+  },
+
+  // Get all support tickets (filtered from agency_applications where about starts with 'Обращение в техподдержку')
+  async getAllSupportTickets() {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('agency_applications')
+        .select('*')
+        .ilike('about', 'Обращение в техподдержку%')
+        .order('submitted_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } else {
+      const apps = JSON.parse(localStorage.getItem('arriva_applications') || '[]');
+      return apps.filter(a => a.about && a.about.startsWith('Обращение в техподдержку'));
+    }
+  },
+
   // Get all products
   async getAllProducts() {
     if (isSupabaseConfigured) {
