@@ -472,6 +472,31 @@ export const db = {
         .select('*')
         .order('id', { ascending: true });
       if (error) throw error;
+
+      // Auto-sync database rows with current prices
+      const priceSyncs = [
+        { type: 'basic', price: 14900, name: 'АРХИВ 002', description: 'Быстрый старт (Сами)' },
+        { type: 'restart', price: 29900, name: 'АРХИВ 004 — РЕСТАРТ', description: 'Переход с веб-камеры на VTuber формат' },
+        { type: 'premium', price: 39900, name: 'АРХИВ 002 PREMIUM', description: 'Полное сопровождение под ключ (С нами)' },
+        { type: '18+', price: 35900, name: 'АРХИВ 003', description: 'Всё включено (С нами)' }
+      ];
+
+      for (const sync of priceSyncs) {
+        const prod = data.find(p => p.type === sync.type);
+        if (prod) {
+          if (prod.price !== sync.price || prod.name !== sync.name) {
+            supabase.from('products').update({ 
+              price: sync.price, 
+              name: sync.name, 
+              description: sync.description 
+            }).eq('id', prod.id).then(() => {});
+            prod.price = sync.price;
+            prod.name = sync.name;
+            prod.description = sync.description;
+          }
+        }
+      }
+
       return data;
     } else {
       let products = JSON.parse(localStorage.getItem('arriva_products') || '[]');

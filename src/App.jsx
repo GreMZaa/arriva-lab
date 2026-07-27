@@ -441,6 +441,28 @@ export default function App() {
       }
       try {
         const ps = await db.getAllProducts();
+        const priceOverrideMap = {
+          'basic': 14900,
+          'restart': 29900,
+          'premium': 39900,
+          '18+': 35900,
+          'agency': 0
+        };
+        const nameOverrideMap = {
+          'basic': 'АРХИВ 002',
+          'restart': 'АРХИВ 004 — РЕСТАРТ',
+          'premium': 'АРХИВ 002 PREMIUM',
+          '18+': 'АРХИВ 003',
+          'agency': 'Работать с нами'
+        };
+        const subtitleOverrideMap = {
+          'basic': 'Быстрый старт (Сами)',
+          'restart': 'Переход с веб-камеры (Рестарт)',
+          'premium': 'Полное сопровождение под ключ',
+          '18+': 'Всё включено (С нами)',
+          'agency': 'Агентская программа'
+        };
+
         const sanitized = ps.map(p => {
           let feats = p.features ? p.features.map(f =>
             f.replace(/Без скидки на готовую модель/gi, "Скидка 50% на готовую модель")
@@ -449,7 +471,17 @@ export default function App() {
           if (!feats.some(f => f.includes('аудио переводчик') || f.includes('аудиопереводчик'))) {
             feats.push("Скидка 5% на аудио переводчик");
           }
-          return { ...p, features: feats };
+          const overridePrice = priceOverrideMap[p.type] !== undefined ? priceOverrideMap[p.type] : p.price;
+          const overrideName = nameOverrideMap[p.type] || p.name;
+          const overrideSubtitle = subtitleOverrideMap[p.type] || p.subtitle;
+
+          return { 
+            ...p, 
+            name: overrideName,
+            subtitle: overrideSubtitle,
+            price: overridePrice, 
+            features: feats 
+          };
         });
         const hasAgency = sanitized.some(p => p.type === 'agency' || p.name.includes('Работать с нами'));
         if (!hasAgency) {
