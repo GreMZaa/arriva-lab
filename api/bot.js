@@ -626,16 +626,20 @@ bot.callbackQuery(/^(approve|reject)_(.+)$/, async (ctx) => {
     const numericId = !isNaN(Number(rawId)) ? Number(rawId) : rawId;
 
     // 1. Update in purchases table
-    await supabase
+    const { data: purchaseData } = await supabase
       .from("purchases")
       .update({ status })
-      .eq("id", numericId);
+      .eq("id", numericId)
+      .select("telegram_id, program_name")
+      .maybeSingle();
 
     // 2. Update in agency_applications table
-    await supabase
+    const { data: appData } = await supabase
       .from("agency_applications")
       .update({ status })
-      .eq("id", numericId);
+      .eq("id", numericId)
+      .select("telegram_id, about")
+      .maybeSingle();
 
     await ctx.answerCallbackQuery({ text: `Статус заявки/оплаты #${rawId} обновлен: ${statusText}` });
 
@@ -643,11 +647,31 @@ bot.callbackQuery(/^(approve|reject)_(.+)$/, async (ctx) => {
     const updatedText = originalText + `\n\n📌 *Статус:* ${statusText} (Модератор: @${ctx.from.username || ctx.from.first_name})`;
 
     await ctx.editMessageText(updatedText, { parse_mode: "Markdown" });
+
+    // PUSH NOTIFICATION TO USER
+    const targetUserId = purchaseData?.telegram_id || appData?.telegram_id;
+    const itemName = purchaseData?.program_name || appData?.about || "Заявка";
+    if (targetUserId) {
+      if (action === "approve") {
+        const pushText = `🎉 <b>ВАШ ЗАКАЗ / ЗАЯВКА ОДОБРЕНА!</b>\n\n` +
+          `📦 <b>Наименование:</b> ${escapeHtml(itemName)}\n` +
+          `✅ <b>Статус:</b> Оплачено и подтверждено администратором.\n\n` +
+          `Вам открыт доступ в <b>Личном кабинете</b> ARRIVA lab. Откройте сайт или бот, чтобы получить материалы!`;
+        await bot.api.sendMessage(targetUserId, pushText, { parse_mode: "HTML" }).catch(e => console.error("Push error:", e));
+      } else {
+        const pushText = `⚠️ <b>ОБНОВЛЕНИЕ СТАТУСА ЗАЯВКИ</b>\n\n` +
+          `📦 <b>Заявка:</b> ${escapeHtml(itemName)}\n` +
+          `❌ <b>Статус:</b> Отклонена модератором.\n\n` +
+          `Если у вас есть вопросы по оплате, напишите нам в техподдержку!`;
+        await bot.api.sendMessage(targetUserId, pushText, { parse_mode: "HTML" }).catch(e => console.error("Push error:", e));
+      }
+    }
   } catch (err) {
     console.error("Error updating status in bot:", err);
     await ctx.answerCallbackQuery({ text: "Ошибка обновления статуса: " + err.message });
   }
 });
+
 
 // CONTACT HANDLER (Step 2: Native Phone sharing)
 bot.on("message:contact", async (ctx) => {
@@ -766,13 +790,37 @@ bot.callbackQuery(/^cal_day_(.+)$/, async (ctx) => {
   await sendMainMenu(ctx, successText);
 });
 
-// TEXT INPUTS (for Quiz steps & Support tickets)
+// TEXT INPUTS (for Quiz steps & Support tickets & Admin Reply Desk)
 bot.on("message:text", async (ctx) => {
   const userId = ctx.from.id;
   const username = ctx.from.username || "";
   const firstName = ctx.from.first_name || "";
 
+  // 0. TWO-WAY SUPPORT DESK: Check if admin is replying to a support ticket in admin group
+  const adminChatIdEnv = process.env.TELEGRAM_ADMIN_CHAT_ID || "-5546587040";
+  if (String(ctx.chat.id) === String(adminChatIdEnv) && ctx.message?.reply_to_message) {
+    const repliedText = ctx.message.reply_to_message.text || ctx.message.reply_to_message.caption || "";
+    // Extract target Telegram ID from code block or text label
+    const match = repliedText.match(/(?:Telegram ID|Chat ID):\s*`?(\d+)`?/i) || repliedText.match(/<code>(\d+)<\/code>/i);
+    
+    if (match && match[1]) {
+      const targetUserId = match[1];
+      const replyContent = ctx.message.text || "";
+      
+      try {
+        await bot.api.sendMessage(targetUserId, `💬 <b>Ответ службы заботы ARRIVA Lab:</b>\n\n${escapeHtml(replyContent)}\n\n<i>Если у вас остались вопросы, просто ответьте на это сообщение в боте!</i>`, {
+          parse_mode: "HTML"
+        });
+        await ctx.reply(`✅ <b>Ответ успешно доставлен пользователю!</b>\n🆔 Telegram ID: <code>${targetUserId}</code>`, { parse_mode: "HTML" });
+      } catch (err) {
+        await ctx.reply(`❌ <b>Ошибка отправки ответа пользователю:</b> ${escapeHtml(err.message)}`, { parse_mode: "HTML" });
+      }
+      return;
+    }
+  }
+
   // 1. Ensure user is registered in users table without overwriting full_name/phone
+
   try {
     const { data: existingUser } = await supabase.from("users").select("id").eq("telegram_id", userId).maybeSingle();
     if (!existingUser) {

@@ -193,6 +193,27 @@ export default function App() {
     }
   }, [cabinetUser]);
 
+  // Telegram Mini App Seamless Auth (initData)
+  useEffect(() => {
+    const tgInitData = window.Telegram?.WebApp?.initData;
+    if (tgInitData && !cabinetUser) {
+      fetch('/api/telegram-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: tgInitData })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user) {
+            setCabinetUser(data.user);
+            console.log('Seamlessly authenticated via Telegram Mini App initData:', data.user);
+          }
+        })
+        .catch(err => console.error('Telegram initData auto-login error:', err));
+    }
+  }, [cabinetUser]);
+
+
   const [cabinetLoginMethod, setCabinetLoginMethod] = useState('email'); // 'telegram', 'email'
   const [cabinetAuthMode, setCabinetAuthMode] = useState('login'); // 'login', 'register'
   const [cabinetRegisterName, setCabinetRegisterName] = useState('');
