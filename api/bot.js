@@ -783,12 +783,13 @@ bot.callbackQuery(/^cal_day_(.+)$/, async (ctx) => {
   const successText = `🎉 <b>Регистрация успешно завершена!</b>\n\n` +
     `👤 <b>ФИО:</b> ${user?.full_name || savedFio || 'Не указано'}\n` +
     `📱 <b>Телефон:</b> ${user?.phone || savedPhone || 'Не указан'}\n` +
-    `📅 <b>Дата рождения:</b> ${birthDate}\n` +
+    `📅 <b>Дата рождения:</b> ${rawBirthDate}\n` +
     `👤 <b>Telegram:</b> @${username || 'нет'}\n\n` +
     `Теперь вам доступна лаборатория VTubing Arriva Lab!`;
 
   await sendMainMenu(ctx, successText);
 });
+
 
 // TEXT INPUTS (for Quiz steps & Support tickets & Admin Reply Desk)
 bot.on("message:text", async (ctx) => {
