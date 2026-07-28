@@ -829,10 +829,9 @@ bot.on("message:text", async (ctx) => {
     }
   }
 
-  // 1. Ensure user is registered in users table without overwriting full_name/phone
-
+  // 1. Ensure user is registered in users table without overwriting first_name/full_name/phone
   try {
-    const { data: existingUser } = await supabase.from("users").select("id").eq("telegram_id", userId).maybeSingle();
+    const { data: existingUser } = await supabase.from("users").select("id, first_name").eq("telegram_id", userId).maybeSingle();
     if (!existingUser) {
       await supabase.from("users").insert({
         telegram_id: userId,
@@ -840,14 +839,16 @@ bot.on("message:text", async (ctx) => {
         first_name: firstName
       });
     } else {
-      await supabase.from("users").update({
-        username: username,
-        first_name: firstName
-      }).eq("telegram_id", userId);
+      const updates = { username };
+      if (!existingUser.first_name) {
+        updates.first_name = firstName;
+      }
+      await supabase.from("users").update(updates).eq("telegram_id", userId);
     }
   } catch (err) {
     console.error("Error updating user:", err);
   }
+
 
   // 2. Fetch user state safely using maybeSingle() (does not throw PGRST116 when 0 rows)
   let stateData = null;
@@ -867,7 +868,9 @@ bot.on("message:text", async (ctx) => {
 
     if (state === "reg_fio") {
       const fio = ctx.message.text.trim();
-      await supabase.from("users").update({ full_name: fio }).eq("telegram_id", userId);
+      await supabase.from("users").update({ first_name: fio }).eq("telegram_id", userId);
+
+
       await supabase.from("user_states").update({
         state: "reg_phone",
         data: { ...(data || {}), fio },

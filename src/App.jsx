@@ -344,6 +344,9 @@ export default function App() {
   useEffect(() => {
     const loadCabinetData = async () => {
       if (cabinetUser) {
+        setProfileNameInput(cabinetUser.first_name || cabinetUser.full_name || '');
+        setProfilePhoneInput(cabinetUser.phone || '');
+        setProfileBirthDateInput(cabinetUser.birth_date ? cabinetUser.birth_date.substring(0, 10) : '');
         try {
           const allPurchases = await db.getAllPurchases();
           const userPurchases = allPurchases.filter(p => p.telegram_id === cabinetUser.telegram_id);
@@ -370,7 +373,47 @@ export default function App() {
     loadCabinetData();
   }, [cabinetUser]);
 
+  const [profileNameInput, setProfileNameInput] = useState('');
+  const [profilePhoneInput, setProfilePhoneInput] = useState('');
+  const [profileBirthDateInput, setProfileBirthDateInput] = useState('');
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileEmailInput, setProfileEmailInput] = useState('');
+  const [profileEmailCodeInput, setProfileEmailCodeInput] = useState('');
+  const [profileEmailCodeSent, setProfileEmailCodeSent] = useState(false);
+  const [profileEmailLoading, setProfileEmailLoading] = useState(false);
+  const [profileTelegramInput, setProfileTelegramInput] = useState('');
+  const [profileTelegramCodeInput, setProfileTelegramCodeInput] = useState('');
+  const [profileTelegramCodeSent, setProfileTelegramCodeSent] = useState(false);
+  const [profileTelegramLoading, setProfileTelegramLoading] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [profileSuccess, setProfileSuccess] = useState('');
+
+  const handleSavePersonalInfo = async (e) => {
+    if (e) e.preventDefault();
+    if (!cabinetUser) return;
+    setProfileSaving(true);
+    setProfileError('');
+    setProfileSuccess('');
+    try {
+      const updates = {
+        first_name: profileNameInput.trim(),
+        phone: profilePhoneInput.trim(),
+        birth_date: profileBirthDateInput || null
+      };
+
+      const updated = await db.updateUserDetails(cabinetUser.id, updates);
+      setCabinetUser(updated);
+      setProfileSuccess('Личные данные (Имя, Телефон, Дата рождения) успешно сохранены!');
+    } catch (err) {
+      console.error('Failed to save profile personal info:', err);
+      setProfileError('Ошибка сохранения: ' + err.message);
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
   const [paymentVerifying, setPaymentVerifying] = useState(false);
+
 
   const handlePaymentConfirmed = async () => {
     if (!activePurchase || !cabinetUser) return;
@@ -459,17 +502,7 @@ export default function App() {
       console.error("Error changing tariff:", err);
     }
   };
-  // Profile settings / Link accounts state
-  const [profileEmailInput, setProfileEmailInput] = useState('');
-  const [profileEmailCodeInput, setProfileEmailCodeInput] = useState('');
-  const [profileEmailCodeSent, setProfileEmailCodeSent] = useState(false);
-  const [profileEmailLoading, setProfileEmailLoading] = useState(false);
-  const [profileTelegramInput, setProfileTelegramInput] = useState('');
-  const [profileTelegramCodeInput, setProfileTelegramCodeInput] = useState('');
-  const [profileTelegramCodeSent, setProfileTelegramCodeSent] = useState(false);
-  const [profileTelegramLoading, setProfileTelegramLoading] = useState(false);
-  const [profileSuccess, setProfileSuccess] = useState('');
-  const [profileError, setProfileError] = useState('');
+
 
   // CRM state
   const [crmLoggedIn, setCrmLoggedIn] = useState(() => {
@@ -2570,8 +2603,60 @@ export default function App() {
                           {profileSuccess}
                         </div>
                       )}
+                      {/* Personal Info Edit Form */}
+
+                      <form onSubmit={handleSavePersonalInfo} className="bg-gray-50 border border-gray-150 rounded-3xl p-6 space-y-4 text-left">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-200/60 pb-3">
+                          <div>
+                            <h4 className="font-bold text-sm text-gray-900">Личные данные профиля</h4>
+                            <p className="text-[11px] text-gray-500">Укажите ваше имя, телефон и дату рождения</p>
+                          </div>
+                          <button
+                            type="submit"
+                            disabled={profileSaving}
+                            className="btn btn-primary py-2.5 px-5 text-xs font-bold shrink-0"
+                          >
+                            {profileSaving ? 'Сохранение...' : 'Сохранить данные'}
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="form-group">
+                            <label className="text-[10px] uppercase font-bold text-gray-400">Имя / ФИО</label>
+                            <input 
+                              type="text"
+                              placeholder="Сергей"
+                              value={profileNameInput}
+                              onChange={(e) => setProfileNameInput(e.target.value)}
+                              className="form-control text-xs mt-1"
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label className="text-[10px] uppercase font-bold text-gray-400">Номер телефона</label>
+                            <input 
+                              type="text"
+                              placeholder="+7 (999) 000-00-00"
+                              value={profilePhoneInput}
+                              onChange={(e) => setProfilePhoneInput(e.target.value)}
+                              className="form-control text-xs mt-1"
+                            />
+                          </div>
+
+                          <div className="form-group">
+                            <label className="text-[10px] uppercase font-bold text-gray-400">Дата рождения</label>
+                            <input 
+                              type="date"
+                              value={profileBirthDateInput}
+                              onChange={(e) => setProfileBirthDateInput(e.target.value)}
+                              className="form-control text-xs mt-1"
+                            />
+                          </div>
+                        </div>
+                      </form>
 
                       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+
                         {/* Current Status */}
                         <div className="md:col-span-5 space-y-4">
                           <h4 className="font-bold text-sm text-gray-900 border-b border-gray-100 pb-2">Привязанные профили</h4>
