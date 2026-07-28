@@ -22,12 +22,9 @@ ON CONFLICT (code) DO NOTHING;
 -- Enable RLS
 ALTER TABLE public.promo_codes ENABLE ROW LEVEL SECURITY;
 
--- Allow public read access to active promo codes
-DO $$ 
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'promo_codes' AND policyname = 'Public read active promo codes'
-  ) THEN
-    CREATE POLICY "Public read active promo codes" ON public.promo_codes FOR SELECT USING (is_active = true);
-  END IF;
-END $$;
+-- Reset old restrictive policy if present
+DROP POLICY IF EXISTS "Public read active promo codes" ON public.promo_codes;
+DROP POLICY IF EXISTS "Public full access promo_codes" ON public.promo_codes;
+
+-- Full public policy allowing SELECT, INSERT, UPDATE, DELETE for promo_codes table
+CREATE POLICY "Public full access promo_codes" ON public.promo_codes FOR ALL USING (true) WITH CHECK (true);

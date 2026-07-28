@@ -661,22 +661,27 @@ export default function App() {
 
   const handleTogglePromoActive = async (promo) => {
     try {
+      setCrmPromoCodes(prev => prev.map(p => p.id === promo.id ? { ...p, is_active: !p.is_active } : p));
       await db.updatePromoCode(promo.id, { is_active: !promo.is_active });
-      loadCrmData();
     } catch (err) {
       console.error('Error toggling promo status:', err);
+      alert('Не удалось изменить статус промокода: ' + err.message);
+      loadCrmData();
     }
   };
 
   const handleDeletePromo = async (promoId) => {
     if (!window.confirm('Вы действительно хотите удалить этот промокод?')) return;
     try {
+      setCrmPromoCodes(prev => prev.filter(p => p.id !== promoId));
       await db.deletePromoCode(promoId);
-      loadCrmData();
     } catch (err) {
       console.error('Error deleting promo code:', err);
+      alert('Не удалось удалить промокод: ' + err.message);
+      loadCrmData();
     }
   };
+
 
 
   // Submission handler
