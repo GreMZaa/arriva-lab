@@ -28,26 +28,29 @@ export default async function handler(req, res) {
   if (/^\d+$/.test(strInput)) {
     chatId = parseInt(strInput, 10);
   } else {
-    // 2. Clean username and search in DB
-    const cleanUsername = strInput.replace("@", "").trim();
+    // 2. Clean username and search in DB (matching both with and without leading '@')
+    const cleanUsername = strInput.replace(/^@+/, "").trim();
     
     try {
-      const { data: user, error } = await supabase
+      const { data: usersList, error } = await supabase
         .from("users")
         .select("telegram_id")
-        .ilike("username", cleanUsername)
-        .maybeSingle();
+        .or(`username.ilike.${cleanUsername},username.ilike.@${cleanUsername}`)
+        .order("id", { ascending: false })
+        .limit(1);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase username lookup error:", error);
+      }
 
-      if (user && user.telegram_id) {
-        chatId = user.telegram_id;
+      if (usersList && usersList.length > 0 && usersList[0].telegram_id) {
+        chatId = usersList[0].telegram_id;
       }
     } catch (err) {
       console.error("Error looking up username:", err);
-      return res.status(500).json({ error: "Ошибка базы данных при поиске пользователя" });
     }
   }
+
 
   if (!chatId) {
     return res.status(404).json({ 
