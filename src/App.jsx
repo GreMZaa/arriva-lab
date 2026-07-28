@@ -2681,6 +2681,72 @@ export default function App() {
                             </div>
                           )}
 
+                          {/* Referral Program Section */}
+                          <div className="p-8 border border-gray-100 rounded-3xl bg-gray-50/80 space-y-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-lime-100 flex items-center justify-center text-[#123d0c] font-bold">
+                                  <Tag className="w-5 h-5 text-green-700" />
+                                </div>
+                                <div className="text-left">
+                                  <h4 className="font-extrabold text-sm text-gray-900">Ваша Реферальная Программа</h4>
+                                  <span className="text-[11px] text-gray-500">Делитесь ссылкой и получайте бонусы</span>
+                                </div>
+                              </div>
+                              <span className="text-xs font-black text-[#123d0c] bg-lime-100/80 px-2.5 py-1 rounded-full border border-lime-200">
+                                Скидка 10% для ваших друзей
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-gray-500 text-left leading-relaxed">
+                              Каждый человек, перешедший по вашей персональной ссылке или введший ваш промокод, автоматически получает скидку <b>10%</b> на любой тариф лаборатории.
+                            </p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                              {/* Website Referral Link */}
+                              <div className="bg-white p-3.5 rounded-2xl border border-gray-200 text-left space-y-1.5 shadow-sm">
+                                <span className="text-[10px] uppercase font-bold text-gray-400">Ссылка на сайт</span>
+                                <div className="flex items-center justify-between gap-2">
+                                  <input 
+                                    readOnly
+                                    value={`https://arriva-lab.vercel.app/?ref=REF${cabinetUser.telegram_id || cabinetUser.id || '100'}`}
+                                    className="text-xs font-mono bg-transparent border-none text-gray-800 w-full focus:outline-none overflow-ellipsis"
+                                  />
+                                  <button 
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(`https://arriva-lab.vercel.app/?ref=REF${cabinetUser.telegram_id || cabinetUser.id || '100'}`);
+                                      alert('Реферальная ссылка на сайт скопирована в буфер обмена!');
+                                    }}
+                                    className="btn btn-secondary text-[10px] py-1.5 px-3 whitespace-nowrap"
+                                  >
+                                    Скопировать
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Telegram Bot Referral Link */}
+                              <div className="bg-white p-3.5 rounded-2xl border border-gray-200 text-left space-y-1.5 shadow-sm">
+                                <span className="text-[10px] uppercase font-bold text-gray-400">Ссылка на Telegram Бота</span>
+                                <div className="flex items-center justify-between gap-2">
+                                  <input 
+                                    readOnly
+                                    value={`https://t.me/ArrivalLabBOT?start=ref_REF${cabinetUser.telegram_id || cabinetUser.id || '100'}`}
+                                    className="text-xs font-mono bg-transparent border-none text-gray-800 w-full focus:outline-none overflow-ellipsis"
+                                  />
+                                  <button 
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(`https://t.me/ArrivalLabBOT?start=ref_REF${cabinetUser.telegram_id || cabinetUser.id || '100'}`);
+                                      alert('Реферальная ссылка на бота скопирована в буфер обмена!');
+                                    }}
+                                    className="btn btn-secondary text-[10px] py-1.5 px-3 whitespace-nowrap"
+                                  >
+                                    Скопировать
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
                           {cabinetUser.email && cabinetUser.telegram_id && (
                             <div className="p-8 border border-gray-100 rounded-3xl bg-lime-50/20 text-center space-y-3">
                               <div className="w-12 h-12 bg-lime-100 rounded-full flex items-center justify-center text-lime-800 text-lg mx-auto">
@@ -2692,6 +2758,7 @@ export default function App() {
                               </p>
                             </div>
                           )}
+
 
                         </div>
                       </div>
