@@ -2,7 +2,14 @@ import { Bot, webhookCallback, InlineKeyboard } from "grammy";
 import { createClient } from "@supabase/supabase-js";
 
 const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN);
+
+// Global Error Handler for Grammy
+bot.catch((err) => {
+  console.error("Grammy Error Caught:", err);
+});
+
 const supabase = createClient(
+
   process.env.VITE_SUPABASE_URL,
   process.env.VITE_SUPABASE_ANON_KEY
 );
@@ -710,85 +717,102 @@ bot.on("message:contact", async (ctx) => {
 
 // CALENDAR CALLBACKS
 bot.callbackQuery(/^cal_dec_(.+)$/, async (ctx) => {
-  const arg = ctx.match[1];
-  await ctx.answerCallbackQuery();
-  if (arg === "back") {
-    await ctx.editMessageText("📅 <b>Шаг 3 из 3: Дата рождения</b>\n\nВыберите ваш <b>десятилетие рождения</b>:", {
-      parse_mode: "HTML",
-      reply_markup: getDecadesKeyboard()
-    });
-  } else {
-    const startYr = parseInt(arg, 10);
-    await ctx.editMessageText(`📅 <b>Шаг 3 из 3: Дата рождения</b>\n\nВыберите ваш <b>год рождения</b> (${startYr}-${startYr + 9}):`, {
-      parse_mode: "HTML",
-      reply_markup: getYearsKeyboard(startYr)
-    });
+  try {
+    const arg = ctx.match[1];
+    await ctx.answerCallbackQuery().catch(() => {});
+    if (arg === "back") {
+      await ctx.editMessageText("📅 <b>Шаг 3 из 3: Дата рождения</b>\n\nВыберите ваш <b>десятилетие рождения</b>:", {
+        parse_mode: "HTML",
+        reply_markup: getDecadesKeyboard()
+      });
+    } else {
+      const startYr = parseInt(arg, 10);
+      await ctx.editMessageText(`📅 <b>Шаг 3 из 3: Дата рождения</b>\n\nВыберите ваш <b>год рождения</b> (${startYr}-${startYr + 9}):`, {
+        parse_mode: "HTML",
+        reply_markup: getYearsKeyboard(startYr)
+      });
+    }
+  } catch (err) {
+    console.error("Error in cal_dec_ callback:", err);
   }
 });
 
 bot.callbackQuery(/^cal_yr_(\d+)$/, async (ctx) => {
-  const year = parseInt(ctx.match[1], 10);
-  await ctx.answerCallbackQuery();
-  await ctx.editMessageText(`📅 <b>Шаг 3 из 3: Дата рождения</b>\n\nГод: <b>${year}</b>\nВыберите ваш <b>месяц рождения</b>:`, {
-    parse_mode: "HTML",
-    reply_markup: getMonthsKeyboard(year)
-  });
+  try {
+    const year = parseInt(ctx.match[1], 10);
+    await ctx.answerCallbackQuery().catch(() => {});
+    await ctx.editMessageText(`📅 <b>Шаг 3 из 3: Дата рождения</b>\n\nГод: <b>${year}</b>\nВыберите ваш <b>месяц рождения</b>:`, {
+      parse_mode: "HTML",
+      reply_markup: getMonthsKeyboard(year)
+    });
+  } catch (err) {
+    console.error("Error in cal_yr_ callback:", err);
+  }
 });
 
 bot.callbackQuery(/^cal_mo_(\d+)_(\d+)$/, async (ctx) => {
-  const year = parseInt(ctx.match[1], 10);
-  const month = parseInt(ctx.match[2], 10);
-  await ctx.answerCallbackQuery();
-  await ctx.editMessageText(`📅 <b>Шаг 3 из 3: Дата рождения</b>\n\nГод: <b>${year}</b>, Месяц: <b>${month}</b>\nВыберите ваш <b>день рождения</b>:`, {
-    parse_mode: "HTML",
-    reply_markup: getDaysKeyboard(year, month)
-  });
+  try {
+    const year = parseInt(ctx.match[1], 10);
+    const month = parseInt(ctx.match[2], 10);
+    await ctx.answerCallbackQuery().catch(() => {});
+    await ctx.editMessageText(`📅 <b>Шаг 3 из 3: Дата рождения</b>\n\nГод: <b>${year}</b>, Месяц: <b>${month}</b>\nВыберите ваш <b>день рождения</b>:`, {
+      parse_mode: "HTML",
+      reply_markup: getDaysKeyboard(year, month)
+    });
+  } catch (err) {
+    console.error("Error in cal_mo_ callback:", err);
+  }
 });
 
 bot.callbackQuery(/^cal_day_(.+)$/, async (ctx) => {
-  const rawBirthDate = ctx.match[1]; // "DD.MM.YYYY"
-  const userId = ctx.from.id;
-  const username = ctx.from.username || "";
+  try {
+    const rawBirthDate = ctx.match[1]; // "DD.MM.YYYY"
+    const userId = ctx.from.id;
+    const username = ctx.from.username || "";
 
-  // Convert DD.MM.YYYY to ISO YYYY-MM-DD for PostgreSQL date column
-  let isoBirthDate = null;
-  if (rawBirthDate && rawBirthDate.includes(".")) {
-    const parts = rawBirthDate.split(".");
-    if (parts.length === 3) {
-      isoBirthDate = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+    // Convert DD.MM.YYYY to ISO YYYY-MM-DD for PostgreSQL date column
+    let isoBirthDate = null;
+    if (rawBirthDate && rawBirthDate.includes(".")) {
+      const parts = rawBirthDate.split(".");
+      if (parts.length === 3) {
+        isoBirthDate = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+      }
     }
+
+    await ctx.answerCallbackQuery({ text: `Дата рождения выбрана: ${rawBirthDate}` }).catch(() => {});
+
+    // Get state data to guarantee fio and phone aren't lost
+    const { data: stData } = await supabase.from("user_states").select("*").eq("telegram_id", userId).maybeSingle();
+    const savedFio = stData?.data?.fio;
+    const savedPhone = stData?.data?.phone;
+
+    const updatePayload = { birth_date: isoBirthDate || rawBirthDate };
+    if (savedFio) updatePayload.full_name = savedFio;
+    if (savedPhone) updatePayload.phone = savedPhone;
+
+    const { error: updateErr } = await supabase.from("users").update(updatePayload).eq("telegram_id", userId);
+    if (updateErr) {
+      console.error("Error saving birth_date to users table:", updateErr);
+    }
+
+    await supabase.from("user_states").delete().eq("telegram_id", userId);
+
+    // Fetch updated user profile
+    const { data: user } = await supabase.from("users").select("*").eq("telegram_id", userId).maybeSingle();
+
+    const successText = `🎉 <b>Регистрация успешно завершена!</b>\n\n` +
+      `👤 <b>ФИО:</b> ${user?.full_name || savedFio || 'Не указано'}\n` +
+      `📱 <b>Телефон:</b> ${user?.phone || savedPhone || 'Не указан'}\n` +
+      `📅 <b>Дата рождения:</b> ${rawBirthDate}\n` +
+      `👤 <b>Telegram:</b> @${username || 'нет'}\n\n` +
+      `Теперь вам доступна лаборатория VTubing Arriva Lab!`;
+
+    await sendMainMenu(ctx, successText);
+  } catch (err) {
+    console.error("Error in cal_day_ callback:", err);
   }
-
-  await ctx.answerCallbackQuery({ text: `Дата рождения выбрана: ${rawBirthDate}` });
-
-  // Get state data to guarantee fio and phone aren't lost
-  const { data: stData } = await supabase.from("user_states").select("*").eq("telegram_id", userId).maybeSingle();
-  const savedFio = stData?.data?.fio;
-  const savedPhone = stData?.data?.phone;
-
-  const updatePayload = { birth_date: isoBirthDate || rawBirthDate };
-  if (savedFio) updatePayload.full_name = savedFio;
-  if (savedPhone) updatePayload.phone = savedPhone;
-
-  const { error: updateErr } = await supabase.from("users").update(updatePayload).eq("telegram_id", userId);
-  if (updateErr) {
-    console.error("Error saving birth_date to users table:", updateErr);
-  }
-
-  await supabase.from("user_states").delete().eq("telegram_id", userId);
-
-  // Fetch updated user profile
-  const { data: user } = await supabase.from("users").select("*").eq("telegram_id", userId).maybeSingle();
-
-  const successText = `🎉 <b>Регистрация успешно завершена!</b>\n\n` +
-    `👤 <b>ФИО:</b> ${user?.full_name || savedFio || 'Не указано'}\n` +
-    `📱 <b>Телефон:</b> ${user?.phone || savedPhone || 'Не указан'}\n` +
-    `📅 <b>Дата рождения:</b> ${rawBirthDate}\n` +
-    `👤 <b>Telegram:</b> @${username || 'нет'}\n\n` +
-    `Теперь вам доступна лаборатория VTubing Arriva Lab!`;
-
-  await sendMainMenu(ctx, successText);
 });
+
 
 
 // TEXT INPUTS (for Quiz steps & Support tickets & Admin Reply Desk)
