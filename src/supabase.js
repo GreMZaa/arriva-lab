@@ -675,8 +675,91 @@ export const db = {
       localStorage.setItem('arriva_questions', JSON.stringify(filtered));
       return true;
     }
+  },
+
+  // Get all promo codes (CRM view)
+  async getAllPromoCodes() {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('promo_codes')
+        .select('*')
+        .order('id', { ascending: false });
+      if (error) throw error;
+      return data;
+    } else {
+      let promos = JSON.parse(localStorage.getItem('arriva_promo_codes') || '[]');
+      if (promos.length === 0) {
+        promos = [
+          { id: 1, code: 'ARRIVA10', discount_percent: 10, partner_name: 'Официальный партнёр ARRIVA', is_active: true, uses_count: 5 },
+          { id: 2, code: 'STREAMER5', discount_percent: 5, partner_name: 'Партнёрка Стримеров', is_active: true, uses_count: 2 },
+          { id: 3, code: 'VIP15', discount_percent: 15, partner_name: 'VIP Предложение', is_active: true, uses_count: 1 }
+        ];
+        localStorage.setItem('arriva_promo_codes', JSON.stringify(promos));
+      }
+      return promos;
+    }
+  },
+
+  // Create promo code
+  async createPromoCode(promo) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('promo_codes')
+        .insert(promo)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } else {
+      const promos = JSON.parse(localStorage.getItem('arriva_promo_codes') || '[]');
+      const newPromo = {
+        ...promo,
+        id: promos.length > 0 ? Math.max(...promos.map(p => p.id)) + 1 : 1,
+        uses_count: 0
+      };
+      promos.push(newPromo);
+      localStorage.setItem('arriva_promo_codes', JSON.stringify(promos));
+      return newPromo;
+    }
+  },
+
+  // Update promo code
+  async updatePromoCode(id, updates) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('promo_codes')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } else {
+      const promos = JSON.parse(localStorage.getItem('arriva_promo_codes') || '[]');
+      const updated = promos.map(p => p.id === id ? { ...p, ...updates } : p);
+      localStorage.setItem('arriva_promo_codes', JSON.stringify(updated));
+      return updated.find(p => p.id === id);
+    }
+  },
+
+  // Delete promo code
+  async deletePromoCode(id) {
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('promo_codes')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return true;
+    } else {
+      const promos = JSON.parse(localStorage.getItem('arriva_promo_codes') || '[]');
+      const filtered = promos.filter(p => p.id !== id);
+      localStorage.setItem('arriva_promo_codes', JSON.stringify(filtered));
+      return true;
+    }
   }
 };
+
 
 // Default products initial data for LocalStorage fallback
 export const defaultProducts = [

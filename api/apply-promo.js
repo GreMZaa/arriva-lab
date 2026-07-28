@@ -48,6 +48,15 @@ export default async function handler(req, res) {
     promoData = fallbackPromos[normalizedCode];
   }
 
+  // Personal referral link codes (e.g. REF405845462) give 2% discount
+  if (!promoData && normalizedCode.startsWith("REF")) {
+    promoData = {
+      discount_percent: 2,
+      discount_amount: 0,
+      partner_name: "Реферальная ссылка (2% скидка)"
+    };
+  }
+
   if (!promoData) {
     return res.status(404).json({ error: "Промокод не найден или устарел" });
   }

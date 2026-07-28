@@ -512,6 +512,15 @@ export default function App() {
   const [crmSelectedLead, setCrmSelectedLead] = useState(null); // Right drawer details
   const [crmLoading, setCrmLoading] = useState(false);
 
+  // CRM Promo Code states
+  const [crmPromoCodes, setCrmPromoCodes] = useState([]);
+  const [isEditingPromo, setIsEditingPromo] = useState(false);
+  const [promoFormCode, setPromoFormCode] = useState('');
+  const [promoFormPercent, setPromoFormPercent] = useState('10');
+  const [promoFormPartner, setPromoFormPartner] = useState('');
+  const [promoFormDesc, setPromoFormDesc] = useState('');
+  const [promoFormLoading, setPromoFormLoading] = useState(false);
+
   // Initialize CRM data + auto-refresh every 30 seconds
   useEffect(() => {
     if (view === 'crm' && crmLoggedIn) {
@@ -600,13 +609,14 @@ export default function App() {
   const loadCrmData = async () => {
     setCrmLoading(true);
     try {
-      const [apps, purchases, products, questions, users, tickets] = await Promise.all([
+      const [apps, purchases, products, questions, users, tickets, promos] = await Promise.all([
         db.getAllApplications(),
         db.getAllPurchases(),
         db.getAllProducts(),
         db.getAllQuestions(),
         db.getAllUsers().catch(() => []),
         db.getAllSupportTickets().catch(() => []),
+        db.getAllPromoCodes().catch(() => [])
       ]);
       setCrmApplications(apps);
       setCrmPurchases(purchases);
@@ -614,12 +624,60 @@ export default function App() {
       setCrmQuestions(questions);
       setCrmUsers(users);
       setCrmTickets(tickets);
+      setCrmPromoCodes(promos);
     } catch (err) {
       console.error(err);
     } finally {
       setCrmLoading(false);
     }
   };
+
+  const handleSavePromo = async (e) => {
+    if (e) e.preventDefault();
+    if (!promoFormCode.trim()) return alert('Укажите название промокода');
+    setPromoFormLoading(true);
+    try {
+      const payload = {
+        code: promoFormCode.trim().toUpperCase(),
+        discount_percent: parseInt(promoFormPercent, 10) || 0,
+        partner_name: promoFormPartner.trim() || 'Партнёрская программа',
+        description: promoFormDesc.trim() || '',
+        is_active: true
+      };
+      await db.createPromoCode(payload);
+      alert(`Промокод ${payload.code} успешно создан!`);
+      setPromoFormCode('');
+      setPromoFormPartner('');
+      setPromoFormDesc('');
+      setIsEditingPromo(false);
+      loadCrmData();
+    } catch (err) {
+      console.error('Error creating promo code:', err);
+      alert('Ошибка при создании промокода');
+    } finally {
+      setPromoFormLoading(false);
+    }
+  };
+
+  const handleTogglePromoActive = async (promo) => {
+    try {
+      await db.updatePromoCode(promo.id, { is_active: !promo.is_active });
+      loadCrmData();
+    } catch (err) {
+      console.error('Error toggling promo status:', err);
+    }
+  };
+
+  const handleDeletePromo = async (promoId) => {
+    if (!window.confirm('Вы действительно хотите удалить этот промокод?')) return;
+    try {
+      await db.deletePromoCode(promoId);
+      loadCrmData();
+    } catch (err) {
+      console.error('Error deleting promo code:', err);
+    }
+  };
+
 
   // Submission handler
   const handleContactSubmit = async (e) => {
@@ -1697,16 +1755,17 @@ export default function App() {
                       {/* Promo Code Input Block */}
                       <div className="form-group text-left pt-2 border-t border-white/10">
                         <label className="text-gray-300 text-xs font-semibold uppercase flex items-center gap-1.5">
-                          <Tag className="w-3.5 h-3.5 text-[#9FE870]" /> Промокод или реферальная ссылка
+                          <Tag className="w-3.5 h-3.5 text-[#9FE870]" /> Промокод
                         </label>
                         <div className="flex gap-2 mt-1">
                           <input 
                             type="text" 
-                            placeholder="ARRIVA10" 
+                            placeholder="Введите промокод" 
                             value={promoInput} 
                             onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                            className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] placeholder-gray-500 uppercase font-mono tracking-wider flex-grow"
+                            className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] placeholder-gray-500 uppercase font-mono tracking-wider flex-grow text-xs"
                           />
+
                           <button 
                             type="button" 
                             onClick={handleApplyPromo}
@@ -2694,13 +2753,14 @@ export default function App() {
                                 </div>
                               </div>
                               <span className="text-xs font-black text-[#123d0c] bg-lime-100/80 px-2.5 py-1 rounded-full border border-lime-200">
-                                Скидка 10% для ваших друзей
+                                Скидка 2% для ваших друзей
                               </span>
                             </div>
 
                             <p className="text-xs text-gray-500 text-left leading-relaxed">
-                              Каждый человек, перешедший по вашей персональной ссылке или введший ваш промокод, автоматически получает скидку <b>10%</b> на любой тариф лаборатории.
+                              Каждый человек, перешедший по вашей персональной ссылке или введший ваш промокод, автоматически получает скидку <b>2%</b> на любой тариф лаборатории.
                             </p>
+
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                               {/* Website Referral Link */}
@@ -2889,7 +2949,18 @@ export default function App() {
                       >
                         <MessageSquare className="w-4 h-4" /> Техподдержка ({crmTickets.length})
                       </button>
+                      <button
+                        onClick={() => { setCrmActiveTab('promos'); setCrmSelectedLead(null); }}
+                        className={`w-full text-left text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-3 transition-all ${
+                          crmActiveTab === 'promos' 
+                            ? 'bg-[#9FE870] text-black shadow-sm' 
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <Tag className="w-4 h-4" /> Промокоды ({crmPromoCodes.length})
+                      </button>
                     </div>
+
 
                     <div className="space-y-2">
                       <span className="text-[10px] font-bold text-gray-500 uppercase block tracking-wider">Управление</span>
@@ -3269,6 +3340,92 @@ export default function App() {
                     </div>
                   )}
 
+                  {/* Promos Tab */}
+                  {crmActiveTab === 'promos' && (
+                    <div className="space-y-6 flex-grow flex flex-col">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                          <h3 className="text-2xl font-black text-gray-950">Управление промокодами</h3>
+                          <p className="text-xs text-gray-400">Добавляйте, включайте/выключайте и удаляйте скидочные промокоды</p>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            setPromoFormCode('');
+                            setPromoFormPercent('10');
+                            setPromoFormPartner('');
+                            setPromoFormDesc('');
+                            setIsEditingPromo(true);
+                          }}
+                          className="btn btn-primary text-xs font-bold py-2.5 px-4 flex items-center gap-2"
+                        >
+                          <Plus className="w-4 h-4" /> Создать промокод
+                        </button>
+                      </div>
+
+                      {crmLoading ? (
+                        <div className="py-20 text-center text-gray-400 font-medium">Загрузка промокодов...</div>
+                      ) : crmPromoCodes.length === 0 ? (
+                        <div className="py-20 text-center text-gray-400 font-medium">Промокоды пока не созданы</div>
+                      ) : (
+                        <div className="border border-gray-100 rounded-2xl overflow-x-auto shadow-sm bg-white">
+                          <table className="crm-table">
+                            <thead className="bg-gray-50 border-b border-gray-100">
+                              <tr>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">#</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Промокод</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Скидка</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Партнёр / Описание</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Использований</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Статус</th>
+                                <th className="text-[10px] text-gray-500 font-bold px-5 py-4">Действия</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {crmPromoCodes.map((p) => (
+                                <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                                  <td className="px-5 py-4 text-xs font-mono text-gray-400">#{p.id}</td>
+                                  <td className="px-5 py-4 font-black text-gray-900 text-sm font-mono tracking-wider">{p.code}</td>
+                                  <td className="px-5 py-4 font-bold text-green-700 text-sm">
+                                    {p.discount_percent > 0 ? `-${p.discount_percent}%` : `-${p.discount_amount} ₽`}
+                                  </td>
+                                  <td className="px-5 py-4 text-xs text-gray-600">
+                                    <div className="font-bold">{p.partner_name || '—'}</div>
+                                    <div className="text-[10px] text-gray-400">{p.description || ''}</div>
+                                  </td>
+                                  <td className="px-5 py-4 text-xs font-bold text-gray-500">{p.uses_count || 0}</td>
+                                  <td className="px-5 py-4">
+                                    <span className={`badge uppercase text-[9px] font-bold ${p.is_active ? 'badge-approved' : 'badge-rejected'}`}>
+                                      {p.is_active ? 'Активен' : 'Отключен'}
+                                    </span>
+                                  </td>
+                                  <td className="px-5 py-4 flex gap-2">
+                                    <button 
+                                      onClick={() => handleTogglePromoActive(p)}
+                                      className={`text-[10px] font-bold px-2.5 py-1 rounded-lg transition-colors ${
+                                        p.is_active 
+                                          ? 'text-amber-700 bg-amber-50 hover:bg-amber-100' 
+                                          : 'text-green-700 bg-green-50 hover:bg-green-100'
+                                      }`}
+                                    >
+                                      {p.is_active ? 'Выключить' : 'Включить'}
+                                    </button>
+                                    <button 
+                                      onClick={() => handleDeletePromo(p.id)}
+                                      className="text-[10px] font-bold text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded-lg transition-colors"
+                                    >
+                                      🗑️ Удалить
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+
                   {/* Lead Detail Drawer */}
                   {crmSelectedLead && (
                     <div className="absolute inset-0 z-40 flex justify-end">
@@ -3552,11 +3709,85 @@ export default function App() {
                     </div>
                   )}
 
+                  {/* Promo Code Editor Drawer */}
+                  {isEditingPromo && (
+                    <div className="absolute inset-0 z-40 flex justify-end">
+                      <div 
+                        onClick={() => setIsEditingPromo(false)}
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+                      ></div>
+                      
+                      <div className="relative w-full max-w-md bg-white h-full shadow-2xl p-6 sm:p-8 flex flex-col justify-between border-l border-gray-100 z-50 animate-fade-in overflow-y-auto">
+                        <div className="space-y-6">
+                          <div className="flex justify-between items-center">
+                            <h4 className="text-lg font-black text-gray-950">Создать промокод</h4>
+                            <button onClick={() => setIsEditingPromo(false)} className="p-1 rounded-lg hover:bg-gray-100">
+                              <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="form-group">
+                              <label className="text-[10px] font-bold uppercase text-gray-500">Название промокода</label>
+                              <input 
+                                type="text"
+                                value={promoFormCode}
+                                onChange={(e) => setPromoFormCode(e.target.value.toUpperCase())}
+                                className="form-control mt-1 font-mono uppercase tracking-wider"
+                                placeholder="например: SALE2026"
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label className="text-[10px] font-bold uppercase text-gray-500">Скидка в процентах (%)</label>
+                              <input 
+                                type="number"
+                                value={promoFormPercent}
+                                onChange={(e) => setPromoFormPercent(e.target.value)}
+                                className="form-control mt-1 font-bold"
+                                placeholder="10"
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label className="text-[10px] font-bold uppercase text-gray-500">Имя партнёра / Канал</label>
+                              <input 
+                                type="text"
+                                value={promoFormPartner}
+                                onChange={(e) => setPromoFormPartner(e.target.value)}
+                                className="form-control mt-1"
+                                placeholder="например: Стример Ivanov"
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label className="text-[10px] font-bold uppercase text-gray-500">Описание (необязательно)</label>
+                              <textarea
+                                value={promoFormDesc}
+                                onChange={(e) => setPromoFormDesc(e.target.value)}
+                                className="form-control mt-1 h-20 text-xs"
+                                placeholder="например: Скидка 10% в честь проведения совместного ивента"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3 pt-6 border-t border-gray-100">
+                          <button 
+                            onClick={handleSavePromo}
+                            disabled={promoFormLoading || !promoFormCode.trim()}
+                            className="btn btn-primary w-full text-xs py-3 font-bold"
+                          >
+                            {promoFormLoading ? 'Сохранение...' : 'Создать промокод'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               </div>
             )}
           </div>
         )}
+
 
         {/* VIEW 5: PRIVACY POLICY PAGE */}
         {view === 'privacy' && (
