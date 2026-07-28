@@ -1,8 +1,8 @@
 import React from 'react';
-import { Sparkles, ArrowRight, Check, X, Layers, Box, Volume2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Check, X, Layers, Box, Volume2, Tag } from 'lucide-react';
 import { defaultProducts } from '../supabase';
 
-export const TariffsSection = ({ products, setView, setContactAbout }) => {
+export const TariffsSection = ({ products, setView, setContactAbout, appliedPromo }) => {
   return (
     <section id="tariffs" className="py-24 bg-white border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-6">
@@ -10,6 +10,13 @@ export const TariffsSection = ({ products, setView, setContactAbout }) => {
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
           <h2 className="text-gray-900 font-extrabold tracking-tight">Тарифы и Программы</h2>
           <p className="text-gray-500 text-lg">Выберите подходящий формат или пройдите <button onClick={() => setView('quiz')} className="text-[#123d0c] font-bold underline hover:text-black bg-transparent border-none p-0 cursor-pointer">подбор образа</button></p>
+
+          {appliedPromo && (
+            <div className="inline-flex items-center gap-2 bg-lime-100/80 border border-[#9FE870] text-[#123d0c] px-4 py-2 rounded-2xl font-bold text-sm shadow-sm animate-fade-in">
+              <Tag className="w-4 h-4 text-green-700" />
+              <span>Активирован промокод <b>{appliedPromo.code}</b> ({appliedPromo.discountPercent}% скидка от {appliedPromo.partnerName})</span>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -29,6 +36,26 @@ export const TariffsSection = ({ products, setView, setContactAbout }) => {
               'agency': 'Агентская программа'
             };
             const cardSubtitle = product.subtitle || subtitleMap[product.type] || '';
+
+            const rawPrice = Number(product.price);
+            let displayPrice = null;
+            if (product.priceLabel) {
+              displayPrice = product.priceLabel;
+            } else if (rawPrice === 0) {
+              displayPrice = '15% от дохода';
+            } else if (appliedPromo && appliedPromo.discountPercent > 0) {
+              const disc = Math.round((rawPrice * appliedPromo.discountPercent) / 100);
+              const finalP = Math.max(0, rawPrice - disc);
+              displayPrice = (
+                <div className="flex flex-col items-center">
+                  <span className="line-through text-gray-400 text-sm font-normal">{rawPrice.toLocaleString('ru-RU')} ₽</span>
+                  <span className="text-[#123d0c] font-black text-3xl">{finalP.toLocaleString('ru-RU')} ₽</span>
+                  <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full mt-1">Скидка {appliedPromo.discountPercent}% по промокоду</span>
+                </div>
+              );
+            } else {
+              displayPrice = `${rawPrice.toLocaleString('ru-RU')} ₽`;
+            }
 
             return (
               <div 
@@ -51,7 +78,7 @@ export const TariffsSection = ({ products, setView, setContactAbout }) => {
                     <p className="text-sm text-gray-400 mt-2 leading-relaxed">{product.description}</p>
                   </div>
                   <div className="text-3xl font-black text-gray-950 text-center">
-                    {product.priceLabel ? product.priceLabel : (product.price === 0 ? '15% от дохода' : `${Number(product.price).toLocaleString('ru-RU')} ₽`)}
+                    {displayPrice}
                   </div>
                   <ul className="text-sm text-gray-500 space-y-3 border-t border-gray-200 pt-6 text-left">
                     {product.features && product.features.map((rawFeat, idx) => {

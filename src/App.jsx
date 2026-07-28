@@ -30,8 +30,10 @@ import {
   Volume2,
   RefreshCw,
   Users,
-  MessageSquare
+  MessageSquare,
+  Tag
 } from 'lucide-react';
+
 import { db, getTelegramIdHash, defaultProducts } from './supabase';
 import confetti from 'canvas-confetti';
 import { Header } from './components/Header';
@@ -212,6 +214,61 @@ export default function App() {
         .catch(err => console.error('Telegram initData auto-login error:', err));
     }
   }, [cabinetUser]);
+
+  // Promo code & Referral state
+
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [promoInput, setPromoInput] = useState('');
+  const [promoStatusMsg, setPromoStatusMsg] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+
+  // Auto-detect referral query parameter ?ref=CODE or ?promo=CODE
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref') || params.get('promo');
+    if (refCode) {
+      setPromoInput(refCode);
+      fetch('/api/apply-promo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: refCode, price: 0 })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setAppliedPromo(data);
+            setPromoStatusMsg(`🎁 Реферальный код ${data.code} активирован! (-${data.discountPercent}%)`);
+          }
+        })
+        .catch(e => console.error('Promo auto-apply error:', e));
+    }
+  }, []);
+
+  const handleApplyPromo = async (e) => {
+    if (e) e.preventDefault();
+    if (!promoInput.trim()) return;
+    setPromoLoading(true);
+    setPromoStatusMsg('');
+    try {
+      const res = await fetch('/api/apply-promo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoInput, price: 0 })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAppliedPromo(data);
+        setPromoStatusMsg(`✅ ${data.message}`);
+      } else {
+        setPromoStatusMsg(`❌ ${data.error || 'Недействительный промокод'}`);
+      }
+    } catch (err) {
+      setPromoStatusMsg('❌ Ошибка проверки промокода');
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
 
 
   const [cabinetLoginMethod, setCabinetLoginMethod] = useState('email'); // 'telegram', 'email'
@@ -1538,7 +1595,8 @@ export default function App() {
               </section>
 
               {/* TARIFFS SECTION */}
-              <TariffsSection products={products} setView={setView} setContactAbout={setContactAbout} />
+              <TariffsSection products={products} setView={setView} setContactAbout={setContactAbout} appliedPromo={appliedPromo} />
+
 
               {/* FAQ SECTION */}
               <FaqSection activeFaq={activeFaq} setActiveFaq={setActiveFaq} />
@@ -1635,6 +1693,36 @@ export default function App() {
                           className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] placeholder-gray-500 resize-none mt-1"
                         ></textarea>
                       </div>
+
+                      {/* Promo Code Input Block */}
+                      <div className="form-group text-left pt-2 border-t border-white/10">
+                        <label className="text-gray-300 text-xs font-semibold uppercase flex items-center gap-1.5">
+                          <Tag className="w-3.5 h-3.5 text-[#9FE870]" /> Промокод или реферальная ссылка
+                        </label>
+                        <div className="flex gap-2 mt-1">
+                          <input 
+                            type="text" 
+                            placeholder="ARRIVA10" 
+                            value={promoInput} 
+                            onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                            className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] placeholder-gray-500 uppercase font-mono tracking-wider flex-grow"
+                          />
+                          <button 
+                            type="button" 
+                            onClick={handleApplyPromo}
+                            disabled={promoLoading || !promoInput.trim()}
+                            className="btn btn-secondary text-xs px-4 py-2 bg-white/10 hover:bg-white/20 text-white border-white/10 font-bold shrink-0"
+                          >
+                            {promoLoading ? '...' : 'Применить'}
+                          </button>
+                        </div>
+                        {promoStatusMsg && (
+                          <div className={`text-xs mt-1.5 font-medium ${promoStatusMsg.startsWith('✅') || promoStatusMsg.startsWith('🎁') ? 'text-[#9FE870]' : 'text-red-400'}`}>
+                            {promoStatusMsg}
+                          </div>
+                        )}
+                      </div>
+
 
                       <button 
                         type="submit" 
