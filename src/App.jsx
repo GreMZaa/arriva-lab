@@ -34,6 +34,12 @@ import {
 } from 'lucide-react';
 import { db, getTelegramIdHash, defaultProducts } from './supabase';
 import confetti from 'canvas-confetti';
+import { Header } from './components/Header';
+import { HeroSection } from './components/HeroSection';
+import { TariffsSection } from './components/TariffsSection';
+import { FaqSection } from './components/FaqSection';
+import { Footer } from './components/Footer';
+
 
 const TelegramLoginWidget = ({ botName, onAuth, showDivider = true }) => {
   React.useEffect(() => {
@@ -1298,83 +1304,16 @@ export default function App() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Dynamic Navigation Header */}
-      <header className="site-header sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-100 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setView('home'); handleLogoClick(); }}>
-            <img 
-              src="/logo.jpg" 
-              alt="ARRIVA Logo" 
-              className="w-10 h-10 rounded-xl object-cover border border-gray-200"
-            />
-            <div>
-              <span className="font-extrabold tracking-tight text-xl text-gray-900">ARRIVA</span>
-              <span className="font-medium text-xs block text-gray-500 tracking-wider">LABORATORY</span>
-            </div>
-          </div>
+      <Header 
+        view={view} 
+        setView={setView} 
+        handleLogoClick={handleLogoClick} 
+        cabinetUser={cabinetUser} 
+        isAdminMode={isAdminMode} 
+        mobileMenuOpen={mobileMenuOpen} 
+        setMobileMenuOpen={setMobileMenuOpen} 
+      />
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8 font-medium text-sm text-gray-600">
-            <a href="#services" className="hover:text-black transition-colors" onClick={() => setView('home')}>Услуги</a>
-            <a href="#steps" className="hover:text-black transition-colors" onClick={() => setView('home')}>Как это работает</a>
-            <a href="#portfolio" className="hover:text-black transition-colors" onClick={() => setView('home')}>Портфолио</a>
-            <a href="#tariffs" className="hover:text-black transition-colors" onClick={() => setView('home')}>Тарифы</a>
-            <a href="#contacts" className="hover:text-black transition-colors" onClick={() => setView('home')}>Контакты</a>
-            
-            <span className="w-px h-4 bg-gray-200"></span>
-            
-            <button 
-              onClick={() => setView(cabinetUser ? 'cabinet' : 'cabinet')} 
-              className={`hover:text-black transition-colors ${view === 'cabinet' ? 'text-black font-semibold' : ''}`}
-            >
-              {cabinetUser ? 'Кабинет' : 'Войти'}
-            </button>
-            
-            {isAdminMode && (
-              <button 
-                onClick={() => setView('crm')} 
-                className={`hover:text-black transition-colors ${view === 'crm' ? 'text-black font-semibold' : ''}`}
-              >
-                CRM
-              </button>
-            )}
-
-            <button 
-              onClick={() => setView('quiz')} 
-              className="btn btn-primary text-xs py-2 px-4 flex items-center gap-2"
-            >
-              <Sparkles className="w-3.5 h-3.5" /> Подобрать образ
-            </button>
-          </nav>
-
-          {/* Mobile Menu Button */}
-          <button className="md:hidden text-gray-700" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-
-        {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-b border-gray-100 px-6 py-4 flex flex-col gap-4 font-medium text-sm text-gray-700">
-            <a href="#services" className="py-2 border-b border-gray-50" onClick={() => { setView('home'); setMobileMenuOpen(false); }}>Услуги</a>
-            <a href="#steps" className="py-2 border-b border-gray-50" onClick={() => { setView('home'); setMobileMenuOpen(false); }}>Как это работает</a>
-            <a href="#portfolio" className="py-2 border-b border-gray-50" onClick={() => { setView('home'); setMobileMenuOpen(false); }}>Портфолио</a>
-            <a href="#tariffs" className="py-2 border-b border-gray-50" onClick={() => { setView('home'); setMobileMenuOpen(false); }}>Тарифы</a>
-            <a href="#contacts" className="py-2 border-b border-gray-50" onClick={() => { setView('home'); setMobileMenuOpen(false); }}>Контакты</a>
-            
-            <button onClick={() => { setView('cabinet'); setMobileMenuOpen(false); }} className="py-2 border-b border-gray-50 text-left">
-              {cabinetUser ? 'Личный кабинет' : 'Личный кабинет (Войти)'}
-            </button>
-            {isAdminMode && (
-              <button onClick={() => { setView('crm'); setMobileMenuOpen(false); }} className="py-2 border-b border-gray-50 text-left">
-                CRM-Панель
-              </button>
-            )}
-            <button onClick={() => { setView('quiz'); setMobileMenuOpen(false); }} className="btn btn-primary mt-2">
-              <Sparkles className="w-4 h-4" /> Подобрать образ VTuber
-            </button>
-          </div>
-        )}
-      </header>
 
       {/* Main Container */}
       <main className="flex-grow">
@@ -1383,60 +1322,8 @@ export default function App() {
         {view === 'home' && (
           <div className="animate-fade-in">
             {/* HERO SECTION */}
-            <section className="relative overflow-hidden bg-gray-50 py-20 lg:py-32">
-              <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                <div className="lg:col-span-7 text-left space-y-6">
-                  <span className="inline-flex items-center gap-2 px-3 py-1 bg-[#9FE870]/20 border border-[#9FE870]/40 text-[#123d0c] font-semibold text-xs rounded-full uppercase tracking-wider">
-                    <Sparkles className="w-3.5 h-3.5" /> Лаборатория VTubing под ключ
-                  </span>
-                  <h1 className="text-gray-900 tracking-tight leading-[1.15] font-black text-4xl sm:text-5xl lg:text-6xl">
-                    Запуск <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500">VTuber-карьеры</span> <br />
-                    под ключ
-                  </h1>
-                  <p className="text-gray-500 text-lg md:text-xl max-w-xl">
-                    От идеи персонажа до первых трансляций и дальнейшего продюсирования — всё в одной команде. Без поиска отдельных специалистов и без страха ошибиться на старте.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                    <a href="#tariffs" className="btn btn-primary text-base px-8 py-4">
-                      Тарифы <ArrowRight className="w-4 h-4" />
-                    </a>
-                    <button 
-                      onClick={() => setView('quiz')} 
-                      className="btn btn-secondary text-base px-8 py-4 flex items-center justify-center gap-2"
-                    >
-                      <Sparkles className="w-4 h-4 text-[#123d0c]" /> Подобрать образ
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="lg:col-span-5 relative flex justify-center items-center">
-                  <div className="relative w-full max-w-[400px] h-[450px] bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden group">
-                    <img 
-                      src="/hero_vtuber.png" 
-                      alt="ARRIVA VTuber Mascot" 
-                      className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                    />
-                    {/* Dark gradient overlay for bottom text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                    
-                    <div className="absolute bottom-6 left-6 right-6 bg-black/40 backdrop-blur-md rounded-2xl p-4 text-left border border-white/10 z-10">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-white font-bold text-sm">ARRIVA Core v1.4</p>
-                          <p className="text-[#9FE870] text-xs font-medium">Калибровка отслеживания: OK</p>
-                        </div>
-                        <div className="w-2.5 h-2.5 bg-[#9FE870] rounded-full animate-ping"></div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Floating Tech Badges */}
-                  <div className="absolute -top-4 -right-2 bg-white px-4 py-2 rounded-full shadow-lg border border-gray-50 flex items-center gap-2 text-xs font-semibold z-10">
-                    <Layers className="w-4 h-4 text-purple-500" /> Live2D & 3D
-                  </div>
-                </div>
-              </div>
-            </section>
+            <HeroSection setView={setView} />
+
 
             {/* SERVICES SECTION */}
             <section id="services" className="py-24 bg-white border-t border-gray-100">
@@ -1630,218 +1517,11 @@ export default function App() {
               </section>
 
               {/* TARIFFS SECTION */}
-              <section id="tariffs" className="py-24 bg-white border-t border-gray-100">
-                <div className="max-w-7xl mx-auto px-6">
-
-                  <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-                    <h2 className="text-gray-900 font-extrabold tracking-tight">Тарифы и Программы</h2>
-                    <p className="text-gray-500 text-lg">Выберите подходящий формат или пройдите <button onClick={() => setView('quiz')} className="text-[#123d0c] font-bold underline hover:text-black">подбор образа</button></p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {(() => {
-                      const typeOrder = { 'basic': 1, 'restart': 2, 'premium': 3, '18+': 4, 'agency': 5 };
-                      const rawList = (products && products.length > 0) ? products : defaultProducts;
-                      const list = rawList.filter(p => ['basic', 'restart', 'premium', '18+', 'agency'].includes(p.type));
-                      return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
-                    })().map((product) => {
-
-                      // Subtitles lookup helper
-                      const subtitleMap = {
-                        'basic': 'Быстрый старт (Сами)',
-                        'restart': 'Переход с веб-камеры (Рестарт)',
-                        'premium': 'Полное сопровождение под ключ',
-                        '18+': 'Всё включено (С нами)',
-                        'agency': 'Агентская программа'
-                      };
-                      const cardSubtitle = product.subtitle || subtitleMap[product.type] || '';
-
-                      return (
-                        <div 
-                          key={product.id || product.name} 
-                          className="bg-gray-50 border border-gray-100 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#9FE870] transition-all duration-300 group"
-                        >
-                          <div className="space-y-6 text-left">
-                            <div className="flex justify-center mb-2">
-                              <span className="text-3xl font-black uppercase bg-[#9FE870]/20 text-[#123d0c] px-6 py-2.5 rounded-2xl border border-[#9FE870]/40 tracking-widest">
-                                {product.type}
-                              </span>
-                            </div>
-                            <div className="text-center">
-                              <h3 className="font-extrabold text-gray-900 text-xl leading-tight group-hover:text-black transition-colors">{product.name}</h3>
-                              {cardSubtitle && (
-                                <span className="inline-block mt-1 text-xs font-extrabold text-[#123d0c] bg-lime-100/60 px-2.5 py-0.5 rounded-full">
-                                  {cardSubtitle}
-                                </span>
-                              )}
-                              <p className="text-sm text-gray-400 mt-2 leading-relaxed">{product.description}</p>
-                            </div>
-                            <div className="text-3xl font-black text-gray-950 text-center">
-                              {product.priceLabel ? product.priceLabel : (product.price === 0 ? '15% от дохода' : `${Number(product.price).toLocaleString('ru-RU')} ₽`)}
-                            </div>
-                            <ul className="text-sm text-gray-500 space-y-3 border-t border-gray-200 pt-6 text-left">
-                              {product.features && product.features.map((rawFeat, idx) => {
-                                const feat = rawFeat
-                                  .replace(/Без скидки на готовую модель/gi, "Скидка 50% на готовую модель")
-                                  .replace(/❌ Скидка на готовую модель/gi, "Скидка 50% на готовую модель");
-                                const isExcluded = feat.startsWith('Без') || feat.startsWith('без');
-                                return (
-                                  <li key={idx} className="flex items-start gap-2.5 leading-snug">
-                                    {isExcluded ? (
-                                      <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                                    ) : (
-                                      <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
-                                    )}
-                                    <span className={isExcluded ? 'text-gray-400 font-medium line-through decoration-red-200/50 decoration-1' : 'text-gray-700 font-medium'}>
-                                      {feat}
-                                    </span>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          </div>
-
-                          <a
-                            href="#contacts"
-                            onClick={() => setContactAbout(product.priceLabel ? `${product.name} (${product.priceLabel})` : (product.price === 0 ? `${product.name} (15% от дохода)` : `${product.name} (${Number(product.price).toLocaleString('ru-RU')} ₽)`))}
-                            className="btn btn-primary w-full mt-8 py-3.5 text-sm font-extrabold text-center flex items-center justify-center gap-2 shadow-sm"
-                          >
-                            {product.type === 'agency' ? 'Подать заявку' : 'Выбрать и оформить'} <ArrowRight className="w-4 h-4" />
-                          </a>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* ADDITIONAL SERVICES SECTION */}
-                  <div className="mt-20 pt-16 border-t border-gray-100">
-                    <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-lime-50 text-[#123d0c] font-bold text-xs rounded-full uppercase tracking-wider border border-[#9FE870]/40">
-                        <Sparkles className="w-3.5 h-3.5" /> Кастомные решения
-                      </span>
-                      <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Дополнительные услуги</h3>
-                      <p className="text-gray-500 text-base">Индивидуальная разработка и сервисы под ваши задачи</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                      {/* 2D Model */}
-                      <div className="bg-gray-50 border border-gray-100 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#9FE870] transition-all duration-300 group text-left">
-                        <div className="space-y-6">
-                          <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center text-[#123d0c] shadow-sm group-hover:bg-[#9FE870]/20 transition-colors">
-                            <Layers className="w-7 h-7 text-gray-800 group-hover:text-[#123d0c]" />
-                          </div>
-                          <div>
-                            <h4 className="font-extrabold text-gray-900 text-xl group-hover:text-black transition-colors">Создание 2D модели</h4>
-                            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                              Разработка концепт-арта персонажа, арт по слоям и профессиональный Live2D риггинг.
-                            </p>
-                          </div>
-                          <div className="pt-4 border-t border-gray-200">
-                            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Стоимость</div>
-                            <div className="text-2xl font-black text-gray-950 mt-1">Цена по запросу</div>
-                          </div>
-                        </div>
-                        <a 
-                          href="#contacts"
-                          onClick={() => setContactAbout('Создание 2D модели (Цена по запросу)')}
-                          className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
-                        >
-                          Узнать стоимость
-                        </a>
-                      </div>
-
-                      {/* 3D Model */}
-                      <div className="bg-gray-50 border border-gray-100 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#9FE870] transition-all duration-300 group text-left">
-                        <div className="space-y-6">
-                          <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center text-[#123d0c] shadow-sm group-hover:bg-[#9FE870]/20 transition-colors">
-                            <Box className="w-7 h-7 text-gray-800 group-hover:text-[#123d0c]" />
-                          </div>
-                          <div>
-                            <h4 className="font-extrabold text-gray-900 text-xl group-hover:text-black transition-colors">Создание 3D модели</h4>
-                            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                              Трехмерное моделирование персонажа, текстурирование, настройка шейдеров и физики под VRM/Unity.
-                            </p>
-                          </div>
-                          <div className="pt-4 border-t border-gray-200">
-                            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Стоимость</div>
-                            <div className="text-2xl font-black text-gray-950 mt-1">Цена по запросу</div>
-                          </div>
-                        </div>
-                        <a 
-                          href="#contacts"
-                          onClick={() => setContactAbout('Создание 3D модели (Цена по запросу)')}
-                          className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
-                        >
-                          Узнать стоимость
-                        </a>
-                      </div>
-
-                      {/* Audio Translator */}
-                      <div className="bg-gray-50 border border-gray-100 rounded-3xl p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#9FE870] transition-all duration-300 group text-left">
-                        <div className="space-y-6">
-                          <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center text-[#123d0c] shadow-sm group-hover:bg-[#9FE870]/20 transition-colors">
-                            <Volume2 className="w-7 h-7 text-gray-800 group-hover:text-[#123d0c]" />
-                          </div>
-                          <div>
-                            <h4 className="font-extrabold text-gray-900 text-xl group-hover:text-black transition-colors">Аудио переводчик</h4>
-                            <p className="text-sm text-gray-500 mt-2 leading-relaxed font-medium">
-                              Выкуп своего голоса, настройка на один язык
-                            </p>
-                          </div>
-                          <div className="pt-4 border-t border-gray-200">
-                            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Стоимость</div>
-                            <div className="text-2xl font-black text-gray-950 mt-1">
-                              10 000 ₽ <span className="text-sm font-normal text-gray-500">на один язык</span>
-                            </div>
-                          </div>
-                        </div>
-                        <a 
-                          href="#contacts"
-                          onClick={() => setContactAbout('Аудио переводчик (10 000 ₽ на один язык)')}
-                          className="btn btn-primary w-full mt-8 py-3.5 text-sm font-bold text-center inline-block"
-                        >
-                          Заказать
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
+              <TariffsSection products={products} setView={setView} setContactAbout={setContactAbout} />
 
               {/* FAQ SECTION */}
-            <section className="py-24 bg-gray-50 border-t border-gray-100">
-              <div className="max-w-4xl mx-auto px-6">
-                <div className="text-center mb-12 space-y-4">
-                  <h2 className="text-gray-900 font-extrabold tracking-tight">Часто задаваемые вопросы</h2>
-                  <p className="text-gray-500 text-lg">Быстрые ответы на популярные вопросы о VTubing</p>
-                </div>
+              <FaqSection activeFaq={activeFaq} setActiveFaq={setActiveFaq} />
 
-                <div className="space-y-4 text-left">
-                  {[
-                    { q: 'Какой аватар выбрать — PNG, Live2D или 3D?', a: 'PNG-аватар — самый простой статичный вариант для быстрого теста. Live2D — плоская аниме-модель с плавными анимациями лица и наклонов (оптимально для 80% стримеров). 3D — полноценная трехмерная модель с отслеживанием жестов рук и тела (для продвинутых шоу).' },
-                    { q: 'Какое оборудование мне понадобится?', a: 'Минимально: средний игровой ПК, хорошая веб-камера (или современный iPhone с поддержкой Face ID для идеального считывания лица) и студийный микрофон. Мы подберем точный комплект под ваш бюджет.' },
-                    { q: 'Можно ли сохранить полную анонимность?', a: 'Да, в этом главная суть VTuber-формата! Вы скрываете лицо за аватаром, можете изменять голос с помощью программ и использовать виртуальный задний фон.' },
-                    { q: 'На каких площадках можно стримить?', a: 'Мы настраиваем вещание на любые популярные площадки: YouTube, Twitch, VK Play Live, Kick или TikTok.' },
-                    { q: 'Сколько времени занимает весь запуск?', a: 'От 2 недель для простых PNG/2D моделей до 1.5–2 месяцев для сложных кастомных 3D-образов с глубокой интеграцией.' },
-                  ].map((faq, idx) => (
-                    <div key={idx} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-                      <button 
-                        onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
-                        className="w-full px-6 py-5 flex items-center justify-between text-left font-bold text-gray-900 focus:outline-none"
-                      >
-                        <span>{faq.q}</span>
-                        {activeFaq === idx ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
-                      </button>
-                      {activeFaq === idx && (
-                        <div className="px-6 pb-5 text-gray-500 text-sm border-t border-gray-50 pt-3">
-                          {faq.a}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
 
             {/* CONTACTS FORM SECTION */}
             <section id="contacts" className="py-24 bg-white border-t border-gray-100">
@@ -3885,79 +3565,8 @@ export default function App() {
       </main>
 
       {/* Modern Footer */}
-      <footer className="bg-gray-900 border-t border-gray-800 text-white py-12">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8 text-left">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <img 
-                src="/logo.jpg" 
-                alt="ARRIVA Logo" 
-                className="w-8 h-8 rounded-lg object-cover border border-gray-800"
-              />
-              <span className="font-extrabold tracking-tight text-lg text-white">ARRIVA lab</span>
-            </div>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Комплексный запуск и продюсирование виртуальных аватаров VTuber. Запустите карьеру мечты с профессиональной командой.
-            </p>
-          </div>
-          
-          <div>
-            <h5 className="font-bold text-sm text-gray-200 mb-4">Навигация</h5>
-            <ul className="text-xs text-gray-400 space-y-2">
-              <li><a href="#services" className="hover:text-white transition-colors" onClick={() => setView('home')}>Наши Услуги</a></li>
-              <li><a href="#steps" className="hover:text-white transition-colors" onClick={() => setView('home')}>Этапы запуска</a></li>
-              <li><a href="#portfolio" className="hover:text-white transition-colors" onClick={() => setView('home')}>Наши Кейсы</a></li>
-              <li><a href="#tariffs" className="hover:text-white transition-colors" onClick={() => setView('home')}>Тарифы</a></li>
-            </ul>
-          </div>
+      <Footer view={view} setView={setView} isAdminMode={isAdminMode} />
 
-          <div>
-            <h5 className="font-bold text-sm text-gray-200 mb-4">Инструменты</h5>
-            <ul className="text-xs text-gray-400 space-y-2">
-              <li><button onClick={() => setView('quiz')} className="hover:text-white transition-colors text-left">Пройти Квиз</button></li>
-              <li><button onClick={() => setView('cabinet')} className="hover:text-white transition-colors text-left">Личный Кабинет</button></li>
-              {isAdminMode && (
-                <li><button onClick={() => setView('crm')} className="hover:text-white transition-colors text-left">CRM Админка</button></li>
-              )}
-            </ul>
-          </div>
-
-          <div>
-            <h5 className="font-bold text-sm text-gray-200 mb-4">Связь и Поддержка</h5>
-            <ul className="text-xs text-gray-400 space-y-2">
-              <li>Telegram Бот: <a href="https://t.me/ArrivalLabBOT" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">@ArrivalLabBOT</a></li>
-              <li>Telegram Поддержка: <a href="https://t.me/ArrivalLabBOT" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">@ArrivalLabBOT</a></li>
-              <li>Email: <a href="mailto:support@arrivalab.ru" className="hover:text-white transition-colors">support@arrivalab.ru</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 border-t border-gray-800 mt-12 pt-6 text-center text-xs text-gray-500 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <span>&copy; {new Date().getFullYear()} ARRIVA lab. Все права защищены.</span>
-          <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-            <button onClick={() => { setView('privacy'); window.scrollTo(0,0); }} className="hover:text-white transition-colors underline cursor-pointer bg-transparent border-none text-gray-500 text-xs">Политика конфиденциальности</button>
-            <button onClick={() => { setView('terms'); window.scrollTo(0,0); }} className="hover:text-white transition-colors underline cursor-pointer bg-transparent border-none text-gray-500 text-xs">Пользовательское соглашение</button>
-          </div>
-          <span>Разработано с заботой о вашей анонимности.</span>
-        </div>
-      </footer>
-
-      {/* FLOATING MOBILE ACTION BAR */}
-      <div className="md:hidden fixed bottom-4 left-4 right-4 z-40 bg-gray-900/90 backdrop-blur-xl p-2 rounded-full border border-white/10 shadow-2xl flex items-center justify-between gap-2">
-        <button 
-          onClick={() => { setView('quiz'); window.scrollTo(0,0); }} 
-          className="flex-1 btn btn-primary text-xs py-3 px-4 font-extrabold flex items-center justify-center gap-1.5 shadow-glow"
-        >
-          <Sparkles className="w-4 h-4" /> Подобрать образ
-        </button>
-        <a 
-          href="#tariffs" 
-          onClick={() => { if (view !== 'home') setView('home'); }} 
-          className="btn btn-secondary text-xs py-3 px-4 bg-white/10 hover:bg-white/20 text-white border-white/10 font-bold"
-        >
-          Тарифы
-        </a>
-      </div>
     </div>
   );
 }
