@@ -901,9 +901,9 @@ export default function App() {
     setCabinetError('');
     setCabinetCodeLoading(true);
     try {
-      const existingUser = await db.findUserByEmailOrTelegram(
-        cabinetLoginMethod === 'email' ? cabinetEmailInput : null,
-        cabinetLoginMethod === 'telegram' ? getTelegramIdHash(cabinetTelegramInput) : null
+      const existingUser = await db.findUserByTelegramOrUsername(
+        cabinetLoginMethod === 'telegram' ? cabinetTelegramInput : null,
+        cabinetLoginMethod === 'email' ? cabinetEmailInput : null
       );
 
       if (cabinetAuthMode === 'login' && !existingUser) {
@@ -915,7 +915,7 @@ export default function App() {
       }
 
       if (cabinetLoginMethod === 'telegram') {
-        const tgId = getTelegramIdHash(cabinetTelegramInput);
+        const tgId = existingUser && existingUser.telegram_id ? existingUser.telegram_id : getTelegramIdHash(cabinetTelegramInput);
         const code = await db.generateLoginCode(tgId);
         
         try {
@@ -982,11 +982,12 @@ export default function App() {
       let user = null;
 
       if (cabinetLoginMethod === 'telegram') {
-        const tgId = getTelegramIdHash(cabinetTelegramInput);
+        const existingUser = await db.findUserByTelegramOrUsername(cabinetTelegramInput);
+        const tgId = existingUser && existingUser.telegram_id ? existingUser.telegram_id : getTelegramIdHash(cabinetTelegramInput);
         success = await db.verifyLoginCode(tgId, cabinetCodeInput);
         if (success) {
-          const displayName = cabinetAuthMode === 'register' ? cabinetRegisterName.trim() : cabinetTelegramInput.replace('@', '');
-          user = await db.createUser(tgId, displayName, cabinetTelegramInput);
+          const displayName = existingUser && existingUser.first_name ? existingUser.first_name : (cabinetAuthMode === 'register' ? cabinetRegisterName.trim() : cabinetTelegramInput.replace('@', ''));
+          user = existingUser || await db.createUser(tgId, displayName, cabinetTelegramInput);
         }
       } else {
         success = await db.verifyLoginCode(null, cabinetCodeInput, cabinetEmailInput);
@@ -995,6 +996,7 @@ export default function App() {
           user = await db.createUser(null, displayName, '', cabinetEmailInput);
         }
       }
+
 
       if (success && user) {
         setCabinetUser(user);

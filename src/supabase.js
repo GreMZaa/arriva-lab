@@ -144,23 +144,74 @@ export const db = {
     }
   },
 
-  // Find user by email or telegram
-  async findUserByEmailOrTelegram(email = null, telegramId = null) {
+  // Find user by email, telegram_id, OR username
+  async findUserByTelegramOrUsername(input, email = null) {
     if (isSupabaseConfigured) {
-      const query = supabase.from('users').select('*');
       if (email) {
-        query.eq('email', email);
-      } else if (telegramId) {
-        query.eq('telegram_id', telegramId);
+        const { data } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', email)
+          .maybeSingle();
+        if (data) return data;
       }
-      const { data, error } = await query.maybeSingle();
-      if (error) return null;
-      return data;
+      
+      if (input) {
+        const strInput = String(input).trim();
+        const cleanUsername = strInput.replace(/^@+/, '').trim();
+        
+        // 1. If numeric, search exact telegram_id
+        if (/^\d+$/.test(strInput)) {
+          const numId = parseInt(strInput, 10);
+          const { data } = await supabase
+            .from('users')
+            .select('*')
+            .eq('telegram_id', numId)
+            .maybeSingle();
+          if (data) return data;
+        }
+
+        // 2. Search by username in DB (both with and without '@')
+        const { data: userList } = await supabase
+          .from('users')
+          .select('*')
+          .or(`username.ilike.${cleanUsername},username.ilike.@${cleanUsername}`)
+          .order('id', { ascending: false })
+          .limit(1);
+
+        if (userList && userList.length > 0) return userList[0];
+
+        // 3. Fallback to hash lookup
+        const hashId = getTelegramIdHash(strInput);
+        const { data: hashUser } = await supabase
+          .from('users')
+          .select('*')
+          .eq('telegram_id', hashId)
+          .maybeSingle();
+        if (hashUser) return hashUser;
+      }
+      return null;
     } else {
       const users = JSON.parse(localStorage.getItem('arriva_users') || '[]');
-      return users.find(u => (email && u.email === email) || (telegramId && u.telegram_id === telegramId)) || null;
+      if (email) return users.find(u => u.email === email) || null;
+      if (input) {
+        const strInput = String(input).trim();
+        const cleanUsername = strInput.replace(/^@+/, '').toLowerCase();
+        return users.find(u => 
+          (u.username && u.username.replace(/^@+/, '').toLowerCase() === cleanUsername) ||
+          (u.telegram_id && String(u.telegram_id) === strInput) ||
+          (u.telegram_id && u.telegram_id === getTelegramIdHash(strInput))
+        ) || null;
+      }
+      return null;
     }
   },
+
+  // Alias for backward compatibility
+  async findUserByEmailOrTelegram(email = null, telegramId = null) {
+    return this.findUserByTelegramOrUsername(telegramId || email, email);
+  },
+
 
   // Update user details directly
   async updateUserDetails(id, updates) {
