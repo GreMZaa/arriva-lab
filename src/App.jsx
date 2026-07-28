@@ -31,7 +31,13 @@ import {
   RefreshCw,
   Users,
   MessageSquare,
-  Tag
+  Tag,
+  BarChart2,
+  Download,
+  PieChart,
+  DollarSign,
+  FileSpreadsheet,
+  Eye
 } from 'lucide-react';
 
 import { db, getTelegramIdHash, defaultProducts } from './supabase';
@@ -521,7 +527,7 @@ export default function App() {
   const [crmTickets, setCrmTickets] = useState([]);
   const [crmSearch, setCrmSearch] = useState('');
   const [crmFilterStatus, setCrmFilterStatus] = useState('all');
-  const [crmActiveTab, setCrmActiveTab] = useState('applications'); // 'applications', 'products', 'quiz', 'users', 'tickets'
+  const [crmActiveTab, setCrmActiveTab] = useState('applications'); // 'applications', 'products', 'quiz', 'users', 'tickets', 'analytics'
   const [products, setProducts] = useState([]);
   const [crmQuestions, setCrmQuestions] = useState([]);
   const [crmSelectedProduct, setCrmSelectedProduct] = useState(null);
@@ -3051,6 +3057,16 @@ export default function App() {
                       >
                         <Tag className="w-4 h-4" /> Промокоды ({crmPromoCodes.length})
                       </button>
+                      <button
+                        onClick={() => { setCrmActiveTab('analytics'); setCrmSelectedLead(null); }}
+                        className={`w-full text-left text-xs font-bold px-4 py-3 rounded-xl flex items-center gap-3 transition-all ${
+                          crmActiveTab === 'analytics' 
+                            ? 'bg-[#9FE870] text-black shadow-sm' 
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <BarChart2 className="w-4 h-4" /> Аналитика
+                      </button>
                     </div>
 
 
@@ -3517,8 +3533,260 @@ export default function App() {
                     </div>
                   )}
 
+                  {/* Analytics Tab */}
+                  {crmActiveTab === 'analytics' && (
+                    <div className="space-y-6 flex-grow flex flex-col">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                          <h3 className="text-2xl font-black text-gray-950">📊 Аналитика</h3>
+                          <p className="text-xs text-gray-400 mt-1">Основные метрики бизнеса и экспорт данных</p>
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                          <button
+                            onClick={() => {
+                              const rows = [['ID', 'Клиент', 'Telegram ID', 'Дата', 'Статус', 'О себе']];
+                              crmApplications.forEach(a => rows.push([a.id, `"${(a.full_name || '').replace(/"/g, '""')}"`, a.telegram_id || '', a.submitted_at?.split('T')[0] || '', a.status, `"${(a.about || '').replace(/"/g, '""').replace(/[\n\r]/g, ' ')}"`]));
+                              const csv = rows.map(r => r.join(',')).join('\n');
+                              const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url; a.download = `arriva_applications_${new Date().toISOString().slice(0,10)}.csv`;
+                              a.click(); URL.revokeObjectURL(url);
+                            }}
+                            className="flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl bg-gray-950 text-white hover:bg-gray-800 transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5" /> Экспорт заявок
+                          </button>
+                          <button
+                            onClick={() => {
+                              const rows = [['ID', 'Telegram ID', 'Username', 'Имя', 'Телефон', 'Email', 'Дата рождения', 'Дата регистрации']];
+                              crmUsers.forEach(u => rows.push([u.id, u.telegram_id || '', u.username || '', `"${(u.first_name || '').replace(/"/g, '""')}"`, u.phone || '', u.email || '', u.birth_date || '', u.registered_at?.split('T')[0] || '']));
+                              const csv = rows.map(r => r.join(',')).join('\n');
+                              const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url; a.download = `arriva_users_${new Date().toISOString().slice(0,10)}.csv`;
+                              a.click(); URL.revokeObjectURL(url);
+                            }}
+                            className="flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                          >
+                            <FileSpreadsheet className="w-3.5 h-3.5" /> Экспорт пользователей
+                          </button>
+                          <button
+                            onClick={() => {
+                              const rows = [['ID', 'Telegram ID', 'Тариф', 'Цена ₽', 'Дата покупки', 'Статус']];
+                              crmPurchases.forEach(p => rows.push([p.id, p.telegram_id || '', `"${(p.program_name || '').replace(/"/g, '""')}"`, p.price || 0, p.paid_at?.split('T')[0] || '', p.status || '']));
+                              const csv = rows.map(r => r.join(',')).join('\n');
+                              const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url; a.download = `arriva_purchases_${new Date().toISOString().slice(0,10)}.csv`;
+                              a.click(); URL.revokeObjectURL(url);
+                            }}
+                            className="flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                          >
+                            <DollarSign className="w-3.5 h-3.5" /> Экспорт покупок
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* KPI Cards */}
+                      {(() => {
+                        const totalRevenue = crmPurchases.filter(p => p.status === 'approved').reduce((sum, p) => sum + (Number(p.price) || 0), 0);
+                        const pendingRevenue = crmPurchases.filter(p => p.status === 'pending' || p.status === 'awaiting_verification').reduce((sum, p) => sum + (Number(p.price) || 0), 0);
+                        const totalLeads = crmApplications.length;
+                        const approvedLeads = crmApplications.filter(a => a.status === 'approved').length;
+                        const conversionRate = totalLeads > 0 ? ((approvedLeads / totalLeads) * 100).toFixed(1) : '0.0';
+                        const totalUsers = crmUsers.length;
+                        const totalPurchases = crmPurchases.length;
+                        const avgCheck = totalPurchases > 0 ? Math.round(crmPurchases.reduce((s, p) => s + (Number(p.price) || 0), 0) / totalPurchases) : 0;
+
+                        // Tariff popularity
+                        const tariffMap = {};
+                        crmPurchases.forEach(p => {
+                          const name = p.program_name || 'Неизвестно';
+                          tariffMap[name] = (tariffMap[name] || 0) + 1;
+                        });
+                        const tariffEntries = Object.entries(tariffMap).sort((a, b) => b[1] - a[1]);
+                        const maxTariffCount = tariffEntries.length > 0 ? tariffEntries[0][1] : 1;
+
+                        // Status distribution
+                        const statusCounts = {
+                          pending: crmApplications.filter(a => a.status === 'pending').length,
+                          approved: crmApplications.filter(a => a.status === 'approved').length,
+                          rejected: crmApplications.filter(a => a.status === 'rejected').length,
+                          awaiting: crmApplications.filter(a => a.status === 'awaiting_verification').length
+                        };
+
+                        // Monthly trend (last 6 months)
+                        const monthNames = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+                        const monthlyData = [];
+                        for (let i = 5; i >= 0; i--) {
+                          const d = new Date();
+                          d.setMonth(d.getMonth() - i);
+                          const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                          const monthApps = crmApplications.filter(a => (a.submitted_at || '').startsWith(monthKey)).length;
+                          const monthRev = crmPurchases.filter(p => (p.paid_at || '').startsWith(monthKey) && p.status === 'approved').reduce((s, p) => s + (Number(p.price) || 0), 0);
+                          monthlyData.push({ label: monthNames[d.getMonth()], apps: monthApps, revenue: monthRev });
+                        }
+                        const maxApps = Math.max(...monthlyData.map(m => m.apps), 1);
+                        const maxRev = Math.max(...monthlyData.map(m => m.revenue), 1);
+
+                        return (
+                          <>
+                            {/* Top KPI Row */}
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                              <div className="bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-100 rounded-2xl p-5 space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center">
+                                    <DollarSign className="w-4 h-4 text-white" />
+                                  </div>
+                                  <span className="text-[10px] font-bold text-emerald-600 uppercase">Выручка</span>
+                                </div>
+                                <div className="text-2xl font-black text-gray-950">{totalRevenue.toLocaleString('ru-RU')} ₽</div>
+                                <div className="text-[10px] text-emerald-600 font-semibold">Ожидается: {pendingRevenue.toLocaleString('ru-RU')} ₽</div>
+                              </div>
+
+                              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-5 space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-8 h-8 bg-blue-500 rounded-xl flex items-center justify-center">
+                                    <TrendingUp className="w-4 h-4 text-white" />
+                                  </div>
+                                  <span className="text-[10px] font-bold text-blue-600 uppercase">Конверсия</span>
+                                </div>
+                                <div className="text-2xl font-black text-gray-950">{conversionRate}%</div>
+                                <div className="text-[10px] text-blue-600 font-semibold">{approvedLeads} из {totalLeads} заявок</div>
+                              </div>
+
+                              <div className="bg-gradient-to-br from-purple-50 to-fuchsia-50 border border-purple-100 rounded-2xl p-5 space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-8 h-8 bg-purple-500 rounded-xl flex items-center justify-center">
+                                    <Users className="w-4 h-4 text-white" />
+                                  </div>
+                                  <span className="text-[10px] font-bold text-purple-600 uppercase">Пользователи</span>
+                                </div>
+                                <div className="text-2xl font-black text-gray-950">{totalUsers}</div>
+                                <div className="text-[10px] text-purple-600 font-semibold">Покупок: {totalPurchases}</div>
+                              </div>
+
+                              <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 rounded-2xl p-5 space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-8 h-8 bg-amber-500 rounded-xl flex items-center justify-center">
+                                    <BarChart2 className="w-4 h-4 text-white" />
+                                  </div>
+                                  <span className="text-[10px] font-bold text-amber-600 uppercase">Средний чек</span>
+                                </div>
+                                <div className="text-2xl font-black text-gray-950">{avgCheck.toLocaleString('ru-RU')} ₽</div>
+                                <div className="text-[10px] text-amber-600 font-semibold">На основе {totalPurchases} покупок</div>
+                              </div>
+                            </div>
+
+                            {/* Charts Row */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              {/* Tariff Popularity */}
+                              <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                                <div className="flex items-center gap-2 mb-5">
+                                  <PieChart className="w-4 h-4 text-gray-400" />
+                                  <h4 className="text-sm font-black text-gray-950">Популярность тарифов</h4>
+                                </div>
+                                {tariffEntries.length === 0 ? (
+                                  <div className="text-xs text-gray-400 py-8 text-center">Нет данных о покупках</div>
+                                ) : (
+                                  <div className="space-y-3">
+                                    {tariffEntries.map(([name, count], idx) => {
+                                      const pct = ((count / crmPurchases.length) * 100).toFixed(0);
+                                      const colors = ['bg-emerald-500', 'bg-blue-500', 'bg-purple-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500'];
+                                      return (
+                                        <div key={name} className="space-y-1.5">
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-xs font-bold text-gray-700 truncate max-w-[180px]" title={name}>{name}</span>
+                                            <span className="text-xs font-black text-gray-950">{count} ({pct}%)</span>
+                                          </div>
+                                          <div className="w-full bg-gray-100 rounded-full h-2.5">
+                                            <div 
+                                              className={`h-2.5 rounded-full ${colors[idx % colors.length]} transition-all duration-700`}
+                                              style={{ width: `${(count / maxTariffCount) * 100}%` }}
+                                            />
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Status Distribution */}
+                              <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                                <div className="flex items-center gap-2 mb-5">
+                                  <Eye className="w-4 h-4 text-gray-400" />
+                                  <h4 className="text-sm font-black text-gray-950">Статусы заявок</h4>
+                                </div>
+                                <div className="space-y-3">
+                                  {[
+                                    { label: 'В обработке', count: statusCounts.pending, color: 'bg-yellow-400', bg: 'bg-yellow-50', text: 'text-yellow-700' },
+                                    { label: 'Одобрено', count: statusCounts.approved, color: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700' },
+                                    { label: 'Проверка оплаты', count: statusCounts.awaiting, color: 'bg-amber-500', bg: 'bg-amber-50', text: 'text-amber-700' },
+                                    { label: 'Отклонено', count: statusCounts.rejected, color: 'bg-red-400', bg: 'bg-red-50', text: 'text-red-700' }
+                                  ].map(s => (
+                                    <div key={s.label} className={`flex items-center justify-between px-4 py-3 rounded-xl ${s.bg}`}>
+                                      <div className="flex items-center gap-3">
+                                        <div className={`w-3 h-3 rounded-full ${s.color}`} />
+                                        <span className={`text-xs font-bold ${s.text}`}>{s.label}</span>
+                                      </div>
+                                      <span className="text-sm font-black text-gray-950">{s.count}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Monthly Trend Chart */}
+                            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                              <div className="flex items-center gap-2 mb-5">
+                                <TrendingUp className="w-4 h-4 text-gray-400" />
+                                <h4 className="text-sm font-black text-gray-950">Динамика за 6 месяцев</h4>
+                              </div>
+                              <div className="flex items-end gap-3 h-40">
+                                {monthlyData.map((m, i) => (
+                                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                                    <div className="text-[9px] font-bold text-emerald-600">{m.revenue > 0 ? `${(m.revenue / 1000).toFixed(0)}к` : ''}</div>
+                                    <div className="w-full flex flex-col items-center gap-0.5" style={{ height: '100px' }}>
+                                      <div
+                                        className="w-full bg-emerald-400 rounded-t-lg transition-all duration-700 min-h-[2px]"
+                                        style={{ height: `${Math.max((m.revenue / maxRev) * 100, 2)}%` }}
+                                        title={`Выручка: ${m.revenue.toLocaleString('ru-RU')} ₽`}
+                                      />
+                                      <div
+                                        className="w-full bg-blue-400 rounded-t-lg transition-all duration-700 min-h-[2px]"
+                                        style={{ height: `${Math.max((m.apps / maxApps) * 100, 2)}%` }}
+                                        title={`Заявок: ${m.apps}`}
+                                      />
+                                    </div>
+                                    <div className="text-[9px] font-bold text-blue-600">{m.apps}</div>
+                                    <div className="text-[10px] font-bold text-gray-400">{m.label}</div>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex items-center gap-6 mt-4 justify-center">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded bg-emerald-400" />
+                                  <span className="text-[10px] font-bold text-gray-500">Выручка (₽)</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded bg-blue-400" />
+                                  <span className="text-[10px] font-bold text-gray-500">Заявки (шт)</span>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+
 
                   {/* Lead Detail Drawer */}
+
                   {crmSelectedLead && (
                     <div className="absolute inset-0 z-40 flex justify-end">
                       <div 
