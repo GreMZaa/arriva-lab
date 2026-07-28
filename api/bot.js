@@ -132,30 +132,15 @@ bot.command("start", async (ctx) => {
     console.error("Error saving user:", err);
   }
 
-  // Check if fully registered
-  if (userRow && userRow.full_name && userRow.phone && userRow.birth_date) {
-    const welcomeText = `👋 <b>Добро пожаловать в Arriva Lab, ${userRow.full_name}!</b>\n\n` +
-      `Я — Arriva, цифровой консультант лаборатории цифровых моделей.\n\n` +
-      `Я помогу подобрать образ под вашу цель или ознакомиться с нашими тарифами.`;
-    await sendMainMenu(ctx, welcomeText);
-    return;
-  }
+  const displayName = (userRow && (userRow.first_name || userRow.full_name)) || firstName || "Друг";
 
-  // Start mandatory registration flow
-  await supabase.from("user_states").upsert({
-    telegram_id: userId,
-    state: "reg_fio",
-    data: {},
-    updated_at: new Date()
-  }, { onConflict: "telegram_id" });
+  const welcomeText = `👋 <b>Добро пожаловать в Arriva Lab, ${escapeHtml(displayName)}!</b>\n\n` +
+    `Я — Arriva, цифровой консультант лаборатории виртуальных моделей.\n\n` +
+    `Я помогу подобрать образ под вашу цель, проверить статус в Личном Кабинете или ознакомиться с нашими тарифами.`;
 
-  const regText = `👋 <b>Добро пожаловать в Arriva Lab!</b>\n\n` +
-    `Для работы с платформой пройдите обязательную регистрацию.\n\n` +
-    `📝 <b>Шаг 1 из 3: Введите ваше ФИО</b>\n` +
-    `<i>(Например: Иванов Иван Иванович)</i>`;
-
-  await ctx.reply(regText, { parse_mode: "HTML" });
+  await sendMainMenu(ctx, welcomeText);
 });
+
 
 bot.command("menu", async (ctx) => {
   await sendMainMenu(ctx, "Выберите интересующий вас раздел:");
