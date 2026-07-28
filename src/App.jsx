@@ -377,7 +377,26 @@ export default function App() {
       }
     };
     loadCabinetData();
+
+    if (cabinetUser) {
+      // Realtime WebSocket subscriptions: auto update Cabinet status on CRM changes without F5
+      const unsubPurchases = db.subscribeToChanges('purchases', (payload) => {
+        if (!payload.new || payload.new.telegram_id === cabinetUser.telegram_id) {
+          loadCabinetData();
+        }
+      });
+      const unsubApps = db.subscribeToChanges('agency_applications', (payload) => {
+        if (!payload.new || payload.new.telegram_id === cabinetUser.telegram_id) {
+          loadCabinetData();
+        }
+      });
+      return () => {
+        unsubPurchases();
+        unsubApps();
+      };
+    }
   }, [cabinetUser]);
+
 
   const [profileNameInput, setProfileNameInput] = useState('');
   const [profilePhoneInput, setProfilePhoneInput] = useState('');
@@ -560,16 +579,31 @@ export default function App() {
   const [promoFormDesc, setPromoFormDesc] = useState('');
   const [promoFormLoading, setPromoFormLoading] = useState(false);
 
-  // Initialize CRM data + auto-refresh every 30 seconds
+  // Initialize CRM data + Realtime WebSocket subscriptions for instant updates without F5
   useEffect(() => {
     if (view === 'crm' && crmLoggedIn) {
       loadCrmData();
+
+      // Subscribe to all CRM tables via WebSockets for real-time live sync
+      const unsubApps = db.subscribeToChanges('agency_applications', () => loadCrmData());
+      const unsubPurchases = db.subscribeToChanges('purchases', () => loadCrmData());
+      const unsubUsers = db.subscribeToChanges('users', () => loadCrmData());
+      const unsubPromos = db.subscribeToChanges('promo_codes', () => loadCrmData());
+
       const interval = setInterval(() => {
         loadCrmData();
       }, 30000);
-      return () => clearInterval(interval);
+
+      return () => {
+        unsubApps();
+        unsubPurchases();
+        unsubUsers();
+        unsubPromos();
+        clearInterval(interval);
+      };
     }
   }, [view, crmLoggedIn]);
+
 
   // Load quiz questions and products on mount + Telegram WebApp Auto Expand
   useEffect(() => {
@@ -3083,9 +3117,13 @@ export default function App() {
                     <div className="space-y-2">
                       <span className="text-[10px] font-bold text-gray-500 uppercase block tracking-wider">База Данных</span>
                       <div className="text-sm font-semibold text-[#9FE870] bg-white/5 border border-white/10 px-3 py-2 rounded-xl flex justify-between items-center">
-                        <span>Supabase</span>
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-xs">Supabase Realtime</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] text-green-400 font-bold uppercase tracking-wider">WS Live</span>
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        </div>
                       </div>
+
                     </div>
                   </div>
 

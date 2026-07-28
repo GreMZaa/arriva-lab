@@ -808,8 +808,30 @@ export const db = {
       localStorage.setItem('arriva_promo_codes', JSON.stringify(filtered));
       return true;
     }
+  },
+
+  // Realtime WebSocket subscription helper
+  subscribeToChanges(tableName, callback) {
+    if (!isSupabaseConfigured || !supabase) return () => {};
+
+    const channelName = `realtime_${tableName}_${Math.random().toString(36).substring(2, 7)}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: tableName },
+        (payload) => {
+          callback(payload);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }
 };
+
 
 
 // Default products initial data for LocalStorage fallback
