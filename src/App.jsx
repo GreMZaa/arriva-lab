@@ -1576,7 +1576,7 @@ export default function App() {
         
         {/* VIEW 1: HOME PAGE */}
         {view === 'home' && (
-          <div className="animate-fade-in bg-[#0A0B10] text-white min-h-screen">
+          <div className="animate-fade-in bg-[#FAFAFC] text-gray-900 min-h-screen">
             {/* БЛОК 1: Главный экран (Hero Section) */}
             <CyberHero onApplyClick={() => {
               const el = document.getElementById('apply');

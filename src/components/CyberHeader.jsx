@@ -11,48 +11,48 @@ export const CyberHeader = ({
   setMobileMenuOpen 
 }) => {
   return (
-    <header className="sticky top-0 z-50 bg-[#08090D]/90 backdrop-blur-md border-b border-white/[0.07] text-white">
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 text-gray-900 transition-colors">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <div 
           className="flex items-center gap-3 cursor-pointer group" 
           onClick={() => { setView('home'); handleLogoClick(); }}
         >
-          <div className="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center font-bold text-white text-xs tracking-wider">
+          <div className="w-9 h-9 rounded-xl bg-gray-900 text-white flex items-center justify-center font-bold text-xs tracking-wider shadow-sm">
             AR
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold tracking-tight text-base text-white">ARRIVA</span>
-              <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400 border border-white/10">
+              <span className="font-bold tracking-tight text-base text-gray-900">ARRIVA</span>
+              <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
                 LAB
               </span>
             </div>
-            <span className="font-mono text-[9px] block text-neutral-400 tracking-wider uppercase">VTuber Agency</span>
+            <span className="font-mono text-[9px] block text-gray-400 tracking-wider uppercase">VTuber Agency</span>
           </div>
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-neutral-300">
-          <a href="#about" className="hover:text-white transition-colors" onClick={() => setView('home')}>О формате</a>
-          <a href="#partnership" className="hover:text-white transition-colors" onClick={() => setView('home')}>Партнерство</a>
-          <a href="#safety" className="hover:text-white transition-colors" onClick={() => setView('home')}>Анонимность</a>
-          <a href="#payouts" className="hover:text-white transition-colors" onClick={() => setView('home')}>Выплаты</a>
+        <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-gray-600">
+          <a href="#about" className="hover:text-black transition-colors" onClick={() => setView('home')}>О формате</a>
+          <a href="#partnership" className="hover:text-black transition-colors" onClick={() => setView('home')}>Партнерство</a>
+          <a href="#safety" className="hover:text-black transition-colors" onClick={() => setView('home')}>Анонимность</a>
+          <a href="#payouts" className="hover:text-black transition-colors" onClick={() => setView('home')}>Выплаты</a>
           
-          <span className="w-px h-3.5 bg-white/10"></span>
+          <span className="w-px h-3.5 bg-gray-200"></span>
           
           <button 
             onClick={() => setView('cabinet')} 
-            className={`hover:text-white transition-colors flex items-center gap-1.5 ${view === 'cabinet' ? 'text-white font-semibold' : ''}`}
+            className={`hover:text-black transition-colors flex items-center gap-1.5 ${view === 'cabinet' ? 'text-black font-bold' : ''}`}
           >
-            <Lock className="w-3.5 h-3.5 opacity-60" />
+            <Lock className="w-3.5 h-3.5 text-gray-400" />
             {cabinetUser ? 'Кабинет' : 'Войти'}
           </button>
           
           {isAdminMode && (
             <button 
               onClick={() => setView('crm')} 
-              className={`hover:text-[#9FE870] transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.05] border border-white/10 text-neutral-300 ${view === 'crm' ? 'text-[#9FE870] border-[#9FE870]/30' : ''}`}
+              className={`hover:text-black transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-gray-700 ${view === 'crm' ? 'bg-gray-900 text-white border-gray-900' : ''}`}
             >
               <Shield className="w-3.5 h-3.5" /> CRM
             </button>
@@ -61,7 +61,7 @@ export const CyberHeader = ({
           <a 
             href="#apply" 
             onClick={() => setView('home')}
-            className="px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider bg-[#9FE870] hover:bg-[#b0f283] text-[#090A0E] transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+            className="px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider bg-gray-900 hover:bg-black text-white transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] shadow-sm"
           >
             Заполнить анкету
           </a>
@@ -70,7 +70,7 @@ export const CyberHeader = ({
         {/* Mobile Menu Button */}
         <button 
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2 rounded-lg text-neutral-300 hover:text-white bg-white/[0.04] border border-white/10"
+          className="md:hidden p-2 rounded-lg text-gray-700 hover:text-black bg-gray-100 border border-gray-200"
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -78,46 +78,46 @@ export const CyberHeader = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#090A0E] border-b border-white/10 px-6 py-6 space-y-4 text-left">
+        <div className="md:hidden bg-white border-b border-gray-200 px-6 py-6 space-y-4 text-left shadow-xl animate-fade-in">
           <a 
             href="#about" 
             onClick={() => { setView('home'); setMobileMenuOpen(false); }} 
-            className="block text-neutral-300 hover:text-white text-sm py-2 border-b border-white/5"
+            className="block text-gray-700 hover:text-black text-sm font-medium py-2 border-b border-gray-100"
           >
             О формате
           </a>
           <a 
             href="#partnership" 
             onClick={() => { setView('home'); setMobileMenuOpen(false); }} 
-            className="block text-neutral-300 hover:text-white text-sm py-2 border-b border-white/5"
+            className="block text-gray-700 hover:text-black text-sm font-medium py-2 border-b border-gray-100"
           >
             Партнерство (70/30)
           </a>
           <a 
             href="#safety" 
             onClick={() => { setView('home'); setMobileMenuOpen(false); }} 
-            className="block text-neutral-300 hover:text-white text-sm py-2 border-b border-white/5"
+            className="block text-gray-700 hover:text-black text-sm font-medium py-2 border-b border-gray-100"
           >
             Анонимность и документы
           </a>
           <a 
             href="#payouts" 
             onClick={() => { setView('home'); setMobileMenuOpen(false); }} 
-            className="block text-neutral-300 hover:text-white text-sm py-2 border-b border-white/5"
+            className="block text-gray-700 hover:text-black text-sm font-medium py-2 border-b border-gray-100"
           >
             Выплаты (USDT)
           </a>
           <div className="pt-2 flex flex-col gap-2.5">
             <button 
               onClick={() => { setView('cabinet'); setMobileMenuOpen(false); }} 
-              className="w-full py-2.5 rounded-lg bg-white/[0.04] border border-white/10 text-white font-medium text-center text-xs"
+              className="w-full py-2.5 rounded-lg bg-gray-100 border border-gray-200 text-gray-900 font-semibold text-center text-xs"
             >
               {cabinetUser ? 'Личный кабинет' : 'Вход в кабинет'}
             </button>
             {isAdminMode && (
               <button 
                 onClick={() => { setView('crm'); setMobileMenuOpen(false); }} 
-                className="w-full py-2.5 rounded-lg bg-white/[0.04] border border-white/10 text-neutral-300 font-medium text-center text-xs"
+                className="w-full py-2.5 rounded-lg bg-gray-100 border border-gray-200 text-gray-700 font-semibold text-center text-xs"
               >
                 Панель CRM
               </button>
@@ -125,7 +125,7 @@ export const CyberHeader = ({
             <a 
               href="#apply" 
               onClick={() => { setView('home'); setMobileMenuOpen(false); }} 
-              className="w-full py-3 rounded-lg bg-[#9FE870] text-[#090A0E] font-bold text-center text-xs uppercase tracking-wider"
+              className="w-full py-3 rounded-lg bg-gray-900 text-white font-bold text-center text-xs uppercase tracking-wider"
             >
               Заполнить анкету
             </a>
