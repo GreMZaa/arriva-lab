@@ -1,90 +1,84 @@
 import React from 'react';
-import { Bot, HeartHandshake, Eye, Sparkles, Terminal, Gift } from 'lucide-react';
+import { UserCheck, Sparkles } from 'lucide-react';
 
 export const CyberInfoBento = () => {
   return (
-    <section id="about" className="py-24 bg-[#0D0E15] border-b border-white/5 relative">
+    <section id="about" className="py-24 bg-[#0C0D12] border-b border-white/[0.07] relative text-left">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <span className="font-mono text-xs text-cyan-400 uppercase tracking-widest bg-cyan-950/50 border border-cyan-500/30 px-3 py-1 rounded-full">
-            Информация о формате
+          <span className="font-mono text-xs text-neutral-400 uppercase tracking-widest bg-white/[0.04] border border-white/10 px-3 py-1 rounded-full">
+            Специфика индустрии
           </span>
-          <h2 className="text-white text-3xl sm:text-4xl font-black tracking-tight">
-            Новая индустрия интерактивного стриминга
+          <h2 className="text-white text-3xl sm:text-4xl font-bold tracking-tight">
+            Формат и механика монетизации
           </h2>
-          <p className="text-gray-400 text-base">
-            Почему виртуальные аватары обходят классический стриминг по вовлеченности и донатам.
+          <p className="text-neutral-400 text-base">
+            Почему виртуальные стримеры удерживают внимание выше классических авторов.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
           {/* Блок 2. Кто такой витубер (Левая колонка) */}
-          <div className="relative rounded-3xl p-8 sm:p-10 bg-[#12141F] border border-white/10 hover:border-cyan-500/40 transition-all flex flex-col justify-between text-left group overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-500/10 transition-colors"></div>
-            
-            <div className="space-y-6 relative z-10">
+          <div className="rounded-2xl p-8 sm:p-10 bg-[#12141A] border border-white/[0.08] hover:border-white/20 transition-colors flex flex-col justify-between">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                  <Bot className="w-7 h-7" />
-                </div>
-                <span className="font-mono text-xs text-gray-500 uppercase tracking-wider bg-white/5 px-3 py-1 rounded-full">
-                  Блок 01 // Формат
+                <span className="font-mono text-xs text-neutral-400 uppercase tracking-wider bg-white/[0.04] px-3 py-1 rounded-md border border-white/5">
+                  Блок 01 // Определение
                 </span>
+                <span className="w-2 h-2 rounded-full bg-[#9FE870]"></span>
               </div>
 
-              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                 Кто такой витубер
               </h3>
 
-              <div className="space-y-4 text-gray-300 text-base sm:text-lg leading-relaxed">
+              <div className="space-y-4 text-neutral-300 text-base sm:text-lg leading-relaxed font-normal">
                 <p>
-                  <strong className="text-cyan-400 font-semibold">Виртуальный стример.</strong> Человек управляет трехмерным аватаром через камеру смартфона или обычную вебку. Модель считывает мимику лица в реальном времени.
+                  <strong className="text-white font-semibold">Виртуальный стример.</strong> Человек управляет трехмерным аватаром через камеру смартфона или обычную вебку. Модель считывает мимику лица в реальном времени.
                 </p>
-                <p>
+                <p className="text-neutral-400">
                   Ты можешь быть дерзким кибер-андроидом или готической куклой. Образ берет внимание на себя. Зрители видят живую харизму, но твоя личность скрыта броней кода.
                 </p>
               </div>
             </div>
 
-            <div className="pt-8 mt-8 border-t border-white/5 flex flex-wrap gap-2 text-xs font-mono text-gray-400">
-              <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-cyan-300">#FaceTracking</span>
-              <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-purple-300">#3DAvatar</span>
-              <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-emerald-300">#Anonymity</span>
+            <div className="pt-8 mt-8 border-t border-white/[0.06] flex items-center gap-3 text-xs font-mono text-neutral-400">
+              <span className="text-neutral-400">Технологии:</span>
+              <span className="text-neutral-300">Live2D / VRM 3D</span>
+              <span className="text-neutral-500">•</span>
+              <span className="text-neutral-300">ARKit Motion</span>
             </div>
           </div>
 
           {/* Блок 3. Почему зрители платят за это (Правая колонка) */}
-          <div className="relative rounded-3xl p-8 sm:p-10 bg-[#12141F] border border-white/10 hover:border-purple-500/40 transition-all flex flex-col justify-between text-left group overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-purple-500/10 transition-colors"></div>
-
-            <div className="space-y-6 relative z-10">
+          <div className="rounded-2xl p-8 sm:p-10 bg-[#12141A] border border-white/[0.08] hover:border-white/20 transition-colors flex flex-col justify-between">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                  <Gift className="w-7 h-7" />
-                </div>
-                <span className="font-mono text-xs text-gray-500 uppercase tracking-wider bg-white/5 px-3 py-1 rounded-full">
-                  Блок 02 // Экономика
+                <span className="font-mono text-xs text-neutral-400 uppercase tracking-wider bg-white/[0.04] px-3 py-1 rounded-md border border-white/5">
+                  Блок 02 // Экономика эмоций
                 </span>
+                <span className="w-2 h-2 rounded-full bg-white"></span>
               </div>
 
-              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                 Почему зрители платят за это
               </h3>
 
-              <div className="space-y-4 text-gray-300 text-base sm:text-lg leading-relaxed">
+              <div className="space-y-4 text-neutral-300 text-base sm:text-lg leading-relaxed font-normal">
                 <p>
-                  <strong className="text-purple-400 font-semibold">Люди платят за эмоции.</strong> На западном рынке виртуальный стример воспринимается как персонаж ожившего аниме или интерактивного кино.
+                  <strong className="text-white font-semibold">Люди платят за эмоции.</strong> На западном рынке виртуальный стример воспринимается как персонаж ожившего аниме или интерактивного кино.
                 </p>
-                <p>
+                <p className="text-neutral-400">
                   Зрители донатят за живой отклик: крик испуга в хорроре, колкий сарказм, забавный голосовой глитч или брошенный прямо в лицо аватарки интерактивный предмет. Это шоу, где донатер становится участником событий.
                 </p>
               </div>
             </div>
 
-            <div className="pt-8 mt-8 border-t border-white/5 flex flex-wrap gap-2 text-xs font-mono text-gray-400">
-              <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-purple-300">#InteractiveDonations</span>
-              <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-pink-300">#EmotionalConnection</span>
-              <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-cyan-300">#TwitchFansly</span>
+            <div className="pt-8 mt-8 border-t border-white/[0.06] flex items-center gap-3 text-xs font-mono text-neutral-400">
+              <span className="text-neutral-400">Монетизация:</span>
+              <span className="text-neutral-300">Direct Donations</span>
+              <span className="text-neutral-500">•</span>
+              <span className="text-neutral-300">Fansly & Twitch</span>
             </div>
           </div>
         </div>

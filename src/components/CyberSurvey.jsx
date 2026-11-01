@@ -1,19 +1,10 @@
 import React, { useState } from 'react';
 import { 
-  Sparkles, 
   Send, 
   CheckCircle2, 
-  Gamepad2, 
-  Flame, 
-  ShieldAlert, 
-  Cpu, 
-  Globe, 
-  MessageSquare, 
   ArrowRight, 
   ArrowLeft,
-  Lock,
-  ChevronRight,
-  Info
+  ShieldAlert
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -149,8 +140,8 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
       });
 
       confetti({
-        particleCount: 80,
-        spread: 70,
+        particleCount: 50,
+        spread: 60,
         origin: { y: 0.6 }
       });
 
@@ -164,70 +155,68 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
   };
 
   return (
-    <section id="apply" className="py-24 bg-[#0A0B10] border-t border-white/5 relative">
+    <section id="apply" className="py-24 bg-[#090A0E] border-t border-white/[0.07] relative text-left">
       <div className="max-w-4xl mx-auto px-6">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-12 space-y-4">
-          <span className="font-mono text-xs text-cyan-400 uppercase tracking-widest bg-cyan-950/50 border border-cyan-500/30 px-3 py-1 rounded-full">
-            Анкета на продюсирование
+        <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+          <span className="font-mono text-xs text-neutral-400 uppercase tracking-widest bg-white/[0.04] border border-white/10 px-3 py-1 rounded-full">
+            Отборочный пул
           </span>
-          <h2 className="text-white text-3xl sm:text-5xl font-black tracking-tight">
-            Подай заявку в команду
+          <h2 className="text-white text-3xl sm:text-5xl font-bold tracking-tight">
+            Подать анкету в агентство
           </h2>
-          <p className="text-gray-400 text-base">
-            Выберите желаемое направление работы. Мы внимательно изучаем каждый ответ для подбора оптимального 3D-образа и софта.
+          <p className="text-neutral-400 text-base">
+            Выберите направление. Мы внимательно изучаем каждый ответ перед персональным контактом.
           </p>
         </div>
 
         {/* Direction Switcher Tabs */}
         {!isSuccess && (
-          <div className="flex flex-col sm:flex-row p-1.5 rounded-2xl bg-[#12141F] border border-white/10 mb-10 gap-2">
+          <div className="flex p-1.5 rounded-xl bg-[#12141A] border border-white/[0.08] mb-10 gap-2">
             <button
               type="button"
               onClick={() => { setActiveTab('standard'); setStep(1); }}
-              className={`flex-1 py-3.5 px-5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2.5 ${
+              className={`flex-1 py-3 px-4 rounded-lg font-semibold text-xs tracking-wide transition-all ${
                 activeTab === 'standard'
-                  ? 'bg-gradient-to-r from-cyan-400 to-blue-600 text-black shadow-[0_0_20px_rgba(0,240,255,0.3)]'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-[#9FE870] text-[#090A0E] shadow-sm'
+                  : 'text-neutral-400 hover:text-white hover:bg-white/[0.03]'
               }`}
             >
-              <Gamepad2 className="w-4 h-4" />
-              <span>Обычный витубинг (Игры, общение)</span>
+              Обычный витубинг (Игры, шоу)
             </button>
 
             <button
               type="button"
               onClick={() => { setActiveTab('adult'); setStep(1); }}
-              className={`flex-1 py-3.5 px-5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2.5 ${
+              className={`flex-1 py-3 px-4 rounded-lg font-semibold text-xs tracking-wide transition-all ${
                 activeTab === 'adult'
-                  ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-[0_0_20px_rgba(236,72,153,0.3)]'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-rose-600 text-white shadow-sm'
+                  : 'text-neutral-400 hover:text-white hover:bg-white/[0.03]'
               }`}
             >
-              <Flame className="w-4 h-4 text-pink-400" />
-              <span>Взрослый сегмент 18+ (Fansly, ролеплей)</span>
+              Взрослый сегмент 18+ (Fansly)
             </button>
           </div>
         )}
 
         {/* Success Screen */}
         {isSuccess ? (
-          <div className="rounded-3xl p-8 sm:p-12 bg-[#12141F] border border-cyan-500/40 text-center space-y-6 shadow-[0_0_40px_rgba(0,240,255,0.15)] animate-fade-in">
-            <div className="w-20 h-20 rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(0,240,255,0.4)]">
-              <CheckCircle2 className="w-10 h-10" />
+          <div className="rounded-2xl p-8 sm:p-12 bg-[#12141A] border border-white/[0.08] text-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-[#9FE870]/10 border border-[#9FE870]/20 text-[#9FE870] flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-8 h-8" />
             </div>
 
             <div className="space-y-2">
-              <span className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-widest">Заявка #{applicationId} принята</span>
-              <h3 className="text-2xl sm:text-3xl font-black text-white">Добро пожаловать в отборочный пул!</h3>
-              <p className="text-gray-300 max-w-lg mx-auto text-sm leading-relaxed">
-                Твоя анкета успешно поступила кураторам агентства ARRIVA. Мы свяжемся с тобой в Telegram в течение 24 часов для согласования концепта и первичного собеседования.
+              <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Заявка #{applicationId} принята</span>
+              <h3 className="text-2xl sm:text-3xl font-bold text-white">Анкета успешно отправлена</h3>
+              <p className="text-neutral-300 max-w-lg mx-auto text-sm leading-relaxed">
+                Куратор агентства свяжется с вами в Telegram в течение 24 часов для обсуждения концепта персонажа и деталей сотрудничества.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 max-w-md mx-auto text-xs text-gray-400 font-mono">
-              Пожалуйста, держи личные сообщения в Telegram открытыми.
+            <div className="p-4 rounded-xl bg-black/40 border border-white/5 max-w-md mx-auto text-xs text-neutral-400 font-mono">
+              Пожалуйста, убедитесь, что ваш Telegram открыт для входящих сообщений.
             </div>
 
             <button
@@ -235,36 +224,36 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                 setIsSuccess(false);
                 setStep(1);
               }}
-              className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs tracking-wider uppercase transition-colors"
+              className="px-6 py-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-neutral-300 text-xs font-mono uppercase tracking-wider transition-colors"
             >
-              Отправить ещё одну заявку
+              Заполнить ещё одну анкету
             </button>
           </div>
         ) : (
           /* Multi-Step Application Form */
-          <form onSubmit={handleSubmit} className="rounded-3xl p-6 sm:p-10 bg-[#12141F] border border-white/10 text-left relative shadow-2xl">
+          <form onSubmit={handleSubmit} className="rounded-2xl p-6 sm:p-10 bg-[#12141A] border border-white/[0.08]">
             {/* Step Progress Header */}
-            <div className="mb-8 pb-6 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="mb-8 pb-6 border-b border-white/[0.06] flex items-center justify-between">
               <div>
-                <span className="font-mono text-xs text-cyan-400 uppercase tracking-widest block mb-1">
-                  {activeTab === 'standard' ? 'Анкета: Классический стриминг' : 'Анкета: Взрослый сегмент 18+'}
+                <span className="font-mono text-xs text-neutral-400 uppercase tracking-wider block mb-1">
+                  Шаг {step} из 3
                 </span>
-                <h3 className="text-xl font-bold text-white">
-                  {step === 1 && 'Шаг 1: Контакты и техническая база'}
-                  {step === 2 && (activeTab === 'standard' ? 'Шаг 2: Голос, образ и характер' : 'Шаг 2: Границы, архетип и раскрепощенность')}
-                  {step === 3 && 'Шаг 3: Психология, реакции и готовность'}
+                <h3 className="text-lg font-bold text-white">
+                  {step === 1 && 'Контакты и конфигурация ПК'}
+                  {step === 2 && (activeTab === 'standard' ? 'Голос, характер и юмор' : 'Границы, ролевой формат и опыт')}
+                  {step === 3 && 'Психология и формат работы'}
                 </h3>
               </div>
 
-              {/* Progress Dots */}
-              <div className="flex items-center gap-2">
+              {/* Minimal Line Stepper */}
+              <div className="flex items-center gap-1.5">
                 {[1, 2, 3].map((s) => (
                   <div
                     key={s}
-                    className={`w-8 h-2 rounded-full transition-all ${
+                    className={`h-1.5 rounded-full transition-all ${
                       step === s 
-                        ? (activeTab === 'standard' ? 'bg-cyan-400 w-10' : 'bg-pink-500 w-10') 
-                        : (step > s ? 'bg-white/40' : 'bg-white/10')
+                        ? (activeTab === 'standard' ? 'bg-[#9FE870] w-8' : 'bg-rose-500 w-8') 
+                        : (step > s ? 'bg-white/40 w-4' : 'bg-white/10 w-4')
                     }`}
                   ></div>
                 ))}
@@ -278,10 +267,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
               <div className="space-y-6">
                 {/* STEP 1 */}
                 {step === 1 && (
-                  <div className="space-y-6 animate-fade-in">
+                  <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                        <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                           1. Никнейм в Telegram для связи *
                         </label>
                         <input
@@ -290,12 +279,12 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                           value={stdForm.telegram}
                           onChange={(e) => handleStdChange('telegram', e.target.value)}
                           placeholder="@username"
-                          className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none transition-colors"
+                          className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#9FE870] focus:outline-none transition-colors"
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                        <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                           2. Страна и город проживания *
                         </label>
                         <input
@@ -303,15 +292,15 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                           required
                           value={stdForm.countryCity}
                           onChange={(e) => handleStdChange('countryCity', e.target.value)}
-                          placeholder="Например: Россия, Москва"
-                          className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none transition-colors"
+                          placeholder="Россия, Москва"
+                          className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#9FE870] focus:outline-none transition-colors"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                        <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                           3. Полных лет *
                         </label>
                         <input
@@ -322,18 +311,18 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                           value={stdForm.age}
                           onChange={(e) => handleStdChange('age', e.target.value)}
                           placeholder="18"
-                          className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none transition-colors"
+                          className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#9FE870] focus:outline-none transition-colors"
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                        <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                           5. Готовность предоставить паспорт для верификации *
                         </label>
                         <select
                           value={stdForm.passportReady}
                           onChange={(e) => handleStdChange('passportReady', e.target.value)}
-                          className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white focus:border-cyan-400 focus:outline-none transition-colors"
+                          className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#9FE870] focus:outline-none transition-colors"
                         >
                           <option value="Да">Да, готов</option>
                           <option value="Нет">Нет, не готов</option>
@@ -342,7 +331,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         4. Параметры компьютера: видеокарта, процессор, микрофон *
                       </label>
                       <input
@@ -350,13 +339,13 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                         required
                         value={stdForm.pcSpecs}
                         onChange={(e) => handleStdChange('pcSpecs', e.target.value)}
-                        placeholder="RTX 3060, i5-12400, микрофон Fifine / HyperX"
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none transition-colors"
+                        placeholder="RTX 3060, i5-12400, микрофон Fifine / Shure"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#9FE870] focus:outline-none transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         6. Опыт работы с криптовалютными кошельками (USDT) *
                       </label>
                       <div className="grid grid-cols-3 gap-3">
@@ -365,10 +354,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                             key={opt}
                             type="button"
                             onClick={() => handleStdChange('cryptoExperience', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
+                            className={`py-3 px-3 rounded-xl border text-xs font-medium text-center transition-all ${
                               stdForm.cryptoExperience === opt
-                                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                                ? 'bg-white/10 border-white text-white'
+                                : 'bg-[#090A0E] border-white/10 text-neutral-400 hover:text-white'
                             }`}
                           >
                             {opt}
@@ -381,9 +370,9 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
 
                 {/* STEP 2 */}
                 {step === 2 && (
-                  <div className="space-y-6 animate-fade-in">
+                  <div className="space-y-6">
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         7. Реальный уровень разговорного английского
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -396,10 +385,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                             key={opt}
                             type="button"
                             onClick={() => handleStdChange('englishLevel', opt)}
-                            className={`py-3 px-4 rounded-xl border text-xs font-semibold text-left transition-all ${
+                            className={`py-3 px-4 rounded-xl border text-xs font-medium text-left transition-all ${
                               stdForm.englishLevel === opt
-                                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                                ? 'bg-white/10 border-white text-white'
+                                : 'bg-[#090A0E] border-white/10 text-neutral-400 hover:text-white'
                             }`}
                           >
                             {opt}
@@ -409,20 +398,20 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         8. Твой тембр и манера речи
                       </label>
                       <input
                         type="text"
                         value={stdForm.voiceTimbre}
                         onChange={(e) => handleStdChange('voiceTimbre', e.target.value)}
-                        placeholder="Голос звонкий, низкий, с хрипотцой, тараторишь или говоришь медленно?"
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none transition-colors"
+                        placeholder="Звонкий, низкий, с хрипотцой, тараторишь или говоришь размеренно?"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#9FE870] focus:outline-none transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         9. Твое амплуа в компании друзей
                       </label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -431,10 +420,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                             key={opt}
                             type="button"
                             onClick={() => handleStdChange('roleInFriends', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
+                            className={`py-3 px-3 rounded-xl border text-xs font-medium text-center transition-all ${
                               stdForm.roleInFriends === opt
-                                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                                ? 'bg-white/10 border-white text-white'
+                                : 'bg-[#090A0E] border-white/10 text-neutral-400 hover:text-white'
                             }`}
                           >
                             {opt}
@@ -444,7 +433,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         10. Твоя главная странность или слабость, над которой обычно смеются близкие
                       </label>
                       <input
@@ -452,12 +441,12 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                         value={stdForm.quirkOrWeakness}
                         onChange={(e) => handleStdChange('quirkOrWeakness', e.target.value)}
                         placeholder="Опиши коротко..."
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none transition-colors"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#9FE870] focus:outline-none transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         11. Что способно мгновенно вывести тебя из равновесия
                       </label>
                       <input
@@ -465,12 +454,12 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                         value={stdForm.triggers}
                         onChange={(e) => handleStdChange('triggers', e.target.value)}
                         placeholder="Тупость, медлительность, наглая ложь или критика?"
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none transition-colors"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#9FE870] focus:outline-none transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         12. Если чат замолчит на 10 минут, какую тему ты начнешь обсуждать вслух с самим собой?
                       </label>
                       <textarea
@@ -478,7 +467,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                         value={stdForm.silentChatTopic}
                         onChange={(e) => handleStdChange('silentChatTopic', e.target.value)}
                         placeholder="О чем будешь рассуждать перед микрофоном..."
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none transition-colors"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#9FE870] focus:outline-none transition-colors"
                       ></textarea>
                     </div>
                   </div>
@@ -486,9 +475,9 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
 
                 {/* STEP 3 */}
                 {step === 3 && (
-                  <div className="space-y-6 animate-fade-in">
+                  <div className="space-y-6">
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         13. Любимые игровые вселенные и жанры
                       </label>
                       <input
@@ -496,12 +485,12 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                         value={stdForm.favoriteGenres}
                         onChange={(e) => handleStdChange('favoriteGenres', e.target.value)}
                         placeholder="Киберпанк, темное фэнтези, пиксельные инди или соревновательные шутеры"
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none transition-colors"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#9FE870] focus:outline-none transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         14. Как реагируешь на открытый хейт в комментариях
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -510,10 +499,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                             key={opt}
                             type="button"
                             onClick={() => handleStdChange('hateReaction', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
+                            className={`py-3 px-3 rounded-xl border text-xs font-medium text-center transition-all ${
                               stdForm.hateReaction === opt
-                                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                                ? 'bg-white/10 border-white text-white'
+                                : 'bg-[#090A0E] border-white/10 text-neutral-400 hover:text-white'
                             }`}
                           >
                             {opt}
@@ -523,7 +512,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         15. Какая виртуальная оболочка тебе ближе всего
                       </label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -537,10 +526,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                             key={opt}
                             type="button"
                             onClick={() => handleStdChange('preferredAvatar', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
+                            className={`py-3 px-3 rounded-xl border text-xs font-medium text-center transition-all ${
                               stdForm.preferredAvatar === opt
-                                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                                ? 'bg-white/10 border-white text-white'
+                                : 'bg-[#090A0E] border-white/10 text-neutral-400 hover:text-white'
                             }`}
                           >
                             {opt}
@@ -551,13 +540,13 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                        <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                           16. Способность громко орать, визжать и выдавать гипертрофированные реакции
                         </label>
                         <select
                           value={stdForm.screamAbility}
                           onChange={(e) => handleStdChange('screamAbility', e.target.value)}
-                          className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white focus:border-cyan-400 focus:outline-none transition-colors"
+                          className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#9FE870] focus:outline-none transition-colors"
                         >
                           <option value="Да, легко по щелчку пальцев">Да, легко по щелчку пальцев</option>
                           <option value="Умеренно, нужно разогреться">Умеренно, нужно разогреться</option>
@@ -566,7 +555,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                       </div>
 
                       <div>
-                        <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                        <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                           17. Сколько часов в неделю готов работать у микрофона?
                         </label>
                         <input
@@ -574,13 +563,13 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                           value={stdForm.hoursPerWeek}
                           onChange={(e) => handleStdChange('hoursPerWeek', e.target.value)}
                           placeholder="Например: 15-20 часов"
-                          className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-cyan-400 focus:outline-none transition-colors"
+                          className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#9FE870] focus:outline-none transition-colors"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         18. Твоя скрытая цель в проекте
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -593,10 +582,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                             key={opt}
                             type="button"
                             onClick={() => handleStdChange('hiddenGoal', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
+                            className={`py-3 px-3 rounded-xl border text-xs font-medium text-center transition-all ${
                               stdForm.hiddenGoal === opt
-                                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                                ? 'bg-white/10 border-white text-white'
+                                : 'bg-[#090A0E] border-white/10 text-neutral-400 hover:text-white'
                             }`}
                           >
                             {opt}
@@ -614,18 +603,17 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
             {/* ============================================================== */}
             {activeTab === 'adult' && (
               <div className="space-y-6">
-                {/* 18+ Disclaimer Banner */}
-                <div className="p-4 rounded-xl bg-pink-950/40 border border-pink-500/30 flex items-center gap-3 text-xs text-pink-200">
-                  <ShieldAlert className="w-5 h-5 text-pink-400 shrink-0" />
-                  <span>Строго от 18 лет. Вопросы выявляют готовность к эротическому контенту, личные табу и психологические границы.</span>
+                <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-500/20 flex items-center gap-3 text-xs text-rose-200">
+                  <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0" />
+                  <span>Строго от 18 лет. Анкета определяет личные табу, психологические границы и формат взаимодействия со взрослой аудиторией.</span>
                 </div>
 
                 {/* STEP 1 */}
                 {step === 1 && (
-                  <div className="space-y-6 animate-fade-in">
+                  <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                        <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                           1. Никнейм в Telegram для связи *
                         </label>
                         <input
@@ -634,12 +622,12 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                           value={adultForm.telegram}
                           onChange={(e) => handleAdultChange('telegram', e.target.value)}
                           placeholder="@username"
-                          className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-pink-500 focus:outline-none transition-colors"
+                          className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-rose-400 focus:outline-none transition-colors"
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                        <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                           2. Страна проживания и часовой пояс (UTC) *
                         </label>
                         <input
@@ -648,14 +636,14 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                           value={adultForm.countryTimezone}
                           onChange={(e) => handleAdultChange('countryTimezone', e.target.value)}
                           placeholder="Россия, Москва (UTC+3)"
-                          className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-pink-500 focus:outline-none transition-colors"
+                          className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-rose-400 focus:outline-none transition-colors"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                        <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                           3. Твой реальный возраст (Строго от 18 лет) *
                         </label>
                         <input
@@ -666,18 +654,18 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                           value={adultForm.age}
                           onChange={(e) => handleAdultChange('age', e.target.value)}
                           placeholder="18+"
-                          className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-pink-500 focus:outline-none transition-colors"
+                          className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-rose-400 focus:outline-none transition-colors"
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                        <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                           5. Загранпаспорт или внутренний паспорт для верификации *
                         </label>
                         <select
                           value={adultForm.passportVerified}
                           onChange={(e) => handleAdultChange('passportVerified', e.target.value)}
-                          className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white focus:border-pink-500 focus:outline-none transition-colors"
+                          className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-rose-400 focus:outline-none transition-colors"
                         >
                           <option value="Да">Да, есть в наличии</option>
                           <option value="Нет">Нет в наличии</option>
@@ -686,7 +674,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         4. Технические характеристики ПК: видеокарта, процессор, микрофон *
                       </label>
                       <input
@@ -695,20 +683,20 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                         value={adultForm.pcSpecs}
                         onChange={(e) => handleAdultChange('pcSpecs', e.target.value)}
                         placeholder="Видеокарта, процессор, модель микрофона"
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-pink-500 focus:outline-none transition-colors"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-rose-400 focus:outline-none transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         6. Опыт приема выплат в криптовалюте (USDT) *
                       </label>
                       <input
                         type="text"
                         value={adultForm.cryptoExperience}
                         onChange={(e) => handleAdultChange('cryptoExperience', e.target.value)}
-                        placeholder="Да, свободно принимаю / Нужна помощь с настройкой кошелька"
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-pink-500 focus:outline-none transition-colors"
+                        placeholder="Да, свободно принимаю / Нужна помощь с кошельком"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-rose-400 focus:outline-none transition-colors"
                       />
                     </div>
                   </div>
@@ -716,9 +704,9 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
 
                 {/* STEP 2 */}
                 {step === 2 && (
-                  <div className="space-y-6 animate-fade-in">
+                  <div className="space-y-6">
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         7. Уровень английского для переписки и голосового контакта
                       </label>
                       <input
@@ -726,12 +714,12 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                         value={adultForm.englishLevel}
                         onChange={(e) => handleAdultChange('englishLevel', e.target.value)}
                         placeholder="Свободный флирт / средний / только с переводчиком"
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-pink-500 focus:outline-none transition-colors"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-rose-400 focus:outline-none transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         8. Готовность к тому, что 3D-персонаж будет раздеваться и принимать позы за донаты
                       </label>
                       <div className="grid grid-cols-2 gap-3">
@@ -740,10 +728,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                             key={opt}
                             type="button"
                             onClick={() => handleAdultChange('stripReady', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
+                            className={`py-3 px-3 rounded-xl border text-xs font-medium text-center transition-all ${
                               adultForm.stripReady === opt
-                                ? 'bg-pink-500/20 border-pink-500 text-pink-300'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                                ? 'bg-rose-500/20 border-rose-400 text-rose-200'
+                                : 'bg-[#090A0E] border-white/10 text-neutral-400 hover:text-white'
                             }`}
                           >
                             {opt}
@@ -753,7 +741,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         9. Твой комфортный архетип в эротическом общении
                       </label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -762,10 +750,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                             key={opt}
                             type="button"
                             onClick={() => handleAdultChange('eroticArchetype', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
+                            className={`py-3 px-3 rounded-xl border text-xs font-medium text-center transition-all ${
                               adultForm.eroticArchetype === opt
-                                ? 'bg-pink-500/20 border-pink-500 text-pink-300'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                                ? 'bg-rose-500/20 border-rose-400 text-rose-200'
+                                : 'bg-[#090A0E] border-white/10 text-neutral-400 hover:text-white'
                             }`}
                           >
                             {opt}
@@ -775,26 +763,26 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
-                        10. Опыт в интимной переписке, вебкаме, откровенном ролеплее или озвучке взрослого контента
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
+                        10. Опыт в интимной переписке, вебкаме, ролеплее или озвучке взрослого контента
                       </label>
                       <input
                         type="text"
                         value={adultForm.previousExperience}
                         onChange={(e) => handleAdultChange('previousExperience', e.target.value)}
                         placeholder="Опиши свой опыт или напиши «без опыта»"
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-pink-500 focus:outline-none transition-colors"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-rose-400 focus:outline-none transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         11. Готовность контролировать дыхание, стонать, переходить на интимный шепот без стыда
                       </label>
                       <select
                         value={adultForm.breathAndMoanReady}
                         onChange={(e) => handleAdultChange('breathAndMoanReady', e.target.value)}
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white focus:border-pink-500 focus:outline-none transition-colors"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-rose-400 focus:outline-none transition-colors"
                       >
                         <option value="Да, делаю это уверенно">Да, делаю это уверенно</option>
                         <option value="Справлюсь после пары репетиций">Справлюсь после пары репетиций</option>
@@ -803,7 +791,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         12. Какие темы и фетиши вызывают у тебя живой интерес, а не отторжение?
                       </label>
                       <textarea
@@ -811,7 +799,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                         value={adultForm.fetishInterests}
                         onChange={(e) => handleAdultChange('fetishInterests', e.target.value)}
                         placeholder="Интересные тебе ролевые сценарии, темы..."
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-pink-500 focus:outline-none transition-colors"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-rose-400 focus:outline-none transition-colors"
                       ></textarea>
                     </div>
                   </div>
@@ -819,9 +807,9 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
 
                 {/* STEP 3 */}
                 {step === 3 && (
-                  <div className="space-y-6 animate-fade-in">
+                  <div className="space-y-6">
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         13. Твои абсолютные психологические табу: какие запросы не выполнишь даже за $1000?
                       </label>
                       <textarea
@@ -829,25 +817,25 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                         value={adultForm.absoluteTaboos}
                         onChange={(e) => handleAdultChange('absoluteTaboos', e.target.value)}
                         placeholder="Строгие границы, которые ты никогда не переступишь..."
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-pink-500 focus:outline-none transition-colors"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-rose-400 focus:outline-none transition-colors"
                       ></textarea>
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         14. Реакция на грязные фантазии, фетишистские капризы и неадекватные предложения в ЛС
                       </label>
                       <input
                         type="text"
                         value={adultForm.kinkReaction}
                         onChange={(e) => handleAdultChange('kinkReaction', e.target.value)}
-                        placeholder="Спокойное модерирование / игнор / умелый перевод в платный контент"
-                        className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-pink-500 focus:outline-none transition-colors"
+                        placeholder="Спокойное модерирование / игнор / перевод в платный контент"
+                        className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-rose-400 focus:outline-none transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         15. Готовность наговаривать короткие эротические аудиосообщения по готовым сценариям
                       </label>
                       <div className="grid grid-cols-2 gap-3">
@@ -856,10 +844,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                             key={opt}
                             type="button"
                             onClick={() => handleAdultChange('voiceMessagesReady', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
+                            className={`py-3 px-3 rounded-xl border text-xs font-medium text-center transition-all ${
                               adultForm.voiceMessagesReady === opt
-                                ? 'bg-pink-500/20 border-pink-500 text-pink-300'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                                ? 'bg-rose-500/20 border-rose-400 text-rose-200'
+                                : 'bg-[#090A0E] border-white/10 text-neutral-400 hover:text-white'
                             }`}
                           >
                             {opt}
@@ -870,13 +858,13 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                        <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                           16. Желаемый баланс в эфирах
                         </label>
                         <select
                           value={adultForm.streamBalance}
                           onChange={(e) => handleAdultChange('streamBalance', e.target.value)}
-                          className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white focus:border-pink-500 focus:outline-none transition-colors"
+                          className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-rose-400 focus:outline-none transition-colors"
                         >
                           <option value="Эстетичный флирт">Эстетичный флирт</option>
                           <option value="Откровенное безумие с жесткими ролевыми элементами">Откровенное безумие с ролевыми элементами</option>
@@ -884,7 +872,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                       </div>
 
                       <div>
-                        <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                        <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                           17. Сколько дней в неделю планируешь выходить в трансляции?
                         </label>
                         <input
@@ -892,13 +880,13 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                           value={adultForm.daysPerWeek}
                           onChange={(e) => handleAdultChange('daysPerWeek', e.target.value)}
                           placeholder="Например: 4-5 дней"
-                          className="w-full bg-[#0A0B10] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-pink-500 focus:outline-none transition-colors"
+                          className="w-full bg-[#090A0E] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-rose-400 focus:outline-none transition-colors"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-xs font-mono uppercase text-gray-300 block mb-2 font-semibold">
+                      <label className="text-xs font-mono uppercase text-neutral-300 block mb-2 font-medium">
                         18. Что для тебя важнее?
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -910,10 +898,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                             key={opt}
                             type="button"
                             onClick={() => handleAdultChange('priorityGoal', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
+                            className={`py-3 px-3 rounded-xl border text-xs font-medium text-center transition-all ${
                               adultForm.priorityGoal === opt
-                                ? 'bg-pink-500/20 border-pink-500 text-pink-300'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                                ? 'bg-rose-500/20 border-rose-400 text-rose-200'
+                                : 'bg-[#090A0E] border-white/10 text-neutral-400 hover:text-white'
                             }`}
                           >
                             {opt}
@@ -927,12 +915,12 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
             )}
 
             {/* Stepper Navigation Buttons */}
-            <div className="pt-8 mt-8 border-t border-white/10 flex items-center justify-between">
+            <div className="pt-8 mt-8 border-t border-white/[0.06] flex items-center justify-between">
               {step > 1 ? (
                 <button
                   type="button"
                   onClick={() => setStep(step - 1)}
-                  className="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-semibold text-xs tracking-wider uppercase transition-colors flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-neutral-300 text-xs font-medium uppercase tracking-wider transition-colors flex items-center gap-2"
                 >
                   <ArrowLeft className="w-4 h-4" /> Назад
                 </button>
@@ -944,10 +932,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                 <button
                   type="button"
                   onClick={() => setStep(step + 1)}
-                  className={`px-8 py-3.5 rounded-xl font-bold text-xs tracking-wider uppercase transition-all flex items-center gap-2 ${
+                  className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${
                     activeTab === 'standard'
-                      ? 'bg-gradient-to-r from-cyan-400 to-blue-600 text-black shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:brightness-110'
-                      : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-[0_0_20px_rgba(236,72,153,0.3)] hover:brightness-110'
+                      ? 'bg-[#9FE870] hover:bg-[#b0f283] text-[#090A0E]'
+                      : 'bg-rose-600 hover:bg-rose-500 text-white'
                   }`}
                 >
                   Далее <ArrowRight className="w-4 h-4" />
@@ -956,17 +944,17 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`px-8 py-4 rounded-xl font-bold text-xs tracking-wider uppercase transition-all flex items-center gap-2.5 disabled:opacity-50 ${
+                  className={`px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2.5 disabled:opacity-50 ${
                     activeTab === 'standard'
-                      ? 'bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-500 text-black shadow-[0_0_30px_rgba(0,240,255,0.5)] hover:brightness-110'
-                      : 'bg-gradient-to-r from-pink-500 via-rose-400 to-purple-600 text-white shadow-[0_0_30px_rgba(236,72,153,0.5)] hover:brightness-110'
+                      ? 'bg-[#9FE870] hover:bg-[#b0f283] text-[#090A0E]'
+                      : 'bg-rose-600 hover:bg-rose-500 text-white'
                   }`}
                 >
                   {isSubmitting ? (
                     <>Отправка анкеты...</>
                   ) : (
                     <>
-                      <Send className="w-4 h-4" /> Отправить анкету куратору
+                      <Send className="w-4 h-4" /> Отправить анкету
                     </>
                   )}
                 </button>
