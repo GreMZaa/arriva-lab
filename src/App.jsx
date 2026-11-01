@@ -47,6 +47,13 @@ import { HeroSection } from './components/HeroSection';
 import { TariffsSection } from './components/TariffsSection';
 import { FaqSection } from './components/FaqSection';
 import { Footer } from './components/Footer';
+import { CyberHeader } from './components/CyberHeader';
+import { CyberHero } from './components/CyberHero';
+import { CyberInfoBento } from './components/CyberInfoBento';
+import { CyberPartnership } from './components/CyberPartnership';
+import { CyberSafetyPayouts } from './components/CyberSafetyPayouts';
+import { CyberSurvey } from './components/CyberSurvey';
+import { CyberFooter } from './components/CyberFooter';
 
 
 const TelegramLoginWidget = ({ botName, onAuth, showDivider = true }) => {
@@ -1516,11 +1523,44 @@ export default function App() {
     setClientTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   };
 
+  // Handler for Cyber Application Submissions
+  const handleCyberApplicationSubmit = async ({ tab, telegram, age, wishes }) => {
+    const isStd = tab === 'standard';
+    const prefix = isStd ? '🎮 Витубинг' : '🔞 Взрослый 18+';
+    const fullName = `${prefix} — ${telegram}`;
+    const tgId = getTelegramIdHash(telegram);
+    const birthDate = new Date(Date.now() - (Number(age) || 18) * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const app = await db.submitApplication(tgId, fullName, birthDate, wishes);
+
+    // Send admin notification
+    try {
+      await fetch('/api/notify-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: app?.id || 0,
+          name: fullName,
+          telegram: telegram,
+          wishes: wishes
+        })
+      });
+    } catch (err) {
+      console.warn('Telegram notify error:', err);
+    }
+
+    if (crmLoggedIn) {
+      loadCrmData();
+    }
+
+    return app;
+  };
+
   // Render Page Content
   return (
     <div className="flex flex-col min-h-screen">
       {/* Dynamic Navigation Header */}
-      <Header 
+      <CyberHeader 
         view={view} 
         setView={setView} 
         handleLogoClick={handleLogoClick} 
@@ -1536,386 +1576,24 @@ export default function App() {
         
         {/* VIEW 1: HOME PAGE */}
         {view === 'home' && (
-          <div className="animate-fade-in">
-            {/* HERO SECTION */}
-            <HeroSection setView={setView} />
+          <div className="animate-fade-in bg-[#0A0B10] text-white min-h-screen">
+            {/* БЛОК 1: Главный экран (Hero Section) */}
+            <CyberHero onApplyClick={() => {
+              const el = document.getElementById('apply');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }} />
 
+            {/* БЛОК 2 & 3: Информационный блок (Кто такой витубер & Почему зрители платят за это) */}
+            <CyberInfoBento />
 
-            {/* SERVICES SECTION */}
-            <section id="services" className="py-24 bg-white border-t border-gray-100">
-              <div className="max-w-7xl mx-auto px-6">
-                <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-                  <h2 className="text-gray-900 font-extrabold tracking-tight">Наши услуги</h2>
-                  <p className="text-gray-500 text-lg">Комплексный запуск и сопровождение на всех этапах вашей карьеры</p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {/* Card 1 */}
-                  <div className="glass-card flex flex-col items-start text-left space-y-4">
-                    <div className="w-12 h-12 rounded-2xl bg-lime-50 flex items-center justify-center text-[#123d0c] font-bold">
-                      <Layers className="w-6 h-6 text-green-600" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900">Разработка образа</h3>
-                    <p className="text-sm text-gray-500">
-                      Создание уникальной концепции, скетч-арт персонажа и подбор 2D/3D-модели под ваши задачи.
-                    </p>
-                  </div>
-                  {/* Card 2 */}
-                  <div className="glass-card flex flex-col items-start text-left space-y-4">
-                    <div className="w-12 h-12 rounded-2xl bg-lime-50 flex items-center justify-center text-[#123d0c] font-bold">
-                      <Sliders className="w-6 h-6 text-green-600" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900">Настройка софта</h3>
-                    <p className="text-sm text-gray-500">
-                      Полная настройка трекинга лица и тела (iPhone/веб-камера), интеграция с VTube Studio, OBS и Unity.
-                    </p>
-                  </div>
-                  {/* Card 3 */}
-                  <div className="glass-card flex flex-col items-start text-left space-y-4">
-                    <div className="w-12 h-12 rounded-2xl bg-lime-50 flex items-center justify-center text-[#123d0c] font-bold">
-                      <Tv className="w-6 h-6 text-green-600" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900">Выход на площадки</h3>
-                    <p className="text-sm text-gray-500">
-                      Помощь в оформлении каналов YouTube/Twitch/VK, подготовке оверлеев и запуске дебютного стрима.
-                    </p>
-                  </div>
-                  {/* Card 4 */}
-                  <div className="glass-card flex flex-col items-start text-left space-y-4">
-                    <div className="w-12 h-12 rounded-2xl bg-lime-50 flex items-center justify-center text-[#123d0c] font-bold">
-                      <TrendingUp className="w-6 h-6 text-green-600" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900">Продюсирование</h3>
-                    <p className="text-sm text-gray-500">
-                      Дальнейшее ведение канала, маркетинг, организация коллабораций и монетизация вашего контента.
-                    </p>
-                  </div>
-                </div>
+            {/* БЛОК 4: Суть партнерства */}
+            <CyberPartnership />
 
-                {/* Objection Handlers Widget */}
-                <div className="mt-16 bg-gray-50 rounded-3xl p-8 lg:p-12 border border-gray-100 text-left">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-8">Почему это работает лучше, чем сборка самому?</h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="space-y-2">
-                      <span className="text-xs font-semibold text-gray-400 uppercase">Возражение</span>
-                      <h4 className="text-lg font-bold text-gray-900">«Это слишком дорого»</h4>
-                      <p className="text-sm text-gray-500">
-                        Мы предлагаем поэтапную оплату. Начните с PNG-аватара и улучшайте его до 2D/3D по мере роста аудитории и доходов.
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <span className="text-xs font-semibold text-gray-400 uppercase">Возражение</span>
-                      <h4 className="text-lg font-bold text-gray-900">«Я запутаюсь в технике»</h4>
-                      <p className="text-sm text-gray-500">
-                        Вам не нужно учиться коду или риггингу. Наш специалист подключится, полностью настроит софт и научит управлять моделью за 1 вечер.
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <span className="text-xs font-semibold text-gray-400 uppercase">Возражение</span>
-                      <h4 className="text-lg font-bold text-gray-900">«Нет гарантии успеха»</h4>
-                      <p className="text-sm text-gray-500">
-                        Мы берем на себя всю техническую рутину и оверлеи. Вы фокусируетесь только на харизме и контенте, что увеличивает шансы на взлет на 300%.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
+            {/* БЛОК 5 & 6: Анонимность и документы & Выплаты */}
+            <CyberSafetyPayouts />
 
-            {/* PROCESS SECTION */}
-            <section id="steps" className="py-24 bg-gray-50 border-t border-gray-100">
-              <div className="max-w-7xl mx-auto px-6">
-                <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-                  <h2 className="text-gray-900 font-extrabold tracking-tight">Как проходит запуск</h2>
-                  <p className="text-gray-500 text-lg">Понятный пошаговый путь к виртуальному стримингу</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 relative">
-                  {[
-                    { nr: '1', title: 'Образ', desc: 'Проработка концепта и дизайна персонажа' },
-                    { nr: '2', title: 'Модель', desc: 'Риггинг 2D или рендеринг 3D-модели' },
-                    { nr: '3', title: 'Оборудование', desc: 'Подбор камеры, микрофона и ПК' },
-                    { nr: '4', title: 'Настройка ПО', desc: 'Калибровка трекинга, настройка OBS' },
-                    { nr: '5', title: 'Выход на сцену', desc: 'Первые стримы и оформление каналов' },
-                    { nr: '6', title: 'Рост', desc: 'Продюсирование и ведение канала' },
-                  ].map((step, idx) => (
-                    <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 flex flex-col justify-between text-left shadow-sm">
-                      <span className="w-8 h-8 rounded-lg bg-[#9FE870]/20 flex items-center justify-center font-bold text-[#123d0c] text-sm mb-4">
-                        {step.nr}
-                      </span>
-                      <div>
-                        <h4 className="font-bold text-gray-900 mb-1">{step.title}</h4>
-                        <p className="text-xs text-gray-400">{step.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {/* PORTFOLIO SECTION */}
-            <section id="portfolio" className="py-24 bg-white border-t border-gray-100">
-              <div className="max-w-7xl mx-auto px-6">
-                <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-                  <h2 className="text-gray-900 font-extrabold tracking-tight">Наши кейсы</h2>
-                  <p className="text-gray-500 text-lg">Созданные нами персонажи и их успехи</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {/* Case 1 */}
-                  <div className="bg-gray-50 border border-gray-100 rounded-3xl overflow-hidden shadow-sm flex flex-col">
-                    <div className="h-72 overflow-hidden relative">
-                      <img src="/avatar_png.png" alt="PNG character case" className="w-full h-full object-cover" />
-                      <span className="absolute top-4 right-4 bg-black/80 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-semibold">
-                        PNG Avatar
-                      </span>
-                    </div>
-                    <div className="p-6 text-left space-y-4 flex-grow flex flex-col justify-between">
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">Chibi Sakura</h3>
-                        <p className="text-xs text-gray-500">Начинающий стример (16 лет). Запуск за 2 недели.</p>
-                        <p className="text-sm text-gray-600 mt-2">
-                          "Очень хотела попробовать стримить, но стеснялась лица. ARRIVA сделали милый чиби образ, настроили вебку. Стримы пошли!"
-                        </p>
-                      </div>
-                      <div className="border-t border-gray-200 pt-4 flex items-center justify-between text-xs text-gray-500 font-medium">
-                        <span>Дебют: Май 2026</span>
-                        <span className="text-[#123d0c] font-bold bg-[#9FE870]/20 px-2 py-0.5 rounded">12K Subs</span>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Case 2 */}
-                  <div className="bg-gray-50 border border-gray-100 rounded-3xl overflow-hidden shadow-sm flex flex-col">
-                    <div className="h-72 overflow-hidden relative">
-                      <img src="/avatar_2d.png" alt="2D Live2D character case" className="w-full h-full object-cover" />
-                      <span className="absolute top-4 right-4 bg-black/80 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-semibold">
-                        2D Live2D
-                      </span>
-                    </div>
-                    <div className="p-6 text-left space-y-4 flex-grow flex flex-col justify-between">
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">Cyber Koko</h3>
-                        <p className="text-xs text-gray-500">Стример разговорного жанра (22 года). Запуск за 4 недели.</p>
-                        <p className="text-sm text-gray-600 mt-2">
-                          "Риггинг высшего класса! Движения губ, моргание, наклоны головы отслеживаются идеально через камеру телефона."
-                        </p>
-                      </div>
-                      <div className="border-t border-gray-200 pt-4 flex items-center justify-between text-xs text-gray-500 font-medium">
-                        <span>Дебют: Апрель 2026</span>
-                        <span className="text-[#123d0c] font-bold bg-[#9FE870]/20 px-2 py-0.5 rounded">48K Subs</span>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Case 3 */}
-                  <div className="bg-gray-50 border border-gray-100 rounded-3xl overflow-hidden shadow-sm flex flex-col">
-                    <div className="h-72 overflow-hidden relative">
-                      <img src="/avatar_3d.png" alt="3D character case" className="w-full h-full object-cover" />
-                      <span className="absolute top-4 right-4 bg-black/80 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-semibold">
-                        3D VR Model
-                      </span>
-                    </div>
-                    <div className="p-6 text-left space-y-4 flex-grow flex flex-col justify-between">
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">Vulkan Mech</h3>
-                        <p className="text-xs text-gray-500">Игровой блогер (29 лет). Запуск за 8 недель.</p>
-                        <p className="text-sm text-gray-600 mt-2">
-                          "Намного удобнее вебки. Сделали полную 3D-модель под Unity с трекингом тела. Стримы выглядят как дорогой продакшн."
-                        </p>
-                      </div>
-                      <div className="border-t border-gray-200 pt-4 flex items-center justify-between text-xs text-gray-500 font-medium">
-                        <span>Дебют: Июнь 2026</span>
-                        <span className="text-[#123d0c] font-bold bg-[#9FE870]/20 px-2 py-0.5 rounded">120K Subs</span>
-                      </div>
-                    </div>
-                  </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* TARIFFS SECTION */}
-              <TariffsSection products={products} setView={setView} setContactAbout={setContactAbout} appliedPromo={appliedPromo} />
-
-
-              {/* FAQ SECTION */}
-              <FaqSection activeFaq={activeFaq} setActiveFaq={setActiveFaq} />
-
-
-            {/* CONTACTS FORM SECTION */}
-            <section id="contacts" className="py-24 bg-white border-t border-gray-100">
-              <div className="max-w-3xl mx-auto px-6">
-                <div className="bg-gray-900 rounded-3xl p-8 sm:p-12 text-center text-white relative overflow-hidden">
-                  {/* Decorative glowing green blob */}
-                  <div className="absolute -top-24 -left-24 w-48 h-48 bg-[#9FE870]/20 rounded-full blur-3xl"></div>
-                  
-                  {!contactSubmitted ? (
-                    <form onSubmit={handleContactSubmit} className="space-y-6 relative">
-                      <div className="space-y-2">
-                        <span className="text-[#9FE870] font-bold text-xs uppercase tracking-widest">Шаг 1: Регистрация и оформление</span>
-                        <h2 className="text-white text-3xl font-extrabold tracking-tight">Регистрация и переход к оплате</h2>
-                        <p className="text-gray-400 text-sm max-w-md mx-auto">
-                          Заполните ваши данные для создания Личного кабинета и доступа к безопасной оплате тарифа.
-                        </p>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="form-group text-left">
-                          <label className="text-gray-300 text-xs font-semibold uppercase">Ваше Имя</label>
-                          <input 
-                            type="text" 
-                            required
-                            placeholder="Иван Иванов" 
-                            value={contactName} 
-                            onChange={(e) => setContactName(e.target.value)}
-                            className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] placeholder-gray-500"
-                          />
-                        </div>
-                        <div className="form-group text-left">
-                          <label className="text-gray-300 text-xs font-semibold uppercase">Telegram Username</label>
-                          <input 
-                            type="text" 
-                            required
-                            pattern="^@?[a-zA-Z0-9_]{5,32}$"
-                            title="Введите корректный Telegram username (например, @username, только латинские буквы, цифры и знак подчеркивания, от 5 символов)"
-                            placeholder="@arriva_lab" 
-                            value={contactTelegram} 
-                            onChange={(e) => setContactTelegram(e.target.value)}
-                            className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] placeholder-gray-500"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="form-group text-left">
-                          <label className="text-gray-300 text-xs font-semibold uppercase">Email адрес</label>
-                          <input 
-                            type="email" 
-                            required
-                            placeholder="name@example.com"
-                            value={contactEmail} 
-                            onChange={(e) => setContactEmail(e.target.value)}
-                            className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] placeholder-gray-500"
-                          />
-                        </div>
-                        <div className="form-group text-left">
-                           <label className="text-gray-300 text-xs font-semibold uppercase">Какой тариф вас интересует?</label>
-                          <select 
-                            required
-                            value={contactAbout}
-                            onChange={(e) => setContactAbout(e.target.value)}
-                            className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870]"
-                          >
-                            <option value="" className="bg-gray-900 text-white">Выберите тариф...</option>
-                            {(() => {
-                              const typeOrder = { 'basic': 1, 'restart': 2, 'premium': 3, '18+': 4 };
-                              const list = (products && products.length > 0) ? products : defaultProducts;
-                              return [...list].sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
-                            })().map((prod) => (
-                              <option key={prod.id || prod.name} value={`${prod.name} (${Number(prod.price).toLocaleString('ru-RU')} ₽)`} className="bg-gray-900 text-white">
-                                {prod.name} ({Number(prod.price).toLocaleString('ru-RU')} ₽)
-                              </option>
-                            ))}
-                            <option value="Создание 2D модели (Цена по запросу)" className="bg-gray-900 text-white">Создание 2D модели (Цена по запросу)</option>
-                            <option value="Создание 3D модели (Цена по запросу)" className="bg-gray-900 text-white">Создание 3D модели (Цена по запросу)</option>
-                            <option value="Аудио переводчик (Цена по запросу)" className="bg-gray-900 text-white">Аудио переводчик (Цена по запросу)</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="form-group text-left">
-                        <label className="text-gray-300 text-xs font-semibold uppercase">Комментарий (необязательно)</label>
-                        <textarea 
-                          placeholder="Ваши пожелания, вопросы или дополнительные детали проекта..." 
-                          value={contactComment} 
-                          onChange={(e) => setContactComment(e.target.value)}
-                          rows="3"
-                          className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] placeholder-gray-500 resize-none mt-1"
-                        ></textarea>
-                      </div>
-
-                      {/* Promo Code Input Block */}
-                      <div className="form-group text-left pt-2 border-t border-white/10">
-                        <label className="text-gray-300 text-xs font-semibold uppercase flex items-center gap-1.5">
-                          <Tag className="w-3.5 h-3.5 text-[#9FE870]" /> Промокод
-                        </label>
-                        <div className="flex gap-2 mt-1">
-                          <input 
-                            type="text" 
-                            placeholder="Введите промокод" 
-                            value={promoInput} 
-                            onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                            className="form-control bg-white/5 border-white/10 text-white focus:border-[#9FE870] placeholder-gray-500 uppercase font-mono tracking-wider flex-grow text-xs"
-                          />
-
-                          <button 
-                            type="button" 
-                            onClick={handleApplyPromo}
-                            disabled={promoLoading || !promoInput.trim()}
-                            className="btn btn-secondary text-xs px-4 py-2 bg-white/10 hover:bg-white/20 text-white border-white/10 font-bold shrink-0"
-                          >
-                            {promoLoading ? '...' : 'Применить'}
-                          </button>
-                        </div>
-                        {promoStatusMsg && (
-                          <div className={`text-xs mt-1.5 font-medium ${promoStatusMsg.startsWith('✅') || promoStatusMsg.startsWith('🎁') ? 'text-[#9FE870]' : 'text-red-400'}`}>
-                            {promoStatusMsg}
-                          </div>
-                        )}
-                      </div>
-
-
-                      <button 
-                        type="submit" 
-                        disabled={contactLoading}
-                        className="btn btn-primary w-full py-4 text-base font-extrabold flex justify-center items-center gap-2"
-                      >
-                        {contactLoading ? 'Регистрация...' : 'Зарегистрироваться и перейти к оплате'} <ArrowRight className="w-5 h-5" />
-                      </button>
-                    </form>
-                  ) : (
-                    <div className="space-y-6 py-10 relative flex flex-col items-center">
-                      <div className="w-16 h-16 bg-[#9FE870]/20 rounded-full flex items-center justify-center text-[#9FE870] border border-[#9FE870]/40 pulse-badge mb-2">
-                        <CheckCircle className="w-10 h-10" />
-                      </div>
-                      <h2 className="text-white text-3xl font-extrabold tracking-tight">Регистрация успешна!</h2>
-                      <p className="text-gray-400 text-base max-w-md mx-auto">
-                        Ваш профиль создан и вы авторизованы в Личном кабинете. Наш менеджер также свяжется с вами в Telegram.
-                      </p>
-
-                      {submittedPaywallLink && (
-                        <div className="w-full max-w-md my-4 p-6 bg-[#9FE870]/10 border border-[#9FE870]/30 rounded-2xl flex flex-col items-center gap-3 shadow-glow">
-                          <p className="text-[#9FE870] text-sm font-bold text-center">
-                            Нажмите кнопку ниже для перехода к оплате на Paywall:
-                          </p>
-                          <a 
-                            href={submittedPaywallLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-primary w-full py-4 text-base font-extrabold flex justify-center items-center gap-2"
-                          >
-                            Перейти к оплате на Paywall <ArrowRight className="w-5 h-5" />
-                          </a>
-                        </div>
-                      )}
-
-                      <div className="flex flex-col sm:flex-row gap-3 mt-2">
-                        <button 
-                          onClick={() => setView('cabinet')}
-                          className="btn btn-secondary border-white/20 text-white hover:bg-white/10 text-xs py-3 px-6 font-bold"
-                        >
-                          Перейти в Личный кабинет
-                        </button>
-                        <button 
-                          onClick={() => { setContactSubmitted(false); setContactName(''); setContactTelegram(''); setContactEmail(''); setContactComment(''); setSubmittedPaywallLink(''); }}
-                          className="btn btn-secondary border-white/10 text-gray-400 hover:bg-white/5 text-xs py-3 px-5"
-                        >
-                          Оформить еще одну заявку
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
+            {/* АНКЕТА 1 & АНКЕТА 2 (Интерактивные воронки) */}
+            <CyberSurvey onSubmitApplication={handleCyberApplicationSubmit} />
           </div>
         )}
 
@@ -4370,7 +4048,7 @@ export default function App() {
       </main>
 
       {/* Modern Footer */}
-      <Footer view={view} setView={setView} isAdminMode={isAdminMode} />
+      <CyberFooter view={view} setView={setView} isAdminMode={isAdminMode} />
 
     </div>
   );
