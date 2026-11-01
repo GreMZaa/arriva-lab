@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, X, Lock, Shield } from 'lucide-react';
+import { Menu, X, Lock, Shield, Sparkles } from 'lucide-react';
 
 export const CyberHeader = ({ 
   view, 
@@ -11,55 +11,79 @@ export const CyberHeader = ({
   setMobileMenuOpen 
 }) => {
   return (
-    <header className="sticky top-0 z-50 bg-[#090A0E] border-b border-white/[0.08] text-white">
+    <header className="sticky top-0 z-50 bg-[#080512]/90 backdrop-blur-xl border-b border-[#00F0FF]/20 text-white shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo - Solid, no gradients, no neon */}
+        
+        {/* Logo - Neon Cyber Accent */}
         <div 
           className="flex items-center gap-3 cursor-pointer group" 
           onClick={() => { setView('home'); handleLogoClick(); }}
         >
-          <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center font-black text-xs tracking-wider">
-            AR
+          <div className="relative">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00F0FF] to-[#FF0055] p-[1.5px] shadow-[0_0_15px_rgba(0,240,255,0.5)] group-hover:shadow-[0_0_25px_rgba(255,0,85,0.7)] transition-all">
+              <div className="w-full h-full bg-[#080512] rounded-[10px] flex items-center justify-center font-cyber font-black text-xs text-white tracking-wider">
+                AR
+              </div>
+            </div>
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#00F0FF] rounded-full border-2 border-[#080512] shadow-[0_0_8px_#00F0FF]"></span>
           </div>
+
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold tracking-tight text-base text-white group-hover:text-zinc-300 transition-colors">ARRIVA</span>
-              <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-white/[0.06] text-zinc-400 border border-white/10">
+              <span className="font-cyber font-bold tracking-wider text-base text-white group-hover:text-[#00F0FF] transition-colors">
+                ARRIVA
+              </span>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#FF0055]/20 text-[#FF0055] border border-[#FF0055]/50 shadow-[0_0_10px_rgba(255,0,85,0.3)]">
                 LAB
               </span>
             </div>
-            <span className="font-mono text-[9px] block text-zinc-500 tracking-wider uppercase">VTuber Agency</span>
+            <span className="font-mono text-[9px] block text-[#00F0FF]/80 tracking-widest uppercase">
+              VTuber Production Center
+            </span>
           </div>
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-zinc-400">
-          <a href="#benefits" className="hover:text-white transition-colors" onClick={() => setView('home')}>Преимущества</a>
-          <a href="#formats" className="hover:text-white transition-colors" onClick={() => setView('home')}>Форматы участия</a>
+        <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-[#E2E8F0]">
+          <a 
+            href="#details" 
+            className="hover:text-[#00F0FF] transition-colors hover:text-glow-cyan" 
+            onClick={() => setView('home')}
+          >
+            О проекте
+          </a>
+          <a 
+            href="#formats" 
+            className="hover:text-[#00F0FF] transition-colors hover:text-glow-cyan" 
+            onClick={() => setView('home')}
+          >
+            Форматы участия
+          </a>
           
-          <span className="w-px h-3.5 bg-white/10"></span>
+          <span className="w-px h-4 bg-white/15"></span>
           
           <button 
             onClick={() => setView('cabinet')} 
-            className={`hover:text-white transition-colors flex items-center gap-1.5 ${view === 'cabinet' ? 'text-white font-bold' : ''}`}
+            className={`hover:text-[#00F0FF] transition-colors flex items-center gap-1.5 ${view === 'cabinet' ? 'text-[#00F0FF] font-bold' : ''}`}
           >
-            <Lock className="w-3.5 h-3.5 text-zinc-500" />
+            <Lock className="w-3.5 h-3.5 text-[#00F0FF]" />
             {cabinetUser ? 'Кабинет' : 'Войти'}
           </button>
           
           {isAdminMode && (
             <button 
               onClick={() => setView('crm')} 
-              className={`hover:text-white transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-zinc-300 ${view === 'crm' ? 'bg-white/15 text-white' : ''}`}
+              className={`hover:text-[#FF0055] transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FF0055]/15 border border-[#FF0055]/40 text-[#FF0055] ${view === 'crm' ? 'bg-[#FF0055]/30' : ''}`}
             >
               <Shield className="w-3.5 h-3.5" /> CRM
             </button>
           )}
 
+          {/* Uniform Neon Red Cyber Button */}
           <a 
             href="#formats" 
             onClick={() => setView('home')}
-            className="px-4 py-2 rounded-lg font-semibold text-xs uppercase tracking-wider bg-white hover:bg-zinc-200 text-black transition-colors"
+            className="cyber-btn-red px-5 py-2.5 text-xs font-bold font-cyber tracking-wider"
           >
             Выбрать формат
           </a>
@@ -68,7 +92,7 @@ export const CyberHeader = ({
         {/* Mobile Menu Button */}
         <button 
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2 rounded-lg text-zinc-400 hover:text-white bg-white/5 border border-white/10"
+          className="md:hidden p-2 rounded-xl text-[#00F0FF] bg-[#00F0FF]/10 border border-[#00F0FF]/30 shadow-[0_0_10px_rgba(0,240,255,0.2)]"
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -76,42 +100,43 @@ export const CyberHeader = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#090A0E] border-b border-white/10 px-6 py-6 space-y-4 text-left">
+        <div className="md:hidden bg-[#0E061E]/95 border-b border-[#00F0FF]/30 px-6 py-6 space-y-4 text-left shadow-2xl">
           <a 
-            href="#benefits" 
-            onClick={() => { setView('home'); setMobileMenuOpen(false); }} 
-            className="block text-zinc-300 hover:text-white text-sm py-2 border-b border-white/5"
+            href="#details" 
+            onClick={() => { setView('home'); setMobileMenuOpen(false); }}
+            className="block text-sm font-semibold text-white hover:text-[#00F0FF]"
           >
-            Преимущества
+            О проекте
           </a>
           <a 
             href="#formats" 
-            onClick={() => { setView('home'); setMobileMenuOpen(false); }} 
-            className="block text-zinc-300 hover:text-white text-sm py-2 border-b border-white/5"
+            onClick={() => { setView('home'); setMobileMenuOpen(false); }}
+            className="block text-sm font-semibold text-white hover:text-[#00F0FF]"
           >
             Форматы участия
           </a>
-          <div className="pt-2 flex flex-col gap-2.5">
+          <button 
+            onClick={() => { setView('cabinet'); setMobileMenuOpen(false); }}
+            className="block text-sm font-semibold text-[#00F0FF] flex items-center gap-2"
+          >
+            <Lock className="w-4 h-4" />
+            {cabinetUser ? 'Кабинет стримера' : 'Личный кабинет'}
+          </button>
+          {isAdminMode && (
             <button 
-              onClick={() => { setView('cabinet'); setMobileMenuOpen(false); }} 
-              className="w-full py-2.5 rounded-lg bg-white/5 border border-white/10 text-white font-medium text-center text-xs"
+              onClick={() => { setView('crm'); setMobileMenuOpen(false); }}
+              className="block text-sm font-semibold text-[#FF0055] flex items-center gap-2"
             >
-              {cabinetUser ? 'Личный кабинет' : 'Вход в кабинет'}
+              <Shield className="w-4 h-4" /> Панель CRM
             </button>
-            {isAdminMode && (
-              <button 
-                onClick={() => { setView('crm'); setMobileMenuOpen(false); }} 
-                className="w-full py-2.5 rounded-lg bg-white/5 border border-white/10 text-zinc-300 font-medium text-center text-xs"
-              >
-                Панель CRM
-              </button>
-            )}
+          )}
+          <div className="pt-2">
             <a 
               href="#formats" 
-              onClick={() => { setView('home'); setMobileMenuOpen(false); }} 
-              className="w-full py-3 rounded-lg bg-white text-black font-bold text-center text-xs uppercase tracking-wider"
+              onClick={() => { setView('home'); setMobileMenuOpen(false); }}
+              className="cyber-btn-red w-full py-3.5 text-xs text-center"
             >
-              Выбрать формат
+              Выбрать формат участия
             </a>
           </div>
         </div>

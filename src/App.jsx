@@ -1576,7 +1576,7 @@ export default function App() {
         
         {/* VIEW 1: HOME PAGE */}
         {view === 'home' && (
-          <div className="animate-fade-in bg-[#090A0F] text-white min-h-screen">
+          <div className="animate-fade-in bg-[#080512] text-white min-h-screen">
             {/* БЛОК 1: Главный экран (Hero Section) */}
             <CyberHero onChooseFormatClick={() => {
               const el = document.getElementById('formats');
