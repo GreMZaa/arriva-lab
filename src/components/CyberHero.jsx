@@ -1,105 +1,109 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowDown, ShieldCheck, Activity } from 'lucide-react';
 
-export const CyberHero = ({ onApplyClick }) => {
+export const CyberHero = ({ onChooseFormatClick }) => {
   return (
-    <section className="relative bg-[#FAFAFC] py-20 lg:py-32 border-b border-gray-200 overflow-hidden text-left">
+    <section className="relative bg-[#090A0F] py-24 lg:py-36 border-b border-white/[0.08] overflow-hidden text-left">
+      {/* Low-contrast cyber grid & ambient glows */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none"></div>
+      <div className="absolute -top-32 left-1/4 w-96 h-96 bg-[#00F5FF]/10 rounded-full blur-[140px] pointer-events-none"></div>
+      <div className="absolute bottom-0 right-10 w-96 h-96 bg-[#FF007A]/10 rounded-full blur-[160px] pointer-events-none"></div>
+
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center relative z-10">
-        {/* Left Column */}
-        <div className="lg:col-span-7 space-y-7">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-gray-200 text-gray-700 text-xs font-mono tracking-wider uppercase shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#16a34a]"></span>
-            Лаборатория виртуального продюсирования
+        {/* Left Column: Headlines & CTA */}
+        <div className="lg:col-span-7 space-y-8">
+          {/* Status Badge */}
+          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/10 backdrop-blur-md">
+            <span className="w-2 h-2 rounded-full bg-[#10B981] animate-ping"></span>
+            <span className="text-neutral-200 text-xs font-mono tracking-wide">
+              Открыт набор стримеров на продюсирование.
+            </span>
           </div>
 
-          <h1 className="text-gray-900 tracking-tight leading-[1.1] font-black text-4xl sm:text-5xl lg:text-6xl">
-            Твоя цифровая сцена.{' '}
-            <span className="text-gray-900">
-              Мы создаем витубера под ключ
+          {/* H1 Headline */}
+          <h1 className="text-white tracking-tight leading-[1.08] font-black text-4xl sm:text-5xl lg:text-[60px]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F5FF] via-cyan-300 to-teal-200">
+              Зарабатывай
             </span>{' '}
-            <span className="text-gray-500 font-normal">
-              и выводим на глобальный доход.
-            </span>
+            на западном стриминге. <br className="hidden sm:inline" />
+            Твое настоящее лицо никто не увидит.
           </h1>
 
-          <p className="text-gray-600 text-lg sm:text-xl max-w-2xl font-normal leading-relaxed">
-            Никаких реальных лиц на камеру. Полный продакшн от 3D-модели до юридической поддержки.
+          {/* Subtitle */}
+          <p className="text-neutral-300 text-lg sm:text-xl max-w-2xl font-normal leading-relaxed">
+            Создаем 3D-аватара под твой голос, ставим сетап и выводим на аудиторию США. Ты стримишь из дома под цифровой броней — мы закрываем техническую часть и софт.
           </p>
 
-          <div className="pt-2 space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
-              <a
-                href="#apply"
-                onClick={onApplyClick}
-                className="px-8 py-4 rounded-xl font-bold text-sm tracking-wide bg-gray-900 hover:bg-black text-white transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-3 shadow-md"
-              >
-                <span>Заполнить анкету</span>
-                <ArrowRight className="w-4 h-4 text-white" />
-              </a>
-
-              <a
-                href="#partnership"
-                className="px-7 py-4 rounded-xl font-semibold text-sm text-gray-700 hover:text-black bg-white hover:bg-gray-50 border border-gray-200 transition-colors flex items-center justify-center shadow-sm"
-              >
-                Условия партнерства
-              </a>
+          {/* Metrics in one row */}
+          <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-2xl pt-2">
+            <div className="p-4 rounded-2xl bg-[rgba(18,20,32,0.7)] backdrop-blur-md border border-white/[0.08] hover:border-[#00F5FF]/30 transition-all">
+              <p className="text-2xl sm:text-3xl font-black text-[#00F5FF] font-mono tracking-tight">100%</p>
+              <p className="text-[11px] sm:text-xs text-neutral-400 mt-1 font-medium leading-snug">
+                Анонимность личности (показ лица исключен)
+              </p>
             </div>
 
-            <p className="text-gray-500 text-xs font-mono flex items-center gap-2 pt-1">
-              <span className="w-1 h-1 rounded-full bg-gray-400"></span>
-              Ограниченный пул мест. Мы отбираем людей на долгосрочное продюсирование.
-            </p>
+            <div className="p-4 rounded-2xl bg-[rgba(18,20,32,0.7)] backdrop-blur-md border border-white/[0.08] hover:border-[#00F5FF]/30 transition-all">
+              <p className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">70–85%</p>
+              <p className="text-[11px] sm:text-xs text-neutral-400 mt-1 font-medium leading-snug">
+                Твой чистый доход со всех донатов и подписок
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[rgba(18,20,32,0.7)] backdrop-blur-md border border-white/[0.08] hover:border-[#FF007A]/30 transition-all">
+              <p className="text-2xl sm:text-3xl font-black text-[#FF007A] font-mono tracking-tight">USDT</p>
+              <p className="text-[11px] sm:text-xs text-neutral-400 mt-1 font-medium leading-snug">
+                Прямые выплаты в крипте без блокировок банков
+              </p>
+            </div>
           </div>
 
-          {/* Minimal Key Metrics */}
-          <div className="pt-8 border-t border-gray-200 grid grid-cols-3 gap-6 max-w-lg">
-            <div>
-              <p className="text-2xl sm:text-3xl font-black text-gray-900 font-mono tracking-tight">100%</p>
-              <p className="text-xs text-gray-500 mt-1 uppercase font-mono tracking-wider">Экранная анонимность</p>
-            </div>
-            <div>
-              <p className="text-2xl sm:text-3xl font-black text-emerald-600 font-mono tracking-tight">70–85%</p>
-              <p className="text-xs text-gray-500 mt-1 uppercase font-mono tracking-wider">Доля модели</p>
-            </div>
-            <div>
-              <p className="text-2xl sm:text-3xl font-black text-gray-900 font-mono tracking-tight">USDT</p>
-              <p className="text-xs text-gray-500 mt-1 uppercase font-mono tracking-wider">Прямые выплаты</p>
-            </div>
+          {/* Action Button */}
+          <div className="pt-2">
+            <a
+              href="#formats"
+              onClick={onChooseFormatClick}
+              className="inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-sm tracking-wide bg-gradient-to-r from-[#00F5FF] via-cyan-400 to-teal-400 hover:from-cyan-300 hover:to-teal-300 text-black shadow-[0_0_25px_rgba(0,245,255,0.4)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+            >
+              <span>Выбрать формат участия</span>
+              <ArrowDown className="w-4 h-4 text-black animate-bounce" />
+            </a>
           </div>
         </div>
 
-        {/* Right Column: Grounded Real Avatar Card */}
+        {/* Right Column: 3D VTuber Mascot Card */}
         <div className="lg:col-span-5 relative flex justify-center items-center">
-          <div className="w-full max-w-[420px] rounded-2xl p-2 bg-white border border-gray-200 shadow-xl">
-            <div className="bg-gray-100 rounded-xl overflow-hidden relative">
-              <div className="h-[440px] relative overflow-hidden group">
+          <div className="relative w-full max-w-[420px] rounded-2xl p-[1px] bg-gradient-to-b from-[#00F5FF]/40 via-white/10 to-[#FF007A]/30 shadow-[0_0_40px_rgba(0,245,255,0.15)]">
+            <div className="bg-[#0D0E17] rounded-2xl overflow-hidden border border-white/[0.08]">
+              <div className="h-[450px] relative overflow-hidden group">
                 <img 
                   src="/hero_vtuber.png" 
                   alt="ARRIVA VTuber Production" 
-                  className="w-full h-full object-cover object-top filter brightness-[0.98] contrast-[1.02]"
+                  className="w-full h-full object-cover object-top filter brightness-[0.95] contrast-[1.05]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#090A0F] via-transparent to-transparent"></div>
 
-                {/* Status Bar */}
+                {/* Top Status Tags */}
                 <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
-                  <span className="px-3 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white font-mono text-[11px] border border-white/10">
-                    ARKit 60 FPS • Real-time
-                  </span>
-                  <span className="px-3 py-1 rounded-lg bg-black/60 backdrop-blur-md text-gray-300 font-mono text-[11px] border border-white/10">
-                    3D MODEL #02
-                  </span>
+                  <div className="px-3 py-1 rounded-lg bg-black/70 backdrop-blur-md border border-[#00F5FF]/30 text-[#00F5FF] font-mono text-[11px] flex items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5 animate-pulse" />
+                    ARKit 60 FPS
+                  </div>
+                  <div className="px-3 py-1 rounded-lg bg-black/70 backdrop-blur-md border border-[#10B981]/40 text-[#10B981] font-mono text-[11px] font-bold">
+                    ● SYSTEM ACTIVE
+                  </div>
                 </div>
 
-                {/* Bottom Spec Badge */}
-                <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-4 rounded-xl border border-gray-200 z-10 text-left space-y-1.5 shadow-lg">
+                {/* Bottom HUD Box */}
+                <div className="absolute bottom-4 left-4 right-4 bg-[#090A0F]/90 backdrop-blur-md p-4 rounded-xl border border-white/10 z-10 text-left space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-900 text-xs font-bold uppercase tracking-wider">Идентичность защищена</span>
-                    <span className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    <span className="text-white text-xs font-bold uppercase tracking-wider">Цифровой образ #02</span>
+                    <span className="text-[10px] font-mono text-[#00F5FF] font-bold bg-[#00F5FF]/10 px-2 py-0.5 rounded border border-[#00F5FF]/20">
                       SECURED
                     </span>
                   </div>
-                  <p className="text-[11px] text-gray-600 font-normal leading-normal">
-                    Голос и мимика считываются в реальном времени. Личность остается полностью за кадром.
+                  <p className="text-[11px] text-neutral-400 font-mono leading-normal">
+                    Голос и мимика транслируются в реальном времени. Личность защищена броней кода.
                   </p>
                 </div>
               </div>

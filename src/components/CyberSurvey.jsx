@@ -1,86 +1,86 @@
 import React, { useState } from 'react';
 import { 
-  Send, 
+  Gamepad2, 
+  Flame, 
   CheckCircle2, 
   ArrowRight, 
-  ArrowLeft,
-  ShieldAlert
+  ArrowLeft, 
+  X, 
+  Send, 
+  ShieldAlert, 
+  Lock,
+  Sparkles,
+  Layers,
+  Coins
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export const CyberSurvey = ({ onSubmitApplication }) => {
-  const [activeTab, setActiveTab] = useState('standard'); // 'standard' | 'adult'
+  // Modal / Stepper State: null | 'gaming' | 'afterdark'
+  const [activeModal, setActiveModal] = useState(null);
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [applicationId, setApplicationId] = useState(null);
 
-  // Form State for Survey 1 (Standard)
-  const [stdForm, setStdForm] = useState({
+  // Form State for Gaming & Show
+  const [gamingForm, setGamingForm] = useState({
     telegram: '',
-    countryCity: '',
+    country: '',
     age: '',
-    pcSpecs: '',
-    passportReady: 'Да',
-    cryptoExperience: 'Да',
-    englishLevel: 'Строю простые фразы',
-    voiceTimbre: '',
-    roleInFriends: 'Заводила',
-    quirkOrWeakness: '',
-    triggers: '',
-    silentChatTopic: '',
+    hardware: '',
+    passport: 'Да',
+    usdtExperience: 'Да',
+    threeWords: '',
+    bullyingReaction: '',
+    screamReady: 'Да, легко',
+    englishLevel: 'Свободно шучу',
+    preferredRole: 'Дерзкий робот-хакер',
     favoriteGenres: '',
-    hateReaction: 'Ядовитый сарказм',
-    preferredAvatar: 'Капризная цундере',
-    screamAbility: 'Да, легко',
-    hoursPerWeek: '15-20 часов',
-    hiddenGoal: 'Финансовая независимость'
+    weeklyHours: '15-20 часов'
   });
 
-  // Form State for Survey 2 (Adult 18+)
-  const [adultForm, setAdultForm] = useState({
+  // Form State for After Dark 18+
+  const [afterDarkForm, setAfterDarkForm] = useState({
     telegram: '',
-    countryTimezone: '',
+    country: '',
     age: '',
-    pcSpecs: '',
-    passportVerified: 'Да',
-    cryptoExperience: 'Да, свободно принимаю',
-    englishLevel: 'Базовый флирт / средний',
+    kycPassport: 'Да',
+    microphone: '',
+    cryptoWallet: 'Да',
     stripReady: 'Да',
-    eroticArchetype: 'Властная доминантка',
-    previousExperience: '',
-    breathAndMoanReady: 'Да, без стеснения',
-    fetishInterests: '',
-    absoluteTaboos: '',
-    kinkReaction: '',
+    audioSkills: 'Да, уверенно',
+    comfortableArchetype: 'Властная доминантка',
+    strictTaboos: '',
     voiceMessagesReady: 'Да',
-    streamBalance: 'Эстетичный флирт',
-    daysPerWeek: '3-4 дня',
-    priorityGoal: 'Предельный заработок в валюте'
+    weeklyDays: '3-4 дня'
   });
 
-  const handleStdChange = (field, val) => {
-    setStdForm(prev => ({ ...prev, [field]: val }));
+  const handleOpenForm = (type) => {
+    setActiveModal(type);
+    setStep(1);
+    setIsSuccess(false);
   };
 
-  const handleAdultChange = (field, val) => {
-    setAdultForm(prev => ({ ...prev, [field]: val }));
+  const handleClose = () => {
+    setActiveModal(null);
+    setStep(1);
+    setIsSuccess(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const isStd = activeTab === 'standard';
-    const form = isStd ? stdForm : adultForm;
+    const isGaming = activeModal === 'gaming';
+    const form = isGaming ? gamingForm : afterDarkForm;
 
     if (!form.telegram || !form.telegram.trim()) {
-      alert('Пожалуйста, укажите ваш никнейм в Telegram для обратной связи.');
+      alert('Пожалуйста, укажите ваш Telegram для связи.');
       setStep(1);
       return;
     }
 
-    if (!form.age || Number(form.age) < (isStd ? 16 : 18)) {
-      alert(isStd ? 'Минимальный возраст для участия — 16 лет.' : 'Внимание! Для взрослого сегмента строго от 18 лет.');
+    if (!form.age || Number(form.age) < (isGaming ? 16 : 18)) {
+      alert(isGaming ? 'Минимальный возраст для участия — 16 лет.' : 'Строго от 18 лет!');
       setStep(1);
       return;
     }
@@ -88,882 +88,718 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
     setIsSubmitting(true);
 
     try {
-      const modeTitle = isStd ? '🎮 Обычный витубинг (Игры, общение, шоу)' : '🔞 Взрослый сегмент 18+ (Fansly, эротический ролеплей)';
+      const modeTitle = isGaming ? '🎮 GAMING & SHOW' : '🔞 AFTER DARK 18+';
       
-      const detailsList = isStd ? [
-        `1. Telegram: ${stdForm.telegram}`,
-        `2. Страна и город: ${stdForm.countryCity || 'Не указано'}`,
-        `3. Полных лет: ${stdForm.age}`,
-        `4. Характеристики ПК: ${stdForm.pcSpecs || 'Не указано'}`,
-        `5. Готовность предоставить паспорт: ${stdForm.passportReady}`,
-        `6. Опыт с криптовалютой: ${stdForm.cryptoExperience}`,
-        `7. Уровень английского: ${stdForm.englishLevel}`,
-        `8. Тембр и манера речи: ${stdForm.voiceTimbre || 'Не указано'}`,
-        `9. Амплуа в компании: ${stdForm.roleInFriends}`,
-        `10. Странность/слабость: ${stdForm.quirkOrWeakness || 'Не указано'}`,
-        `11. Триггеры: ${stdForm.triggers || 'Не указано'}`,
-        `12. Тема при тишине в чате: ${stdForm.silentChatTopic || 'Не указано'}`,
-        `13. Любимые игровые жанры: ${stdForm.favoriteGenres || 'Не указано'}`,
-        `14. Реакция на хейт: ${stdForm.hateReaction}`,
-        `15. Близкая виртуальная оболочка: ${stdForm.preferredAvatar}`,
-        `16. Способность орать/визжать/реакции: ${stdForm.screamAbility}`,
-        `17. Часов в неделю у микрофона: ${stdForm.hoursPerWeek}`,
-        `18. Скрытая цель: ${stdForm.hiddenGoal}`
+      const detailsList = isGaming ? [
+        `Telegram: ${gamingForm.telegram}`,
+        `Страна проживания: ${gamingForm.country || 'Не указано'}`,
+        `Возраст: ${gamingForm.age}`,
+        `Видеокарта и микрофон: ${gamingForm.hardware || 'Не указано'}`,
+        `Наличие паспорта/загранпаспорта: ${gamingForm.passport}`,
+        `Опыт с USDT: ${gamingForm.usdtExperience}`,
+        `О себе тремя словами: ${gamingForm.threeWords || 'Не указано'}`,
+        `Реакция на буллинг в чате: ${gamingForm.bullyingReaction || 'Не указано'}`,
+        `Готовность орать/визжать/эмоции: ${gamingForm.screamReady}`,
+        `Разговорный английский: ${gamingForm.englishLevel}`,
+        `Близкая роль: ${gamingForm.preferredRole}`,
+        `Любимые игровые жанры: ${gamingForm.favoriteGenres || 'Не указано'}`,
+        `Часов в неделю на стримы: ${gamingForm.weeklyHours}`
       ] : [
-        `1. Telegram: ${adultForm.telegram}`,
-        `2. Страна и часовой пояс: ${adultForm.countryTimezone || 'Не указано'}`,
-        `3. Реальный возраст (18+): ${adultForm.age}`,
-        `4. Характеристики ПК: ${adultForm.pcSpecs || 'Не указано'}`,
-        `5. Паспорт для верификации 18+: ${adultForm.passportVerified}`,
-        `6. Опыт приема выплат в USDT: ${adultForm.cryptoExperience}`,
-        `7. Уровень английского: ${adultForm.englishLevel}`,
-        `8. Готовность к раздеванию 3D-модели: ${adultForm.stripReady}`,
-        `9. Комфортный архетип: ${adultForm.eroticArchetype}`,
-        `10. Опыт в эротике/вебкаме/ролеплее: ${adultForm.previousExperience || 'Без опыта'}`,
-        `11. Дыхание, стоны, интимный шепот: ${adultForm.breathAndMoanReady}`,
-        `12. Интересующие темы и фетиши: ${adultForm.fetishInterests || 'Не указано'}`,
-        `13. Абсолютные психологические табу: ${adultForm.absoluteTaboos || 'Не указано'}`,
-        `14. Реакция на фантазии и капризы: ${adultForm.kinkReaction || 'Не указано'}`,
-        `15. Наговаривание аудиосообщений: ${adultForm.voiceMessagesReady}`,
-        `16. Баланс в эфирах: ${adultForm.streamBalance}`,
-        `17. Дней в неделю в эфире: ${adultForm.daysPerWeek}`,
-        `18. Главный приоритет: ${adultForm.priorityGoal}`
+        `Telegram: ${afterDarkForm.telegram}`,
+        `Страна проживания: ${afterDarkForm.country || 'Не указано'}`,
+        `Возраст (18+): ${afterDarkForm.age}`,
+        `Паспорт для жесткого KYC: ${afterDarkForm.kycPassport}`,
+        `Модель микрофона: ${afterDarkForm.microphone || 'Не указано'}`,
+        `Криптокошелек: ${afterDarkForm.cryptoWallet}`,
+        `Готовность к раздеванию 3D-модели: ${afterDarkForm.stripReady}`,
+        `Умение шептать, стонать, интимные звуки: ${afterDarkForm.audioSkills}`,
+        `Комфортный архетип: ${afterDarkForm.comfortableArchetype}`,
+        `Строгие табу и запреты: ${afterDarkForm.strictTaboos || 'Не указано'}`,
+        `Голосовые аудиосообщения для фанатов: ${afterDarkForm.voiceMessagesReady}`,
+        `Дней в неделю в приватных эфирах: ${afterDarkForm.weeklyDays}`
       ];
 
-      const fullWishes = `=== АНКЕТА: ${modeTitle} ===\n\n` + detailsList.join('\n');
+      const fullWishes = `=== НАПРАВЛЕНИЕ: ${modeTitle} ===\n\n` + detailsList.join('\n');
 
-      const result = await onSubmitApplication({
-        tab: activeTab,
+      await onSubmitApplication({
+        tab: activeModal,
         telegram: form.telegram,
         age: form.age,
         wishes: fullWishes
       });
 
       confetti({
-        particleCount: 50,
-        spread: 60,
+        particleCount: 80,
+        spread: 70,
         origin: { y: 0.6 }
       });
 
-      setApplicationId(result?.id || Math.floor(1000 + Math.random() * 9000));
       setIsSuccess(true);
     } catch (err) {
-      alert('Ошибка при отправке анкеты: ' + err.message);
+      alert('Ошибка при отправке: ' + err.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <section id="apply" className="py-24 bg-[#FAFAFC] border-t border-gray-200 relative text-left">
-      <div className="max-w-4xl mx-auto px-6">
+    <section id="formats" className="py-24 bg-[#090A0F] border-t border-white/[0.08] relative text-left">
+      {/* Background ambient accents */}
+      <div className="absolute top-1/2 left-10 w-96 h-96 bg-[#00F5FF]/5 rounded-full blur-[140px] pointer-events-none"></div>
+      <div className="absolute top-1/2 right-10 w-96 h-96 bg-[#FF007A]/5 rounded-full blur-[140px] pointer-events-none"></div>
+
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-          <span className="font-mono text-xs text-gray-500 uppercase tracking-widest bg-white border border-gray-200 px-3 py-1 rounded-full font-semibold shadow-xs">
-            Отборочный пул
+        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+          <span className="font-mono text-xs text-white uppercase tracking-widest bg-white/[0.05] border border-white/10 px-4 py-1.5 rounded-full">
+            Интерактивная развилка
           </span>
-          <h2 className="text-gray-900 text-3xl sm:text-5xl font-black tracking-tight">
-            Подать анкету в агентство
+          <h2 className="text-white text-3xl sm:text-5xl font-black tracking-tight">
+            Выбери свой формат участия
           </h2>
-          <p className="text-gray-600 text-base">
-            Выберите направление. Мы внимательно изучаем каждый ответ перед персональным контактом.
+          <p className="text-neutral-400 text-base sm:text-lg">
+            Определи вектор продюсирования. Мы подбираем персонажа, сетап софта и стратегию выхода на доход индивидуально под направление.
           </p>
         </div>
 
-        {/* Direction Switcher Tabs */}
-        {!isSuccess && (
-          <div className="flex p-1.5 rounded-xl bg-gray-200/70 border border-gray-300/80 mb-10 gap-2">
-            <button
-              type="button"
-              onClick={() => { setActiveTab('standard'); setStep(1); }}
-              className={`flex-1 py-3 px-4 rounded-lg font-bold text-xs tracking-wide transition-all ${
-                activeTab === 'standard'
-                  ? 'bg-gray-900 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-black hover:bg-white/50'
-              }`}
-            >
-              Обычный витубинг (Игры, шоу)
-            </button>
+        {/* ДВЕ БОЛЬШИЕ КОНТРАСТНЫЕ КАРТОЧКИ-ВЫБОРА */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
+          
+          {/* КАРТОЧКА 1: GAMING & SHOW */}
+          <div className="rounded-3xl p-8 sm:p-10 bg-[rgba(18,20,32,0.7)] backdrop-blur-xl border border-[#00F5FF]/30 hover:border-[#00F5FF] shadow-[0_0_30px_rgba(0,245,255,0.1)] hover:shadow-[0_0_50px_rgba(0,245,255,0.25)] transition-all flex flex-col justify-between group relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#00F5FF]/10 rounded-full blur-3xl pointer-events-none group-hover:bg-[#00F5FF]/20 transition-all"></div>
 
-            <button
-              type="button"
-              onClick={() => { setActiveTab('adult'); setStep(1); }}
-              className={`flex-1 py-3 px-4 rounded-lg font-bold text-xs tracking-wide transition-all ${
-                activeTab === 'adult'
-                  ? 'bg-rose-700 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-black hover:bg-white/50'
-              }`}
-            >
-              Взрослый сегмент 18+ (Fansly)
-            </button>
-          </div>
-        )}
-
-        {/* Success Screen */}
-        {isSuccess ? (
-          <div className="rounded-2xl p-8 sm:p-12 bg-white border border-gray-200 text-center space-y-6 shadow-xl">
-            <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
-              <CheckCircle2 className="w-8 h-8" />
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-xs font-mono text-gray-500 uppercase tracking-widest font-semibold">Заявка #{applicationId} принята</span>
-              <h3 className="text-2xl sm:text-3xl font-black text-gray-900">Анкета успешно отправлена</h3>
-              <p className="text-gray-600 max-w-lg mx-auto text-sm leading-relaxed">
-                Куратор агентства свяжется с вами в Telegram в течение 24 часов для обсуждения концепта персонажа и деталей сотрудничества.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 max-w-md mx-auto text-xs text-gray-600 font-mono">
-              Пожалуйста, убедитесь, что ваш Telegram открыт для входящих сообщений.
-            </div>
-
-            <button
-              onClick={() => {
-                setIsSuccess(false);
-                setStep(1);
-              }}
-              className="px-6 py-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-900 text-xs font-mono uppercase tracking-wider transition-colors font-semibold"
-            >
-              Заполнить ещё одну анкету
-            </button>
-          </div>
-        ) : (
-          /* Multi-Step Application Form */
-          <form onSubmit={handleSubmit} className="rounded-2xl p-6 sm:p-10 bg-white border border-gray-200 shadow-xl">
-            {/* Step Progress Header */}
-            <div className="mb-8 pb-6 border-b border-gray-100 flex items-center justify-between">
-              <div>
-                <span className="font-mono text-xs text-gray-500 uppercase tracking-wider block mb-1 font-semibold">
-                  Шаг {step} из 3
+            <div className="space-y-6 relative z-10">
+              <div className="flex items-center justify-between">
+                <span className="px-3.5 py-1.5 rounded-xl bg-[#00F5FF]/15 border border-[#00F5FF]/40 text-[#00F5FF] font-mono text-xs font-bold tracking-wider uppercase">
+                  Стиль: Неоновый бирюзовый
                 </span>
-                <h3 className="text-lg font-bold text-gray-900">
-                  {step === 1 && 'Контакты и конфигурация ПК'}
-                  {step === 2 && (activeTab === 'standard' ? 'Голос, характер и юмор' : 'Границы, ролевой формат и опыт')}
-                  {step === 3 && 'Психология и формат работы'}
+                <Gamepad2 className="w-6 h-6 text-[#00F5FF]" />
+              </div>
+
+              <div>
+                <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                  GAMING & SHOW
                 </h3>
+                <p className="text-xs font-mono text-neutral-400 mt-1">
+                  Площадки: <span className="text-white font-bold">Twitch, YouTube</span>
+                </p>
               </div>
 
-              {/* Minimal Line Stepper */}
-              <div className="flex items-center gap-1.5">
-                {[1, 2, 3].map((s) => (
-                  <div
-                    key={s}
-                    className={`h-1.5 rounded-full transition-all ${
-                      step === s 
-                        ? (activeTab === 'standard' ? 'bg-gray-900 w-8' : 'bg-rose-600 w-8') 
-                        : (step > s ? 'bg-gray-400 w-4' : 'bg-gray-200 w-4')
-                    }`}
-                  ></div>
-                ))}
-              </div>
-            </div>
-
-            {/* ============================================================== */}
-            {/* АНКЕТА 1: ОБЫЧНЫЙ ВИТУБИНГ */}
-            {/* ============================================================== */}
-            {activeTab === 'standard' && (
-              <div className="space-y-6">
-                {/* STEP 1 */}
-                {step === 1 && (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                          1. Никнейм в Telegram для связи *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={stdForm.telegram}
-                          onChange={(e) => handleStdChange('telegram', e.target.value)}
-                          placeholder="@username"
-                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 focus:outline-none transition-colors"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                          2. Страна и город проживания *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={stdForm.countryCity}
-                          onChange={(e) => handleStdChange('countryCity', e.target.value)}
-                          placeholder="Россия, Москва"
-                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 focus:outline-none transition-colors"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                          3. Полных лет *
-                        </label>
-                        <input
-                          type="number"
-                          required
-                          min="16"
-                          max="80"
-                          value={stdForm.age}
-                          onChange={(e) => handleStdChange('age', e.target.value)}
-                          placeholder="18"
-                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 focus:outline-none transition-colors"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                          5. Готовность предоставить паспорт для верификации *
-                        </label>
-                        <select
-                          value={stdForm.passportReady}
-                          onChange={(e) => handleStdChange('passportReady', e.target.value)}
-                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-gray-900 focus:outline-none transition-colors"
-                        >
-                          <option value="Да">Да, готов</option>
-                          <option value="Нет">Нет, не готов</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        4. Параметры компьютера: видеокарта, процессор, микрофон *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={stdForm.pcSpecs}
-                        onChange={(e) => handleStdChange('pcSpecs', e.target.value)}
-                        placeholder="RTX 3060, i5-12400, микрофон Fifine / Shure"
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 focus:outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        6. Опыт работы с криптовалютными кошельками (USDT) *
-                      </label>
-                      <div className="grid grid-cols-3 gap-3">
-                        {['Да', 'Нет', 'Нужна инструкция'].map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => handleStdChange('cryptoExperience', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
-                              stdForm.cryptoExperience === opt
-                                ? 'bg-gray-900 border-gray-900 text-white shadow-xs'
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 2 */}
-                {step === 2 && (
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        7. Реальный уровень разговорного английского
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {[
-                          'Могу спонтанно шутить',
-                          'Строю простые фразы',
-                          'Нужен постоянный переводчик'
-                        ].map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => handleStdChange('englishLevel', opt)}
-                            className={`py-3 px-4 rounded-xl border text-xs font-semibold text-left transition-all ${
-                              stdForm.englishLevel === opt
-                                ? 'bg-gray-900 border-gray-900 text-white shadow-xs'
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        8. Твой тембр и манера речи
-                      </label>
-                      <input
-                        type="text"
-                        value={stdForm.voiceTimbre}
-                        onChange={(e) => handleStdChange('voiceTimbre', e.target.value)}
-                        placeholder="Звонкий, низкий, с хрипотцой, тараторишь или говоришь размеренно?"
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        9. Твое амплуа в компании друзей
-                      </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {['Заводила', 'Язвительный циник', 'Серый кардинал', 'Генератор абсурда'].map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => handleStdChange('roleInFriends', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
-                              stdForm.roleInFriends === opt
-                                ? 'bg-gray-900 border-gray-900 text-white shadow-xs'
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        10. Твоя главная странность или слабость, над которой обычно смеются близкие
-                      </label>
-                      <input
-                        type="text"
-                        value={stdForm.quirkOrWeakness}
-                        onChange={(e) => handleStdChange('quirkOrWeakness', e.target.value)}
-                        placeholder="Опиши коротко..."
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        11. Что способно мгновенно вывести тебя из равновесия
-                      </label>
-                      <input
-                        type="text"
-                        value={stdForm.triggers}
-                        onChange={(e) => handleStdChange('triggers', e.target.value)}
-                        placeholder="Тупость, медлительность, наглая ложь или критика?"
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        12. Если чат замолчит на 10 минут, какую тему ты начнешь обсуждать вслух с самим собой?
-                      </label>
-                      <textarea
-                        rows="2"
-                        value={stdForm.silentChatTopic}
-                        onChange={(e) => handleStdChange('silentChatTopic', e.target.value)}
-                        placeholder="О чем будешь рассуждать перед микрофоном..."
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none transition-colors"
-                      ></textarea>
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 3 */}
-                {step === 3 && (
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        13. Любимые игровые вселенные и жанры
-                      </label>
-                      <input
-                        type="text"
-                        value={stdForm.favoriteGenres}
-                        onChange={(e) => handleStdChange('favoriteGenres', e.target.value)}
-                        placeholder="Киберпанк, темное фэнтези, пиксельные инди или соревновательные шутеры"
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        14. Как реагируешь на открытый хейт в комментариях
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {['Ядовитый сарказм', 'Холодный бан', 'Вступаю в словесную драку'].map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => handleStdChange('hateReaction', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
-                              stdForm.hateReaction === opt
-                                ? 'bg-gray-900 border-gray-900 text-white shadow-xs'
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        15. Какая виртуальная оболочка тебе ближе всего
-                      </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {[
-                          'Капризная цундере',
-                          'Психопатичный хакер',
-                          'Уставший боевой андроид',
-                          'Надменная аристократка'
-                        ].map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => handleStdChange('preferredAvatar', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
-                              stdForm.preferredAvatar === opt
-                                ? 'bg-gray-900 border-gray-900 text-white shadow-xs'
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                          16. Способность громко орать, визжать и выдавать гипертрофированные реакции
-                        </label>
-                        <select
-                          value={stdForm.screamAbility}
-                          onChange={(e) => handleStdChange('screamAbility', e.target.value)}
-                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-gray-900 focus:outline-none transition-colors"
-                        >
-                          <option value="Да, легко по щелчку пальцев">Да, легко по щелчку пальцев</option>
-                          <option value="Умеренно, нужно разогреться">Умеренно, нужно разогреться</option>
-                          <option value="Предпочитаю спокойную подачу">Предпочитаю спокойную подачу</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                          17. Сколько часов в неделю готов работать у микрофона?
-                        </label>
-                        <input
-                          type="text"
-                          value={stdForm.hoursPerWeek}
-                          onChange={(e) => handleStdChange('hoursPerWeek', e.target.value)}
-                          placeholder="Например: 15-20 часов"
-                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none transition-colors"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        18. Твоя скрытая цель в проекте
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {[
-                          'Финансовая независимость',
-                          'Медийность и признание',
-                          'Безопасное творчество без лица'
-                        ].map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => handleStdChange('hiddenGoal', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
-                              stdForm.hiddenGoal === opt
-                                ? 'bg-gray-900 border-gray-900 text-white shadow-xs'
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ============================================================== */}
-            {/* АНКЕТА 2: ВЗРОСЛЫЙ СЕГМЕНТ 18+ */}
-            {/* ============================================================== */}
-            {activeTab === 'adult' && (
-              <div className="space-y-6">
-                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-center gap-3 text-xs text-rose-900 font-medium">
-                  <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
-                  <span>Строго от 18 лет. Анкета определяет личные табу, психологические границы и формат взаимодействия со взрослой аудиторией.</span>
+              <div className="space-y-3 py-2 border-y border-white/[0.08]">
+                <div className="flex items-start gap-2.5 text-sm text-neutral-200">
+                  <span className="text-[#00F5FF] font-bold text-base">•</span>
+                  <span><strong>Контент:</strong> Игры, трэш-стримы, мем-интерактив</span>
                 </div>
-
-                {/* STEP 1 */}
-                {step === 1 && (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                          1. Никнейм в Telegram для связи *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={adultForm.telegram}
-                          onChange={(e) => handleAdultChange('telegram', e.target.value)}
-                          placeholder="@username"
-                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-rose-600 focus:ring-1 focus:ring-rose-600 focus:outline-none transition-colors"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                          2. Страна проживания и часовой пояс (UTC) *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={adultForm.countryTimezone}
-                          onChange={(e) => handleAdultChange('countryTimezone', e.target.value)}
-                          placeholder="Россия, Москва (UTC+3)"
-                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-rose-600 focus:ring-1 focus:ring-rose-600 focus:outline-none transition-colors"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                          3. Твой реальный возраст (Строго от 18 лет) *
-                        </label>
-                        <input
-                          type="number"
-                          required
-                          min="18"
-                          max="80"
-                          value={adultForm.age}
-                          onChange={(e) => handleAdultChange('age', e.target.value)}
-                          placeholder="18+"
-                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-rose-600 focus:ring-1 focus:ring-rose-600 focus:outline-none transition-colors"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                          5. Загранпаспорт или внутренний паспорт для верификации *
-                        </label>
-                        <select
-                          value={adultForm.passportVerified}
-                          onChange={(e) => handleAdultChange('passportVerified', e.target.value)}
-                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-rose-600 focus:outline-none transition-colors"
-                        >
-                          <option value="Да">Да, есть в наличии</option>
-                          <option value="Нет">Нет в наличии</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        4. Технические характеристики ПК: видеокарта, процессор, микрофон *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={adultForm.pcSpecs}
-                        onChange={(e) => handleAdultChange('pcSpecs', e.target.value)}
-                        placeholder="Видеокарта, процессор, модель микрофона"
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-rose-600 focus:outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        6. Опыт приема выплат в криптовалюте (USDT) *
-                      </label>
-                      <input
-                        type="text"
-                        value={adultForm.cryptoExperience}
-                        onChange={(e) => handleAdultChange('cryptoExperience', e.target.value)}
-                        placeholder="Да, свободно принимаю / Нужна помощь с кошельком"
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-rose-600 focus:outline-none transition-colors"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 2 */}
-                {step === 2 && (
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        7. Уровень английского для переписки и голосового контакта
-                      </label>
-                      <input
-                        type="text"
-                        value={adultForm.englishLevel}
-                        onChange={(e) => handleAdultChange('englishLevel', e.target.value)}
-                        placeholder="Свободный флирт / средний / только с переводчиком"
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-rose-600 focus:outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        8. Готовность к тому, что 3D-персонаж будет раздеваться и принимать позы за донаты
-                      </label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {['Да, полностью готов(а)', 'Есть сомнения / нужны рамки'].map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => handleAdultChange('stripReady', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
-                              adultForm.stripReady === opt
-                                ? 'bg-rose-700 border-rose-700 text-white shadow-xs'
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        9. Твой комфортный архетип в эротическом общении
-                      </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {['Властная доминантка', 'Послушная горничная', 'Испорченная оторва', 'Холодная госпожа'].map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => handleAdultChange('eroticArchetype', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
-                              adultForm.eroticArchetype === opt
-                                ? 'bg-rose-700 border-rose-700 text-white shadow-xs'
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        10. Опыт в интимной переписке, вебкаме, ролеплее или озвучке взрослого контента
-                      </label>
-                      <input
-                        type="text"
-                        value={adultForm.previousExperience}
-                        onChange={(e) => handleAdultChange('previousExperience', e.target.value)}
-                        placeholder="Опиши свой опыт или напиши «без опыта»"
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-rose-600 focus:outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        11. Готовность контролировать дыхание, стонать, переходить на интимный шепот без стыда
-                      </label>
-                      <select
-                        value={adultForm.breathAndMoanReady}
-                        onChange={(e) => handleAdultChange('breathAndMoanReady', e.target.value)}
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-rose-600 focus:outline-none transition-colors"
-                      >
-                        <option value="Да, делаю это уверенно">Да, делаю это уверенно</option>
-                        <option value="Справлюсь после пары репетиций">Справлюсь после пары репетиций</option>
-                        <option value="Есть стеснение">Есть стеснение</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        12. Какие темы и фетиши вызывают у тебя живой интерес, а не отторжение?
-                      </label>
-                      <textarea
-                        rows="2"
-                        value={adultForm.fetishInterests}
-                        onChange={(e) => handleAdultChange('fetishInterests', e.target.value)}
-                        placeholder="Интересные тебе ролевые сценарии, темы..."
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-rose-600 focus:outline-none transition-colors"
-                      ></textarea>
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 3 */}
-                {step === 3 && (
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        13. Твои абсолютные психологические табу: какие запросы не выполнишь даже за $1000?
-                      </label>
-                      <textarea
-                        rows="2"
-                        value={adultForm.absoluteTaboos}
-                        onChange={(e) => handleAdultChange('absoluteTaboos', e.target.value)}
-                        placeholder="Строгие границы, которые ты никогда не переступишь..."
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-rose-600 focus:outline-none transition-colors"
-                      ></textarea>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        14. Реакция на грязные фантазии, фетишистские капризы и неадекватные предложения в ЛС
-                      </label>
-                      <input
-                        type="text"
-                        value={adultForm.kinkReaction}
-                        onChange={(e) => handleAdultChange('kinkReaction', e.target.value)}
-                        placeholder="Спокойное модерирование / игнор / перевод в платный контент"
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-rose-600 focus:outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        15. Готовность наговаривать короткие эротические аудиосообщения по готовым сценариям
-                      </label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {['Да, готов(а)', 'Нет, не готов(а)'].map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => handleAdultChange('voiceMessagesReady', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
-                              adultForm.voiceMessagesReady === opt
-                                ? 'bg-rose-700 border-rose-700 text-white shadow-xs'
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                          16. Желаемый баланс в эфирах
-                        </label>
-                        <select
-                          value={adultForm.streamBalance}
-                          onChange={(e) => handleAdultChange('streamBalance', e.target.value)}
-                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-rose-600 focus:outline-none transition-colors"
-                        >
-                          <option value="Эстетичный флирт">Эстетичный флирт</option>
-                          <option value="Откровенное безумие с жесткими ролевыми элементами">Откровенное безумие с ролевыми элементами</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                          17. Сколько дней в неделю планируешь выходить в трансляции?
-                        </label>
-                        <input
-                          type="text"
-                          value={adultForm.daysPerWeek}
-                          onChange={(e) => handleAdultChange('daysPerWeek', e.target.value)}
-                          placeholder="Например: 4-5 дней"
-                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-rose-600 focus:outline-none transition-colors"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono uppercase text-gray-700 block mb-2 font-bold">
-                        18. Что для тебя важнее?
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {[
-                          'Предельный заработок в валюте',
-                          'Сохранение жестких личных рамок'
-                        ].map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => handleAdultChange('priorityGoal', opt)}
-                            className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
-                              adultForm.priorityGoal === opt
-                                ? 'bg-rose-700 border-rose-700 text-white shadow-xs'
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <div className="flex items-start gap-2.5 text-sm text-neutral-200">
+                  <span className="text-[#00F5FF] font-bold text-base">•</span>
+                  <span><strong>Чек:</strong> Стабильный рост за счет базы преданных фанатов</span>
+                </div>
               </div>
-            )}
-
-            {/* Stepper Navigation Buttons */}
-            <div className="pt-8 mt-8 border-t border-gray-100 flex items-center justify-between">
-              {step > 1 ? (
-                <button
-                  type="button"
-                  onClick={() => setStep(step - 1)}
-                  className="px-6 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2"
-                >
-                  <ArrowLeft className="w-4 h-4" /> Назад
-                </button>
-              ) : (
-                <div></div>
-              )}
-
-              {step < 3 ? (
-                <button
-                  type="button"
-                  onClick={() => setStep(step + 1)}
-                  className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${
-                    activeTab === 'standard'
-                      ? 'bg-gray-900 hover:bg-black text-white shadow-sm'
-                      : 'bg-rose-700 hover:bg-rose-800 text-white shadow-sm'
-                  }`}
-                >
-                  Далее <ArrowRight className="w-4 h-4" />
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2.5 disabled:opacity-50 ${
-                    activeTab === 'standard'
-                      ? 'bg-gray-900 hover:bg-black text-white shadow-md'
-                      : 'bg-rose-700 hover:bg-rose-800 text-white shadow-md'
-                  }`}
-                >
-                  {isSubmitting ? (
-                    <>Отправка анкеты...</>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" /> Отправить анкету
-                    </>
-                  )}
-                </button>
-              )}
             </div>
-          </form>
-        )}
+
+            <div className="pt-8 relative z-10">
+              <button
+                type="button"
+                onClick={() => handleOpenForm('gaming')}
+                className="w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider bg-[#00F5FF] hover:bg-cyan-300 text-black shadow-[0_0_25px_rgba(0,245,255,0.4)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-2"
+              >
+                <span>Подать анкету</span>
+                <ArrowRight className="w-4 h-4 text-black" />
+              </button>
+            </div>
+          </div>
+
+          {/* КАРТОЧКА 2: AFTER DARK 18+ */}
+          <div className="rounded-3xl p-8 sm:p-10 bg-[rgba(18,20,32,0.7)] backdrop-blur-xl border border-[#FF007A]/40 hover:border-[#FF007A] shadow-[0_0_30px_rgba(255,0,122,0.1)] hover:shadow-[0_0_50px_rgba(255,0,122,0.25)] transition-all flex flex-col justify-between group relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF007A]/10 rounded-full blur-3xl pointer-events-none group-hover:bg-[#FF007A]/20 transition-all"></div>
+
+            <div className="space-y-6 relative z-10">
+              <div className="flex items-center justify-between">
+                <span className="px-3.5 py-1.5 rounded-xl bg-[#FF007A]/15 border border-[#FF007A]/40 text-[#FF007A] font-mono text-xs font-bold tracking-wider uppercase">
+                  Стиль: Неоновый пурпурный
+                </span>
+                <Flame className="w-6 h-6 text-[#FF007A]" />
+              </div>
+
+              <div>
+                <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                  AFTER DARK 18+
+                </h3>
+                <p className="text-xs font-mono text-neutral-400 mt-1">
+                  Площадки: <span className="text-white font-bold">Fansly, Private Live</span>
+                </p>
+              </div>
+
+              <div className="space-y-3 py-2 border-y border-white/[0.08]">
+                <div className="flex items-start gap-2.5 text-sm text-neutral-200">
+                  <span className="text-[#FF007A] font-bold text-base">•</span>
+                  <span><strong>Контент:</strong> Эротический ролеплей, фетиши, раздевание модели</span>
+                </div>
+                <div className="flex items-start gap-2.5 text-sm text-neutral-200">
+                  <span className="text-[#FF007A] font-bold text-base">•</span>
+                  <span><strong>Чек:</strong> Максимальный доход с первых стримов в валюте</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-8 relative z-10">
+              <button
+                type="button"
+                onClick={() => handleOpenForm('afterdark')}
+                className="w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider bg-[#FF007A] hover:bg-pink-500 text-white shadow-[0_0_25px_rgba(255,0,122,0.4)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-2"
+              >
+                <span>Подать анкету</span>
+                <ArrowRight className="w-4 h-4 text-white" />
+              </button>
+            </div>
+          </div>
+
+        </div>
 
       </div>
+
+      {/* МОДАЛЬНОЕ ОКНО СО СТЕППЕРОМ (1 ИЗ 3) */}
+      {activeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          {/* Backdrop */}
+          <div 
+            onClick={handleClose} 
+            className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity"
+          ></div>
+
+          {/* Modal Container */}
+          <div className={`relative w-full max-w-2xl bg-[#0D0E17] border rounded-3xl p-6 sm:p-10 z-10 shadow-[0_0_60px_rgba(0,0,0,0.9)] animate-fade-in text-left ${
+            activeModal === 'gaming' ? 'border-[#00F5FF]/40' : 'border-[#FF007A]/40'
+          }`}>
+            
+            {/* Close Button */}
+            <button
+              onClick={handleClose}
+              className="absolute top-5 right-5 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Success State */}
+            {isSuccess ? (
+              <div className="text-center py-8 space-y-6">
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto border shadow-2xl ${
+                  activeModal === 'gaming' 
+                    ? 'bg-[#00F5FF]/15 border-[#00F5FF] text-[#00F5FF] shadow-[0_0_40px_rgba(0,245,255,0.4)]' 
+                    : 'bg-[#FF007A]/15 border-[#FF007A] text-[#FF007A] shadow-[0_0_40px_rgba(255,0,122,0.4)]'
+                }`}>
+                  <CheckCircle2 className="w-10 h-10" />
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-2xl sm:text-3xl font-black text-white">Данные приняты в обработку</h3>
+                  <p className="text-neutral-300 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
+                    Продюсер свяжется с тобой в Telegram в течение 24 часов.
+                  </p>
+                </div>
+
+                <div className="pt-4">
+                  <button
+                    onClick={handleClose}
+                    className="px-8 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-mono text-xs uppercase tracking-wider transition-colors"
+                  >
+                    Закрыть окно
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Step-by-Step Form */
+              <form onSubmit={handleSubmit} className="space-y-6">
+                
+                {/* Stepper Header */}
+                <div className="border-b border-white/10 pb-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`font-mono text-xs font-bold uppercase tracking-widest ${
+                      activeModal === 'gaming' ? 'text-[#00F5FF]' : 'text-[#FF007A]'
+                    }`}>
+                      {activeModal === 'gaming' ? 'GAMING & SHOW // АНКЕТА' : 'AFTER DARK 18+ // АНКЕТА'}
+                    </span>
+                    <span className="font-mono text-xs text-neutral-400">Шаг {step} из 3</span>
+                  </div>
+
+                  <h3 className="text-xl sm:text-2xl font-bold text-white">
+                    {activeModal === 'gaming' && step === 1 && 'Шаг 1. Контакты и железо'}
+                    {activeModal === 'gaming' && step === 2 && 'Шаг 2. Психотип и голос'}
+                    {activeModal === 'gaming' && step === 3 && 'Шаг 3. Образ персонажа'}
+
+                    {activeModal === 'afterdark' && step === 1 && 'Шаг 1. База и верификация'}
+                    {activeModal === 'afterdark' && step === 2 && 'Шаг 2. Границы и фетиши'}
+                    {activeModal === 'afterdark' && step === 3 && 'Шаг 3. Табу и безопасность'}
+                  </h3>
+
+                  {/* Progress Line */}
+                  <div className="w-full bg-white/10 h-1.5 rounded-full mt-3 overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-300 ${
+                        activeModal === 'gaming' ? 'bg-[#00F5FF]' : 'bg-[#FF007A]'
+                      }`}
+                      style={{ width: `${(step / 3) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* ========================================================= */}
+                {/* ВАРИАНТ А: АНКЕТА «GAMING & SHOW» */}
+                {/* ========================================================= */}
+                {activeModal === 'gaming' && (
+                  <div className="space-y-5">
+                    {/* ШАГ 1: Контакты и железо */}
+                    {step === 1 && (
+                      <div className="space-y-4 animate-fade-in">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Telegram-юзернейм *</label>
+                            <input
+                              type="text"
+                              required
+                              value={gamingForm.telegram}
+                              onChange={(e) => setGamingForm({ ...gamingForm, telegram: e.target.value })}
+                              placeholder="@username"
+                              className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#00F5FF] focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Страна проживания *</label>
+                            <input
+                              type="text"
+                              required
+                              value={gamingForm.country}
+                              onChange={(e) => setGamingForm({ ...gamingForm, country: e.target.value })}
+                              placeholder="Россия, Беларусь, Казахстан..."
+                              className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#00F5FF] focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Возраст *</label>
+                            <input
+                              type="number"
+                              required
+                              min="16"
+                              max="80"
+                              value={gamingForm.age}
+                              onChange={(e) => setGamingForm({ ...gamingForm, age: e.target.value })}
+                              placeholder="18"
+                              className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#00F5FF] focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Паспорт для верификации *</label>
+                            <select
+                              value={gamingForm.passport}
+                              onChange={(e) => setGamingForm({ ...gamingForm, passport: e.target.value })}
+                              className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white focus:border-[#00F5FF] focus:outline-none"
+                            >
+                              <option value="Да">Да, есть</option>
+                              <option value="Нет">Нет в наличии</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Видеокарта и микрофон *</label>
+                          <input
+                            type="text"
+                            required
+                            value={gamingForm.hardware}
+                            onChange={(e) => setGamingForm({ ...gamingForm, hardware: e.target.value })}
+                            placeholder="Например: RTX 3060, микрофон Fifine / HyperX"
+                            className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#00F5FF] focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Опыт с USDT *</label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {['Да', 'Нет', 'Нужна инструкция'].map((opt) => (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => setGamingForm({ ...gamingForm, usdtExperience: opt })}
+                                className={`py-2.5 px-3 rounded-xl border text-xs font-medium text-center transition-all ${
+                                  gamingForm.usdtExperience === opt
+                                    ? 'bg-[#00F5FF]/20 border-[#00F5FF] text-[#00F5FF]'
+                                    : 'bg-black/30 border-white/10 text-neutral-400 hover:text-white'
+                                }`}
+                              >
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ШАГ 2: Психотип и голос */}
+                    {step === 2 && (
+                      <div className="space-y-4 animate-fade-in">
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Опиши себя тремя словами</label>
+                          <input
+                            type="text"
+                            value={gamingForm.threeWords}
+                            onChange={(e) => setGamingForm({ ...gamingForm, threeWords: e.target.value })}
+                            placeholder="Например: Дерзкий, хаотичный, упорный"
+                            className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#00F5FF] focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Твоя реакция на буллинг в чате</label>
+                          <input
+                            type="text"
+                            value={gamingForm.bullyingReaction}
+                            onChange={(e) => setGamingForm({ ...gamingForm, bullyingReaction: e.target.value })}
+                            placeholder="Ядовитый сарказм / бан / словесный батл"
+                            className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#00F5FF] focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Готовность громко кричать, визжать и отыгрывать эмоции</label>
+                          <select
+                            value={gamingForm.screamReady}
+                            onChange={(e) => setGamingForm({ ...gamingForm, screamReady: e.target.value })}
+                            className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white focus:border-[#00F5FF] focus:outline-none"
+                          >
+                            <option value="Да, легко">Да, легко</option>
+                            <option value="Умеренно, нужно разогреться">Умеренно, нужно разогреться</option>
+                            <option value="Предпочитаю спокойный стиль">Предпочитаю спокойный стиль</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Реальный разговорный английский</label>
+                          <select
+                            value={gamingForm.englishLevel}
+                            onChange={(e) => setGamingForm({ ...gamingForm, englishLevel: e.target.value })}
+                            className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white focus:border-[#00F5FF] focus:outline-none"
+                          >
+                            <option value="Свободно шучу и импровизирую">Свободно шучу и импровизирую</option>
+                            <option value="Строю простые фразы">Строю простые фразы</option>
+                            <option value="Нужен постоянный переводчик">Нужен постоянный переводчик</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ШАГ 3: Образ персонажа */}
+                    {step === 3 && (
+                      <div className="space-y-4 animate-fade-in">
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Какая роль ближе?</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {['Дерзкий робот-хакер', 'Капризная цундере', 'Токсичный сноб', 'Милая соня'].map((role) => (
+                              <button
+                                key={role}
+                                type="button"
+                                onClick={() => setGamingForm({ ...gamingForm, preferredRole: role })}
+                                className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
+                                  gamingForm.preferredRole === role
+                                    ? 'bg-[#00F5FF]/20 border-[#00F5FF] text-[#00F5FF]'
+                                    : 'bg-black/30 border-white/10 text-neutral-400 hover:text-white'
+                                }`}
+                              >
+                                {role}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Любимые игровые жанры</label>
+                          <input
+                            type="text"
+                            value={gamingForm.favoriteGenres}
+                            onChange={(e) => setGamingForm({ ...gamingForm, favoriteGenres: e.target.value })}
+                            placeholder="Шутеры, хорроры, инди, RPG..."
+                            className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#00F5FF] focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Сколько часов в неделю готов отдавать трансляциям?</label>
+                          <input
+                            type="text"
+                            value={gamingForm.weeklyHours}
+                            onChange={(e) => setGamingForm({ ...gamingForm, weeklyHours: e.target.value })}
+                            placeholder="Например: 15-20 часов"
+                            className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#00F5FF] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ========================================================= */}
+                {/* ВАРИАНТ Б: АНКЕТА «AFTER DARK 18+» */}
+                {/* ========================================================= */}
+                {activeModal === 'afterdark' && (
+                  <div className="space-y-5">
+                    {/* ШАГ 1: База и верификация */}
+                    {step === 1 && (
+                      <div className="space-y-4 animate-fade-in">
+                        <div className="p-3 rounded-xl bg-[#FF007A]/15 border border-[#FF007A]/30 text-xs text-rose-200 flex items-center gap-2">
+                          <ShieldAlert className="w-4 h-4 text-[#FF007A] shrink-0" />
+                          <span>Строго от 18 лет. Требуется паспорт для официального KYC на Fansly.</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Telegram-юзернейм *</label>
+                            <input
+                              type="text"
+                              required
+                              value={afterDarkForm.telegram}
+                              onChange={(e) => setAfterDarkForm({ ...afterDarkForm, telegram: e.target.value })}
+                              placeholder="@username"
+                              className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#FF007A] focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Страна проживания *</label>
+                            <input
+                              type="text"
+                              required
+                              value={afterDarkForm.country}
+                              onChange={(e) => setAfterDarkForm({ ...afterDarkForm, country: e.target.value })}
+                              placeholder="Россия, Казахстан, Грузия..."
+                              className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#FF007A] focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Возраст (строго 18+) *</label>
+                            <input
+                              type="number"
+                              required
+                              min="18"
+                              max="80"
+                              value={afterDarkForm.age}
+                              onChange={(e) => setAfterDarkForm({ ...afterDarkForm, age: e.target.value })}
+                              placeholder="18+"
+                              className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#FF007A] focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Паспорт для KYC 18+ *</label>
+                            <select
+                              value={afterDarkForm.kycPassport}
+                              onChange={(e) => setAfterDarkForm({ ...afterDarkForm, kycPassport: e.target.value })}
+                              className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white focus:border-[#FF007A] focus:outline-none"
+                            >
+                              <option value="Да">Да, есть</option>
+                              <option value="Нет">Нет в наличии</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Модель микрофона *</label>
+                            <input
+                              type="text"
+                              required
+                              value={afterDarkForm.microphone}
+                              onChange={(e) => setAfterDarkForm({ ...afterDarkForm, microphone: e.target.value })}
+                              placeholder="Fifine, Rode, Blue Yeti..."
+                              className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#FF007A] focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Криптокошелек (USDT) *</label>
+                            <select
+                              value={afterDarkForm.cryptoWallet}
+                              onChange={(e) => setAfterDarkForm({ ...afterDarkForm, cryptoWallet: e.target.value })}
+                              className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white focus:border-[#FF007A] focus:outline-none"
+                            >
+                              <option value="Да">Да, есть</option>
+                              <option value="Нет">Нет кошелька</option>
+                              <option value="Помочь настроить">Помочь настроить</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ШАГ 2: Границы и фетиши */}
+                    {step === 2 && (
+                      <div className="space-y-4 animate-fade-in">
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Готовность к тому, что 3D-модель раздевается по командам чата</label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {['Да, полностью готов(а)', 'Есть сомнения / нужны рамки'].map((opt) => (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => setAfterDarkForm({ ...afterDarkForm, stripReady: opt })}
+                                className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
+                                  afterDarkForm.stripReady === opt
+                                    ? 'bg-[#FF007A]/20 border-[#FF007A] text-[#FF007A]'
+                                    : 'bg-black/30 border-white/10 text-neutral-400 hover:text-white'
+                                }`}
+                              >
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Умение шептать, стонать и отыгрывать интимные звуки</label>
+                          <select
+                            value={afterDarkForm.audioSkills}
+                            onChange={(e) => setAfterDarkForm({ ...afterDarkForm, audioSkills: e.target.value })}
+                            className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white focus:border-[#FF007A] focus:outline-none"
+                          >
+                            <option value="Да, делаю это уверенно">Да, делаю это уверенно</option>
+                            <option value="Справлюсь после пары тренировок">Справлюсь после пары тренировок</option>
+                            <option value="Есть стеснение">Есть стеснение</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Твой комфортный архетип</label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {['Доминантка', 'Послушная горничная', 'Испорченная оторва'].map((arch) => (
+                              <button
+                                key={arch}
+                                type="button"
+                                onClick={() => setAfterDarkForm({ ...afterDarkForm, comfortableArchetype: arch })}
+                                className={`py-3 px-2 rounded-xl border text-xs font-semibold text-center transition-all ${
+                                  afterDarkForm.comfortableArchetype === arch
+                                    ? 'bg-[#FF007A]/20 border-[#FF007A] text-[#FF007A]'
+                                    : 'bg-black/30 border-white/10 text-neutral-400 hover:text-white'
+                                }`}
+                              >
+                                {arch}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ШАГ 3: Табу и безопасность */}
+                    {step === 3 && (
+                      <div className="space-y-4 animate-fade-in">
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Какие темы и действия запрещены для тебя навсегда даже за огромный донат?</label>
+                          <textarea
+                            rows="2"
+                            value={afterDarkForm.strictTaboos}
+                            onChange={(e) => setAfterDarkForm({ ...afterDarkForm, strictTaboos: e.target.value })}
+                            placeholder="Строгие табу..."
+                            className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#FF007A] focus:outline-none"
+                          ></textarea>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Готовность наговаривать короткие аудиосообщения для закрытых фанатов</label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {['Да, готов(а)', 'Нет, не готов(а)'].map((opt) => (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => setAfterDarkForm({ ...afterDarkForm, voiceMessagesReady: opt })}
+                                className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
+                                  afterDarkForm.voiceMessagesReady === opt
+                                    ? 'bg-[#FF007A]/20 border-[#FF007A] text-[#FF007A]'
+                                    : 'bg-black/30 border-white/10 text-neutral-400 hover:text-white'
+                                }`}
+                              >
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono uppercase text-neutral-300 block mb-1.5">Сколько дней в неделю готов выходить в приватные эфиры?</label>
+                          <input
+                            type="text"
+                            value={afterDarkForm.weeklyDays}
+                            onChange={(e) => setAfterDarkForm({ ...afterDarkForm, weeklyDays: e.target.value })}
+                            placeholder="Например: 3-4 дня"
+                            className="w-full bg-[#121420] border border-white/15 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#FF007A] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Footer Controls */}
+                <div className="pt-6 border-t border-white/10 flex items-center justify-between">
+                  {step > 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => setStep(step - 1)}
+                      className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2"
+                    >
+                      <ArrowLeft className="w-4 h-4" /> Назад
+                    </button>
+                  ) : (
+                    <div></div>
+                  )}
+
+                  {step < 3 ? (
+                    <button
+                      type="button"
+                      onClick={() => setStep(step + 1)}
+                      className={`px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${
+                        activeModal === 'gaming'
+                          ? 'bg-[#00F5FF] hover:bg-cyan-300 text-black shadow-[0_0_20px_rgba(0,245,255,0.4)]'
+                          : 'bg-[#FF007A] hover:bg-pink-500 text-white shadow-[0_0_20px_rgba(255,0,122,0.4)]'
+                      }`}
+                    >
+                      Далее <ArrowRight className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className={`px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2.5 disabled:opacity-50 ${
+                        activeModal === 'gaming'
+                          ? 'bg-[#00F5FF] hover:bg-cyan-300 text-black shadow-[0_0_25px_rgba(0,245,255,0.4)]'
+                          : 'bg-[#FF007A] hover:bg-pink-500 text-white shadow-[0_0_25px_rgba(255,0,122,0.4)]'
+                      }`}
+                    >
+                      {isSubmitting ? (
+                        <>Отправка заявки...</>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" /> Отправить заявку
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+
+              </form>
+            )}
+
+          </div>
+        </div>
+      )}
+
     </section>
   );
 };

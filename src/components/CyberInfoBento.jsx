@@ -1,83 +1,83 @@
 import React from 'react';
+import { Tv, ShieldCheck, Percent, Sparkles } from 'lucide-react';
 
 export const CyberInfoBento = () => {
   return (
-    <section id="about" className="py-24 bg-white border-b border-gray-200 relative text-left">
+    <section id="benefits" className="py-24 bg-[#090A0F] border-b border-white/[0.08] relative text-left">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <span className="font-mono text-xs text-gray-500 uppercase tracking-widest bg-gray-100 border border-gray-200 px-3 py-1 rounded-full">
-            Специфика индустрии
+          <span className="font-mono text-xs text-[#00F5FF] uppercase tracking-widest bg-[#00F5FF]/10 border border-[#00F5FF]/30 px-3.5 py-1 rounded-full">
+            Преимущества агентства
           </span>
-          <h2 className="text-gray-900 text-3xl sm:text-4xl font-black tracking-tight">
-            Формат и механика монетизации
+          <h2 className="text-white text-3xl sm:text-5xl font-black tracking-tight">
+            Почему формат работает
           </h2>
-          <p className="text-gray-600 text-base">
-            Почему виртуальные стримеры удерживают внимание выше классических авторов.
+          <p className="text-neutral-400 text-base">
+            Три ключевых фактора, которые обеспечивают взрывной рост аудитории и максимальную безопасность.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-          {/* Блок 2. Кто такой витубер (Левая колонка) */}
-          <div className="rounded-2xl p-8 sm:p-10 bg-[#F9FAFB] border border-gray-200 hover:border-gray-300 transition-colors flex flex-col justify-between shadow-sm">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-xs text-gray-600 uppercase tracking-wider bg-white px-3 py-1 rounded-md border border-gray-200 font-semibold">
-                  Блок 01 // Определение
-                </span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+          {/* Карточка 1 */}
+          <div className="group rounded-3xl p-8 bg-[rgba(18,20,32,0.7)] backdrop-blur-xl border border-white/[0.08] hover:border-[#00F5FF]/40 hover:shadow-[0_0_30px_rgba(0,245,255,0.15)] transition-all flex flex-col justify-between relative overflow-hidden">
+            <div className="space-y-6 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-[#00F5FF]/10 border border-[#00F5FF]/30 flex items-center justify-center text-[#00F5FF]">
+                <Tv className="w-6 h-6" />
               </div>
 
-              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-                Кто такой витубер
+              <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
+                Почему витуберы взрывают Twitch и Fansly
               </h3>
 
-              <div className="space-y-4 text-gray-700 text-base sm:text-lg leading-relaxed font-normal">
-                <p>
-                  <strong className="text-gray-900 font-bold">Виртуальный стример.</strong> Человек управляет трехмерным аватаром через камеру смартфона или обычную вебку. Модель считывает мимику лица в реальном времени.
-                </p>
-                <p className="text-gray-600">
-                  Ты можешь быть дерзким кибер-андроидом или готической куклой. Образ берет внимание на себя. Зрители видят живую харизму, но твоя личность скрыта броней кода.
-                </p>
-              </div>
+              <p className="text-neutral-300 text-sm sm:text-base leading-relaxed font-normal">
+                Западный зритель перенасыщен обычными вебками. Трехмерная модель привлекает внимание моментально. Интерактивные предметы, летящие в лицо аватара за донат, микросбои звука и безумная мимика создают эффект аниме в прямом эфире. За эту интерактивность донатят в разы охотнее.
+              </p>
             </div>
 
-            <div className="pt-8 mt-8 border-t border-gray-200 flex items-center gap-3 text-xs font-mono text-gray-500">
-              <span className="font-semibold text-gray-700">Технологии:</span>
-              <span className="text-gray-600">Live2D / VRM 3D</span>
-              <span className="text-gray-300">•</span>
-              <span className="text-gray-600">ARKit Motion</span>
+            <div className="pt-6 mt-6 border-t border-white/[0.06] text-xs font-mono text-[#00F5FF]">
+              #Live2D #VRM #InteractiveShow
             </div>
           </div>
 
-          {/* Блок 3. Почему зрители платят за это (Правая колонка) */}
-          <div className="rounded-2xl p-8 sm:p-10 bg-[#F9FAFB] border border-gray-200 hover:border-gray-300 transition-colors flex flex-col justify-between shadow-sm">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-xs text-gray-600 uppercase tracking-wider bg-white px-3 py-1 rounded-md border border-gray-200 font-semibold">
-                  Блок 02 // Экономика эмоций
-                </span>
-                <span className="w-2 h-2 rounded-full bg-gray-900"></span>
+          {/* Карточка 2 */}
+          <div className="group rounded-3xl p-8 bg-[rgba(18,20,32,0.7)] backdrop-blur-xl border border-white/[0.08] hover:border-emerald-500/40 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] transition-all flex flex-col justify-between relative overflow-hidden">
+            <div className="space-y-6 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <ShieldCheck className="w-6 h-6" />
               </div>
 
-              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-                Почему зрители платят за это
+              <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
+                Железная анонимность
               </h3>
 
-              <div className="space-y-4 text-gray-700 text-base sm:text-lg leading-relaxed font-normal">
-                <p>
-                  <strong className="text-gray-900 font-bold">Люди платят за эмоции.</strong> На западном рынке виртуальный стример воспринимается как персонаж ожившего аниме или интерактивного кино.
-                </p>
-                <p className="text-gray-600">
-                  Зрители донатят за живой отклик: крик испуга в хорроре, колкий сарказм, забавный голосовой глитч или брошенный прямо в лицо аватарки интерактивный предмет. Это шоу, где донатер становится участником событий.
-                </p>
-              </div>
+              <p className="text-neutral-300 text-sm sm:text-base leading-relaxed font-normal">
+                Никакого сталкерства, сливов внешности или страха встретить знакомых. Твоя комната и тело остаются за кадром. Зритель знает только персонажа, историю и голос.
+              </p>
             </div>
 
-            <div className="pt-8 mt-8 border-t border-gray-200 flex items-center gap-3 text-xs font-mono text-gray-500">
-              <span className="font-semibold text-gray-700">Монетизация:</span>
-              <span className="text-gray-600">Direct Donations</span>
-              <span className="text-gray-300">•</span>
-              <span className="text-gray-600">Fansly & Twitch</span>
+            <div className="pt-6 mt-6 border-t border-white/[0.06] text-xs font-mono text-emerald-400">
+              #TotalPrivacy #ZeroDoxxing
+            </div>
+          </div>
+
+          {/* Карточка 3 */}
+          <div className="group rounded-3xl p-8 bg-[rgba(18,20,32,0.7)] backdrop-blur-xl border border-white/[0.08] hover:border-[#FF007A]/40 hover:shadow-[0_0_30px_rgba(255,0,122,0.15)] transition-all flex flex-col justify-between relative overflow-hidden">
+            <div className="space-y-6 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-[#FF007A]/10 border border-[#FF007A]/30 flex items-center justify-center text-[#FF007A]">
+                <Percent className="w-6 h-6" />
+              </div>
+
+              <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
+                Честный процент 70/30
+              </h3>
+
+              <p className="text-neutral-300 text-sm sm:text-base leading-relaxed font-normal">
+                Никаких копеечных зарплат. Ты получаешь 70% со всех входящих денег: подписки, донаты, подарки, спонсорка. Мы забираем 30% за продакшн, маркетинг и ведение. Растет твой общий чек — наша комиссия снижается до 15%.
+              </p>
+            </div>
+
+            <div className="pt-6 mt-6 border-t border-white/[0.06] text-xs font-mono text-[#FF007A]">
+              #FairRevenueShare #ScalableIncome
             </div>
           </div>
         </div>

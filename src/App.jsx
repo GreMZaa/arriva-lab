@@ -1576,23 +1576,17 @@ export default function App() {
         
         {/* VIEW 1: HOME PAGE */}
         {view === 'home' && (
-          <div className="animate-fade-in bg-[#FAFAFC] text-gray-900 min-h-screen">
+          <div className="animate-fade-in bg-[#090A0F] text-white min-h-screen">
             {/* БЛОК 1: Главный экран (Hero Section) */}
-            <CyberHero onApplyClick={() => {
-              const el = document.getElementById('apply');
+            <CyberHero onChooseFormatClick={() => {
+              const el = document.getElementById('formats');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             }} />
 
-            {/* БЛОК 2 & 3: Информационный блок (Кто такой витубер & Почему зрители платят за это) */}
+            {/* БЛОК 2: Блок преимуществ (3 карточки) */}
             <CyberInfoBento />
 
-            {/* БЛОК 4: Суть партнерства */}
-            <CyberPartnership />
-
-            {/* БЛОК 5 & 6: Анонимность и документы & Выплаты */}
-            <CyberSafetyPayouts />
-
-            {/* АНКЕТА 1 & АНКЕТА 2 (Интерактивные воронки) */}
+            {/* БЛОК 3: Интерактивная развилка и пошаговый степпер анкет (Gaming & Show / After Dark 18+) */}
             <CyberSurvey onSubmitApplication={handleCyberApplicationSubmit} />
           </div>
         )}
