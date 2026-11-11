@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
   Gamepad2, 
   Flame, 
@@ -141,60 +141,50 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
   };
 
   return (
-    <section id="formats" className="py-24 bg-[#080512] border-t border-[#00F0FF]/20 relative text-left cyber-grid-container overflow-hidden">
-      
-      {/* Background Glowing Orbs */}
-      <div className="absolute top-1/2 left-5 w-[450px] h-[450px] bg-[#00F0FF]/15 rounded-full blur-[150px] pointer-events-none"></div>
-      <div className="absolute top-1/2 right-5 w-[450px] h-[450px] bg-[#FF0055]/15 rounded-full blur-[150px] pointer-events-none"></div>
-
+    <section id="formats" className="py-20 lg:py-24 border-t border-white/[0.06] stage-canvas overflow-hidden text-left">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#140826] border border-[#00F0FF]/40 shadow-[0_0_15px_rgba(0,240,255,0.25)]">
-            <span className="w-2 h-2 rounded-full bg-[#FF0055] animate-ping"></span>
-            <span className="font-mono text-xs text-white uppercase tracking-widest font-bold">
-              ИНТЕРАКТИВНАЯ РАЗВИЛКА // ВЫБОР ФОРМАТА
-            </span>
+        <header className="max-w-2xl mx-auto text-center mb-14 space-y-4">
+          <div className="badge-on-air justify-center">
+            <span className="rec-dot" aria-hidden />
+            Выбор формата · ~2 минуты
           </div>
 
-          <h2 className="font-cyber text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+          <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-[#f5f0e8]">
             Определи вектор продюсирования
           </h2>
-          
-          <p className="text-[#E2E8F0] text-base sm:text-lg">
-            Выбери одно из двух ключевых направлений. Анкета откроется во всплывающем окне и займет всего 2 минуты.
+
+          <p className="text-stone-400 text-base sm:text-lg">
+            Два направления — анкета откроется во всплывающем окне.
           </p>
-        </div>
+        </header>
 
         {/* ДВЕ КОНТРАСТНЫЕ КАРТОЧКИ-ВЫБОРА (Анкета полностью скрыта по умолчанию) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
           
-          {/* КАРТОЧКА 1: GAMING & SHOW (Обычный витубинг) */}
-          <div className="relative group rounded-3xl p-[2px] bg-gradient-to-b from-[#00F0FF] via-[#00F0FF]/40 to-[#B026FF] shadow-[0_0_35px_rgba(0,240,255,0.25)] hover:shadow-[0_0_55px_rgba(0,240,255,0.45)] transition-all">
-            <div className="rounded-[22px] p-8 sm:p-10 bg-[#0E061E]/95 backdrop-blur-xl h-full flex flex-col justify-between relative overflow-hidden">
+          {/* КАРТОЧКА 1: GAMING & SHOW */}
+          <div className="panel-stage p-8 sm:p-10 h-full flex flex-col justify-between relative overflow-hidden border-chroma/20 hover:border-chroma/35 transition-colors">
               
               {/* Corner HUD accent */}
-              <div className="absolute top-4 right-4 w-5 h-5 border-t-2 border-r-2 border-[#00F0FF] pointer-events-none"></div>
+              <div className="absolute top-4 right-4 w-5 h-5 border-t-2 border-r-2 border-[#4ade80] pointer-events-none"></div>
 
               <div className="space-y-6">
                 
                 {/* Header Tag */}
                 <div className="flex items-center justify-between">
-                  <span className="px-3.5 py-1.5 rounded-xl bg-[#00F0FF]/15 border border-[#00F0FF]/50 text-[#00F0FF] font-mono text-xs font-bold tracking-wider uppercase shadow-[0_0_12px_rgba(0,240,255,0.3)]">
+                  <span className="px-3.5 py-1.5 rounded-xl bg-[#4ade80]/15 border border-[#4ade80]/50 text-[#4ade80] font-mono text-xs font-bold tracking-wider uppercase ">
                     Twitch & YouTube
                   </span>
-                  <div className="p-2.5 rounded-xl bg-[#00F0FF]/15 border border-[#00F0FF]/40 text-[#00F0FF] shadow-[0_0_15px_rgba(0,240,255,0.3)]">
+                  <div className="p-2.5 rounded-xl bg-[#4ade80]/15 border border-[#4ade80]/40 text-[#4ade80] ">
                     <Gamepad2 className="w-6 h-6" />
                   </div>
                 </div>
 
                 {/* Title */}
                 <div>
-                  <h3 className="font-cyber text-2xl sm:text-3xl font-black text-white tracking-tight text-glow-cyan">
+                  <h3 className="font-display text-2xl sm:text-3xl font-black text-white tracking-tight ">
                     GAMING & SHOW
                   </h3>
-                  <p className="text-xs font-mono text-[#00F0FF] mt-1 font-semibold tracking-wider">
+                  <p className="text-xs font-mono text-[#4ade80] mt-1 font-semibold tracking-wider">
                     Обычный стриминг без 18+ ограничений
                   </p>
                 </div>
@@ -207,11 +197,11 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                 {/* Feature Bullets */}
                 <div className="space-y-3 py-4 border-y border-white/10">
                   <div className="flex items-center gap-2.5 text-xs sm:text-sm text-white">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] shadow-[0_0_6px_#00F0FF]"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] "></span>
                     <span><strong>Контент:</strong> Игры, хорроры, трэш-стримы, мем-интерактив</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-xs sm:text-sm text-white">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] shadow-[0_0_6px_#00F0FF]"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] "></span>
                     <span><strong>Чек:</strong> Стабильный рост за счет преданной базы фанатов</span>
                   </div>
                 </div>
@@ -223,40 +213,37 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                 <button
                   type="button"
                   onClick={() => handleOpenForm('gaming')}
-                  className="cyber-btn-red w-full py-4 text-sm sm:text-base font-cyber tracking-wider gap-2 shadow-[0_0_25px_rgba(255,0,85,0.6)]"
+                  className="cyber-btn-red w-full py-4 text-sm sm:text-base font-display tracking-wider gap-2 "
                 >
                   <span>ПОДАТЬ АНКЕТУ</span>
                   <ArrowRight className="w-5 h-5 text-white" />
                 </button>
               </div>
-
-            </div>
           </div>
 
-          {/* КАРТОЧКА 2: AFTER DARK 18+ (Взрослый сегмент) */}
-          <div className="relative group rounded-3xl p-[2px] bg-gradient-to-b from-[#FF0055] via-[#FF0055]/40 to-[#B026FF] shadow-[0_0_35px_rgba(255,0,85,0.25)] hover:shadow-[0_0_55px_rgba(255,0,85,0.45)] transition-all">
-            <div className="rounded-[22px] p-8 sm:p-10 bg-[#0E061E]/95 backdrop-blur-xl h-full flex flex-col justify-between relative overflow-hidden">
+          {/* КАРТОЧКА 2: AFTER DARK 18+ */}
+          <div className="panel-stage p-8 sm:p-10 h-full flex flex-col justify-between relative overflow-hidden border-live/20 hover:border-live/35 transition-colors">
               
-              <div className="absolute top-4 right-4 w-5 h-5 border-t-2 border-r-2 border-[#FF0055] pointer-events-none"></div>
+              <div className="absolute top-4 right-4 w-5 h-5 border-t-2 border-r-2 border-[#e11d48] pointer-events-none"></div>
 
               <div className="space-y-6">
                 
                 {/* Header Tag */}
                 <div className="flex items-center justify-between">
-                  <span className="px-3.5 py-1.5 rounded-xl bg-[#FF0055]/15 border border-[#FF0055]/50 text-[#FF0055] font-mono text-xs font-bold tracking-wider uppercase shadow-[0_0_12px_rgba(255,0,85,0.3)]">
+                  <span className="px-3.5 py-1.5 rounded-xl bg-[#e11d48]/15 border border-[#e11d48]/50 text-[#e11d48] font-mono text-xs font-bold tracking-wider uppercase ">
                     Fansly & Private Live
                   </span>
-                  <div className="p-2.5 rounded-xl bg-[#FF0055]/15 border border-[#FF0055]/40 text-[#FF0055] shadow-[0_0_15px_rgba(255,0,85,0.3)]">
+                  <div className="p-2.5 rounded-xl bg-[#e11d48]/15 border border-[#e11d48]/40 text-[#e11d48] ">
                     <Flame className="w-6 h-6" />
                   </div>
                 </div>
 
                 {/* Title */}
                 <div>
-                  <h3 className="font-cyber text-2xl sm:text-3xl font-black text-white tracking-tight text-glow-magenta">
+                  <h3 className="font-display text-2xl sm:text-3xl font-black text-white tracking-tight ">
                     AFTER DARK 18+
                   </h3>
-                  <p className="text-xs font-mono text-[#FF0055] mt-1 font-semibold tracking-wider">
+                  <p className="text-xs font-mono text-[#e11d48] mt-1 font-semibold tracking-wider">
                     Взрослый сегмент с максимальным доходом
                   </p>
                 </div>
@@ -269,11 +256,11 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                 {/* Feature Bullets */}
                 <div className="space-y-3 py-4 border-y border-white/10">
                   <div className="flex items-center gap-2.5 text-xs sm:text-sm text-white">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF0055] shadow-[0_0_6px_#FF0055]"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#e11d48] "></span>
                     <span><strong>Контент:</strong> Эротический ролеплей, фетиши, раздевание модели</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-xs sm:text-sm text-white">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF0055] shadow-[0_0_6px_#FF0055]"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#e11d48] "></span>
                     <span><strong>Чек:</strong> Максимальный доход с первых стримов в долларах/USDT</span>
                   </div>
                 </div>
@@ -285,18 +272,15 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                 <button
                   type="button"
                   onClick={() => handleOpenForm('afterdark')}
-                  className="cyber-btn-red w-full py-4 text-sm sm:text-base font-cyber tracking-wider gap-2 shadow-[0_0_25px_rgba(255,0,85,0.6)]"
+                  className="cyber-btn-red w-full py-4 text-sm sm:text-base font-display tracking-wider gap-2 "
                 >
                   <span>ПОДАТЬ АНКЕТУ</span>
                   <ArrowRight className="w-5 h-5 text-white" />
                 </button>
               </div>
-
-            </div>
           </div>
 
         </div>
-
       </div>
 
       {/* МОДАЛЬНОЕ ОКНО СО СТЕППЕРОМ (Плавно открывается по нажатию) */}
@@ -310,12 +294,12 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
           ></div>
 
           {/* Modal Container */}
-          <div className="relative w-full max-w-2xl bg-[#0E061E] border-2 border-[#00F0FF]/40 rounded-3xl p-6 sm:p-10 z-10 shadow-[0_0_60px_rgba(0,240,255,0.35)] animate-fade-in text-left">
+          <div className="relative w-full max-w-2xl bg-[#12100e] border-2 border-[#4ade80]/40 rounded-3xl p-6 sm:p-10 z-10  animate-fade-in text-left">
             
             {/* Close Button */}
             <button
               onClick={handleClose}
-              className="absolute top-5 right-5 p-2 rounded-xl bg-white/10 hover:bg-[#FF0055]/30 text-white hover:text-[#FF0055] border border-white/15 transition-colors"
+              className="absolute top-5 right-5 p-2 rounded-xl bg-white/10 hover:bg-[#e11d48]/30 text-white hover:text-[#e11d48] border border-white/15 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -323,12 +307,12 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
             {/* Success State */}
             {isSuccess ? (
               <div className="text-center py-8 space-y-6">
-                <div className="w-20 h-20 rounded-2xl bg-[#00F0FF]/20 border border-[#00F0FF] text-[#00F0FF] flex items-center justify-center mx-auto shadow-[0_0_35px_rgba(0,240,255,0.5)]">
+                <div className="w-20 h-20 rounded-2xl bg-[#4ade80]/20 border border-[#4ade80] text-[#4ade80] flex items-center justify-center mx-auto ">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="font-cyber text-2xl sm:text-3xl font-black text-white text-glow-cyan">
+                  <h3 className="font-display text-2xl sm:text-3xl font-black text-white ">
                     Данные приняты в обработку!
                   </h3>
                   <p className="text-[#E2E8F0] text-sm sm:text-base max-w-md mx-auto leading-relaxed">
@@ -339,7 +323,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                 <div className="pt-4">
                   <button
                     onClick={handleClose}
-                    className="cyber-btn-red px-8 py-3.5 text-xs font-cyber tracking-wider"
+                    className="cyber-btn-red px-8 py-3.5 text-xs font-display tracking-wider"
                   >
                     Закрыть окно
                   </button>
@@ -352,7 +336,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                 {/* Stepper Header */}
                 <div className="border-b border-white/15 pb-5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#00F0FF] text-glow-cyan">
+                    <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#4ade80] ">
                       {activeModal === 'gaming' ? 'GAMING & SHOW // АНКЕТА' : 'AFTER DARK 18+ // АНКЕТА'}
                     </span>
                     <span className="font-mono text-xs text-white bg-white/10 px-2.5 py-0.5 rounded border border-white/20">
@@ -360,7 +344,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                     </span>
                   </div>
 
-                  <h3 className="font-cyber text-xl sm:text-2xl font-bold text-white">
+                  <h3 className="font-display text-xl sm:text-2xl font-bold text-white">
                     {activeModal === 'gaming' && step === 1 && 'Шаг 1. Контакты и оборудование'}
                     {activeModal === 'gaming' && step === 2 && 'Шаг 2. Психотип и подача'}
                     {activeModal === 'gaming' && step === 3 && 'Шаг 3. Образ и расписание'}
@@ -372,10 +356,10 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
 
                   {/* Progress Line */}
                   <div className="w-full bg-white/10 h-2 rounded-full mt-3 overflow-hidden p-0.5 border border-white/10">
-                    <div 
-                      className="h-full bg-gradient-to-r from-[#00F0FF] to-[#FF0055] rounded-full transition-all duration-300 shadow-[0_0_12px_rgba(255,0,85,0.8)]"
+                    <div
+                      className="h-full bg-chroma rounded-full transition-all duration-300"
                       style={{ width: `${(step / 3) * 100}%` }}
-                    ></div>
+                    />
                   </div>
                 </div>
 
@@ -390,7 +374,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                       <div className="space-y-4 animate-fade-in">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-xs font-mono uppercase text-[#00F0FF] block mb-1.5 font-bold">Telegram-юзернейм *</label>
+                            <label className="text-xs font-mono uppercase text-[#4ade80] block mb-1.5 font-bold">Telegram-юзернейм *</label>
                             <input
                               type="text"
                               required
@@ -464,7 +448,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                                 onClick={() => setGamingForm({ ...gamingForm, usdtExperience: opt })}
                                 className={`py-2.5 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
                                   gamingForm.usdtExperience === opt
-                                    ? 'bg-[#00F0FF]/25 border-[#00F0FF] text-white shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                                    ? 'bg-[#4ade80]/25 border-[#4ade80] text-white '
                                     : 'bg-white/5 border-white/10 text-[#E2E8F0] hover:bg-white/10'
                                 }`}
                               >
@@ -542,7 +526,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                                 onClick={() => setGamingForm({ ...gamingForm, preferredRole: role })}
                                 className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
                                   gamingForm.preferredRole === role
-                                    ? 'bg-[#00F0FF]/25 border-[#00F0FF] text-white shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                                    ? 'bg-[#4ade80]/25 border-[#4ade80] text-white '
                                     : 'bg-white/5 border-white/10 text-[#E2E8F0] hover:bg-white/10'
                                 }`}
                               >
@@ -588,14 +572,14 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                     {/* ШАГ 1: Базовые данные и верификация */}
                     {step === 1 && (
                       <div className="space-y-4 animate-fade-in">
-                        <div className="p-3.5 rounded-xl bg-[#FF0055]/15 border border-[#FF0055]/40 text-xs text-white flex items-center gap-2.5 shadow-[0_0_15px_rgba(255,0,85,0.2)]">
-                          <ShieldAlert className="w-5 h-5 text-[#FF0055] shrink-0" />
+                        <div className="p-3.5 rounded-xl bg-[#e11d48]/15 border border-[#e11d48]/40 text-xs text-white flex items-center gap-2.5 ">
+                          <ShieldAlert className="w-5 h-5 text-[#e11d48] shrink-0" />
                           <span>Строго от 18 лет. Паспорт необходим для закрытой верификации на Fansly.</span>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-xs font-mono uppercase text-[#FF0055] block mb-1.5 font-bold">Telegram-юзернейм *</label>
+                            <label className="text-xs font-mono uppercase text-[#e11d48] block mb-1.5 font-bold">Telegram-юзернейм *</label>
                             <input
                               type="text"
                               required
@@ -689,7 +673,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                                 onClick={() => setAfterDarkForm({ ...afterDarkForm, stripReady: opt })}
                                 className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
                                   afterDarkForm.stripReady === opt
-                                    ? 'bg-[#FF0055]/25 border-[#FF0055] text-white shadow-[0_0_12px_rgba(255,0,85,0.4)]'
+                                    ? 'bg-[#e11d48]/25 border-[#e11d48] text-white '
                                     : 'bg-white/5 border-white/10 text-[#E2E8F0] hover:bg-white/10'
                                 }`}
                               >
@@ -722,7 +706,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                                 onClick={() => setAfterDarkForm({ ...afterDarkForm, comfortableArchetype: arch })}
                                 className={`py-3 px-2 rounded-xl border text-xs font-semibold text-center transition-all ${
                                   afterDarkForm.comfortableArchetype === arch
-                                    ? 'bg-[#FF0055]/25 border-[#FF0055] text-white shadow-[0_0_12px_rgba(255,0,85,0.4)]'
+                                    ? 'bg-[#e11d48]/25 border-[#e11d48] text-white '
                                     : 'bg-white/5 border-white/10 text-[#E2E8F0] hover:bg-white/10'
                                 }`}
                               >
@@ -758,7 +742,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                                 onClick={() => setAfterDarkForm({ ...afterDarkForm, voiceMessagesReady: opt })}
                                 className={`py-3 px-3 rounded-xl border text-xs font-semibold text-center transition-all ${
                                   afterDarkForm.voiceMessagesReady === opt
-                                    ? 'bg-[#FF0055]/25 border-[#FF0055] text-white shadow-[0_0_12px_rgba(255,0,85,0.4)]'
+                                    ? 'bg-[#e11d48]/25 border-[#e11d48] text-white '
                                     : 'bg-white/5 border-white/10 text-[#E2E8F0] hover:bg-white/10'
                                 }`}
                               >
@@ -802,7 +786,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                     <button
                       type="button"
                       onClick={() => setStep(step + 1)}
-                      className="cyber-btn-red px-8 py-3.5 text-xs font-cyber tracking-wider gap-2 shadow-[0_0_25px_rgba(255,0,85,0.6)]"
+                      className="cyber-btn-red px-8 py-3.5 text-xs font-display tracking-wider gap-2 "
                     >
                       <span>Далее</span>
                       <ArrowRight className="w-4 h-4" />
@@ -811,7 +795,7 @@ export const CyberSurvey = ({ onSubmitApplication }) => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="cyber-btn-red px-8 py-3.5 text-xs font-cyber tracking-wider gap-2.5 disabled:opacity-50 shadow-[0_0_30px_rgba(255,0,85,0.7)]"
+                      className="cyber-btn-red px-8 py-3.5 text-xs font-display tracking-wider gap-2.5 disabled:opacity-50 "
                     >
                       {isSubmitting ? (
                         <>Отправка...</>

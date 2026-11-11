@@ -1,45 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Unbounded:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap');
 
 :root {
-  /* Cyber Palette */
-  --cyber-bg: #080512;
-  --cyber-bg-alt: #140826;
-  --neon-cyan: #00F0FF;
-  --neon-magenta: #FF0055;
-  --neon-purple: #B026FF;
-  
-  --primary: #FF0055;
-  --primary-hover: #ff2a75;
-  --primary-dark: #b8003d;
-  
-  --bg-light: #FFFFFF;
-  --bg-subtle: #F8FAFC;
-  --border-light: #E2E8F0;
-  --text-dark: #0F172A;
-  --text-muted: #64748B;
-  
-  --bg-dark: #080512;
-  --bg-dark-subtle: #140826;
-  --border-dark: rgba(0, 240, 255, 0.2);
-  --text-light: #FFFFFF;
-  --text-dark-muted: #E2E8F0;
+  /* Arriva — виртуальная сцена / режиссёрская (не AI-neon) */
+  --stage-void: #0a0908;
+  --stage-floor: #12100e;
+  --stage-panel: #1a1816;
+  --stage-line: rgba(245, 240, 232, 0.08);
 
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
+  --ink: #f5f0e8;
+  --ink-muted: #a8a29e;
+  --ink-dim: #78716c;
 
-  /* Font Families */
-  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-cyber: 'Unbounded', 'Orbitron', system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --live: #e11d48;
+  --live-hover: #f43f5e;
+  --live-pressed: #be123c;
 
-  /* Transitions */
-  --transition-fast: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-normal: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-slow: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  --chroma: #4ade80;
+  --chroma-dim: #22c55e;
+  --chroma-muted: rgba(74, 222, 128, 0.15);
+
+  --dossier: #f3ede4;
+  --dossier-ink: #1c1917;
+  --dossier-muted: #57534e;
+  --dossier-border: #d6d3d1;
+
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-display: 'Syne', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --transition-fast: 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+  --transition-normal: 0.28s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* Global Reset & Base */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -47,10 +39,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
+html,
+body {
   font-family: var(--font-sans);
-  background-color: var(--cyber-bg);
-  color: #FFFFFF;
+  background-color: var(--stage-void);
+  color: var(--ink);
   scroll-behavior: smooth;
   overflow-x: hidden;
   width: 100%;
@@ -58,209 +51,284 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Prevent auto zoom on iOS inputs */
-input, select, textarea {
+input,
+select,
+textarea {
   font-size: 16px !important;
 }
 
-/* Custom Cyber Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #080512;
+  background: var(--stage-void);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 0, 85, 0.4);
+  background: var(--stage-panel);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #FF0055;
-  box-shadow: 0 0 10px #FF0055;
+  background: #292524;
 }
 
-/* Cyber Font Utilities */
+.font-display,
 .font-cyber {
-  font-family: 'Unbounded', 'Orbitron', system-ui, sans-serif;
-}
-.font-orbitron {
-  font-family: 'Orbitron', system-ui, sans-serif;
+  font-family: var(--font-display);
 }
 
-/* Cyber Text Glow Utilities */
-.text-glow-cyan {
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.7), 0 0 25px rgba(0, 240, 255, 0.35);
-}
-.text-glow-magenta {
-  text-shadow: 0 0 10px rgba(255, 0, 85, 0.7), 0 0 25px rgba(255, 0, 85, 0.35);
+.font-mono {
+  font-family: var(--font-mono);
 }
 
-/* Perspective Cyber Grid Background */
+/* Сцена: лёгкая зернистость + вертикальные safe-area */
+.stage-canvas,
 .cyber-grid-container {
-  background-color: #080512;
-  background-image: 
-    radial-gradient(ellipse 90% 60% at 50% 0%, #1A0B36 0%, rgba(20, 8, 38, 0.75) 45%, #080512 85%),
-    linear-gradient(to right, rgba(0, 240, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 0, 85, 0.08) 1px, transparent 1px);
-  background-size: 100% 100%, 48px 48px, 48px 48px;
+  background-color: var(--stage-void);
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+    linear-gradient(90deg, transparent 0%, transparent calc(50% - 420px), var(--stage-line) calc(50% - 420px), var(--stage-line) calc(50% - 419px), transparent calc(50% - 419px), transparent calc(50% + 419px), var(--stage-line) calc(50% + 419px), var(--stage-line) calc(50% + 420px), transparent calc(50% + 420px));
   position: relative;
 }
 
-/* Uniform Neon Red Cyber Button */
+.stage-canvas::before,
+.cyber-grid-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(225, 29, 72, 0.06), transparent 65%);
+}
+
+/* REC / LIVE */
+.badge-on-air {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--stage-panel);
+  border: 1px solid var(--stage-line);
+  border-radius: 999px;
+}
+
+.rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--live);
+  box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.25);
+  animation: recBlink 1.4s ease-in-out infinite;
+}
+
+@keyframes recBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-dot {
+    animation: none;
+  }
+}
+
+/* Главная CTA — сплошной tally, без glow */
+.btn-live,
 .cyber-btn-red {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #FF0055 0%, #E6004C 100%);
-  color: #FFFFFF !important;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-radius: 12px;
-  box-shadow: 0 0 25px rgba(255, 0, 85, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  border: 1px solid rgba(255, 120, 160, 0.5);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: pointer;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-.cyber-btn-red:hover {
-  background: linear-gradient(135deg, #FF1A6C 0%, #FF0055 100%);
-  box-shadow: 0 0 35px rgba(255, 0, 85, 0.9), 0 0 15px rgba(255, 0, 85, 0.6);
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.8);
-}
-.cyber-btn-red:active {
-  transform: translateY(0);
-  box-shadow: 0 0 15px rgba(255, 0, 85, 0.5);
-}
-
-/* HUD Panels with chamfered/angled corners */
-.hud-clip {
-  clip-path: polygon(
-    0 16px, 16px 0,
-    calc(100% - 16px) 0, 100% 16px,
-    100% calc(100% - 16px), calc(100% - 16px) 100%,
-    16px 100%, 0 calc(100% - 16px)
-  );
-}
-
-.hud-panel-cyan {
-  background: rgba(14, 10, 28, 0.75);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 240, 255, 0.35);
-  box-shadow: 0 0 30px rgba(0, 240, 255, 0.12), inset 0 0 20px rgba(0, 240, 255, 0.04);
-}
-.hud-panel-cyan:hover {
-  border-color: rgba(0, 240, 255, 0.7);
-  box-shadow: 0 0 45px rgba(0, 240, 255, 0.25), inset 0 0 25px rgba(0, 240, 255, 0.08);
-}
-
-.hud-panel-magenta {
-  background: rgba(14, 10, 28, 0.75);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 0, 85, 0.4);
-  box-shadow: 0 0 30px rgba(255, 0, 85, 0.15), inset 0 0 20px rgba(255, 0, 85, 0.05);
-}
-.hud-panel-magenta:hover {
-  border-color: rgba(255, 0, 85, 0.8);
-  box-shadow: 0 0 45px rgba(255, 0, 85, 0.3), inset 0 0 25px rgba(255, 0, 85, 0.1);
-}
-
-/* Typography Utility */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-cyber);
+  gap: 0.5rem;
+  background: var(--live);
+  color: #fff !important;
+  font-family: var(--font-display);
   font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 6px;
+  border: none;
+  box-shadow: none;
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast);
+  cursor: pointer;
+}
+
+.btn-live:hover,
+.cyber-btn-red:hover {
+  background: var(--live-hover);
+  transform: translateY(-1px);
+  box-shadow: none;
+  border: none;
+}
+
+.btn-live:active,
+.cyber-btn-red:active {
+  background: var(--live-pressed);
+  transform: translateY(0);
+}
+
+/* Панели вещания */
+.panel-stage {
+  background: var(--stage-floor);
+  border: 1px solid var(--stage-line);
+  border-radius: 4px;
+}
+
+.panel-stage:hover {
+  border-color: rgba(245, 240, 232, 0.14);
+}
+
+.safe-frame {
+  position: relative;
+}
+
+.safe-frame::before,
+.safe-frame::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.safe-frame::before {
+  top: 10px;
+  left: 10px;
+  border-top: 2px solid var(--chroma);
+  border-left: 2px solid var(--chroma);
+}
+
+.safe-frame::after {
+  bottom: 10px;
+  right: 10px;
+  border-bottom: 2px solid var(--chroma);
+  border-right: 2px solid var(--chroma);
+}
+
+/* Убираем неоновые glow-утилиты */
+.text-glow-cyan,
+.text-glow-magenta {
+  text-shadow: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
   color: inherit;
 }
 
 h1 {
-  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  font-size: clamp(2.1rem, 4.8vw, 3.75rem);
   font-weight: 800;
-  letter-spacing: -0.03em;
 }
 
 h2 {
-  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-size: clamp(1.65rem, 3.5vw, 2.65rem);
 }
 
 p {
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
-/* Button Component Standards */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-weight: 700;
-  border-radius: 12px;
+  font-weight: 600;
+  border-radius: 6px;
   transition: all var(--transition-fast);
   cursor: pointer;
   border: 1px solid transparent;
   padding: 12px 24px;
   font-size: 0.95rem;
-  letter-spacing: -0.01em;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #FF0055 0%, #E6004C 100%);
-  color: #FFFFFF !important;
-  box-shadow: 0 0 25px rgba(255, 0, 85, 0.6);
-  border: 1px solid rgba(255, 120, 160, 0.5);
+  background: var(--live);
+  color: #fff !important;
+  box-shadow: none;
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #FF1A6C 0%, #FF0055 100%);
-  box-shadow: 0 0 35px rgba(255, 0, 85, 0.85);
-  transform: translateY(-2px);
+  background: var(--live-hover);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: var(--stage-panel);
+  color: var(--ink);
+  border: 1px solid var(--stage-line);
 }
 .btn-secondary:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(245, 240, 232, 0.2);
 }
 
-/* Form Controls */
 .input-field {
   width: 100%;
-  padding: 14px 18px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background-color: rgba(14, 10, 28, 0.8);
-  color: #FFFFFF;
+  padding: 14px 16px;
+  border-radius: 4px;
+  border: 1px solid var(--stage-line);
+  background-color: var(--stage-floor);
+  color: var(--ink);
   font-family: inherit;
   font-size: 0.95rem;
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast);
   outline: none;
 }
 .input-field:focus {
-  border-color: #00F0FF;
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+  border-color: var(--chroma-dim);
+  box-shadow: none;
 }
 
-/* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
   animation: fadeIn var(--transition-normal) forwards;
 }
 
-/* Pulse animation */
-@keyframes cyberPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.9); }
+/* Legacy HUD — flatten to stage panels */
+.hud-clip {
+  clip-path: none;
+  border-radius: 4px;
 }
-.animate-cyber-pulse {
-  animation: cyberPulse 2s infinite ease-in-out;
+
+.hud-panel-cyan,
+.hud-panel-magenta {
+  background: var(--stage-floor);
+  backdrop-filter: none;
+  border: 1px solid var(--stage-line);
+  box-shadow: none;
+}
+.hud-panel-cyan:hover,
+.hud-panel-magenta:hover {
+  border-color: rgba(74, 222, 128, 0.35);
+  box-shadow: none;
 }

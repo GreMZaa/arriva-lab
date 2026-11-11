@@ -1576,7 +1576,7 @@ export default function App() {
         
         {/* VIEW 1: HOME PAGE */}
         {view === 'home' && (
-          <div className="animate-fade-in bg-[#080512] text-white min-h-screen">
+          <div className="animate-fade-in bg-stage-void text-[#f5f0e8] min-h-screen">
             {/* БЛОК 1: Главный экран (Hero Section) */}
             <CyberHero onChooseFormatClick={() => {
               const el = document.getElementById('formats');
@@ -1586,7 +1586,9 @@ export default function App() {
             {/* БЛОК 2: Блок преимуществ (3 карточки) */}
             <CyberInfoBento />
 
-            {/* БЛОК 3: Интерактивная развилка и пошаговый степпер анкет (Gaming & Show / After Dark 18+) */}
+            <CyberPartnership />
+            <CyberSafetyPayouts />
+
             <CyberSurvey onSubmitApplication={handleCyberApplicationSubmit} />
           </div>
         )}
