@@ -1,0 +1,28 @@
+# ARRIVA lab
+
+> Продюсерский центр запуска VTuber-карьеры под ключ: 3D-аватар, трекинг лица, выход на Twitch, YouTube, Fansly, выплаты в USDT.
+
+## О проекте
+
+ARRIVA lab помогает русскоязычным стримерам стартовать как витуберы без показа лица. Агентство создаёт персонажа под психотип, настраивает софт, подключает куратора и выводит на аудиторию США и Европы. Доля модели от 70% до 80% с чистого дохода.
+
+## Направления
+
+- **Gaming & Show** — стриминг игр и шоу на Twitch и YouTube (без 18+).
+- **After Dark 18+** — Fansly и приватные эфиры для взрослого сегмента.
+
+## Ключевые страницы
+
+- Главная: https://arriva-lab.vercel.app/
+- О проекте (FAQ): https://arriva-lab.vercel.app/#details
+- Выбор формата и анкета: https://arriva-lab.vercel.app/#formats
+
+## Контакты и вход
+
+- Telegram-бот: https://t.me/ArrivalLabBOT
+- Личный кабинет: https://arriva-lab.vercel.app/#cabinet
+
+## Политика
+
+- Политика конфиденциальности: https://arriva-lab.vercel.app/#privacy
+- Пользовательское соглашение: https://arriva-lab.vercel.app/#terms
