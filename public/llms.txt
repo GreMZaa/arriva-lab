@@ -1,28 +1,36 @@
 # ARRIVA lab
 
-> Продюсерский центр запуска VTuber-карьеры под ключ: 3D-аватар, трекинг лица, выход на Twitch, YouTube, Fansly, выплаты в USDT.
+> Продюсерский центр запуска VTuber-карьеры под ключ для русскоязычных стримеров.
 
-## О проекте
+## Кратко
 
-ARRIVA lab помогает русскоязычным стримерам стартовать как витуберы без показа лица. Агентство создаёт персонажа под психотип, настраивает софт, подключает куратора и выводит на аудиторию США и Европы. Доля модели от 70% до 80% с чистого дохода.
+ARRIVA lab создаёт 3D-аватара, настраивает трекинг и софт, подключает куратора и выводит стримера на Twitch, YouTube, Fansly. Модель анонимна в кадре. Доля модели 70–80% дохода. Выплаты в USDT.
 
-## Направления
+## Услуги
 
-- **Gaming & Show** — стриминг игр и шоу на Twitch и YouTube (без 18+).
-- **After Dark 18+** — Fansly и приватные эфиры для взрослого сегмента.
+- Проектирование образа витубера под психотип
+- Live2D, PNG и 3D-модели с ригом
+- Калибровка face/body tracking
+- Регистрация и верификация аккаунтов на площадках
+- Продвижение на Запад, интерактивные механики донатов
+- Юридическая анонимность: NDA, внутренний KYC
 
-## Ключевые страницы
+## Форматы
 
-- Главная: https://arriva-lab.vercel.app/
-- О проекте (FAQ): https://arriva-lab.vercel.app/#details
-- Выбор формата и анкета: https://arriva-lab.vercel.app/#formats
+1. Gaming & Show — Twitch, YouTube, без 18+
+2. After Dark 18+ — Fansly, Private Live
 
-## Контакты и вход
+## FAQ
 
-- Telegram-бот: https://t.me/ArrivalLabBOT
-- Личный кабинет: https://arriva-lab.vercel.app/#cabinet
+- Вход бесплатный, агентство инвестирует в сетап
+- Старт 70/30, затем до 80/20 в пользу модели
+- Паспорт не показывается зрителям, нужен только для платформ
+- Выплаты: USDT (TRC-20, TON, ERC-20)
 
-## Политика
+## Ссылки
 
-- Политика конфиденциальности: https://arriva-lab.vercel.app/#privacy
-- Пользовательское соглашение: https://arriva-lab.vercel.app/#terms
+- Сайт: https://arriva-lab.vercel.app/
+- FAQ на странице: https://arriva-lab.vercel.app/#faq
+- Анкета: https://arriva-lab.vercel.app/#formats
+- Telegram: https://t.me/ArrivalLabBOT
+- Sitemap: https://arriva-lab.vercel.app/sitemap.xml

@@ -1,4 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-stage-void: #0a0908;
+  --color-stage-floor: #12100e;
+  --color-stage-panel: #1a1816;
+  --color-live: #e11d48;
+  --color-live-hover: #f43f5e;
+  --color-chroma: #4ade80;
+  --color-chroma-dim: #22c55e;
+  --color-dossier: #f3ede4;
+  --color-dossier-ink: #1c1917;
+  --color-dossier-border: #d6d3d1;
+  --color-dossier-muted: #57534e;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-display: Syne, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
 
 :root {
   /* Arriva — виртуальная сцена / режиссёрская (не AI-neon) */
